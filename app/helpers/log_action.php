@@ -5,7 +5,7 @@ function logAction(mysqli $conn, string $username, string $action, string $detai
   $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
   $stmt = $conn->prepare(
-    'INSERT INTO log (username, action, action_time, ip_address, details)
+    'INSERT INTO audit_log (username, action_type, time_stamp, ip_address, details)
     VALUES (?, ?, NOW(), ?, ?)'
   );
 
