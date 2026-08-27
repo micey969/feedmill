@@ -4,11 +4,12 @@ require_once __DIR__ . '/../app/views/auth/login.php';
 
 <!DOCTYPE html>
 <html lang="en">
-<head>  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ECGC Feeds System - Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+
+<!-- Dynamic Head Component -->
+<?php 
+  $siteTitle = 'ECGC - Feeds Production Login';
+  require_once __DIR__ . '/../app/views/includes/head.php'; 
+?>
 <body class="bg-slate-900 min-h-screen text-slate-800 font-sans antialiased flex">
 
   <div class="w-full min-h-screen flex flex-col md:flex-row">

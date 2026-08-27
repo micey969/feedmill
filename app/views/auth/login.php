@@ -15,17 +15,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Gets user from database
-    $sql = "SELECT * FROM accounts WHERE username='$username' AND password='$password'";
+    $sql = "SELECT * FROM accounts WHERE username='$username' AND password='$password' AND active_flag = 1";
     $result = $conn->query($sql);
 
     if ($result && $result->num_rows == 1) {
         $user = $result->fetch_assoc();
+
+        session_regenerate_id(true);
         
         $_SESSION['user'] = $user['username'];
         $_SESSION['full_name'] = isset($user['full_name']) ? $user['full_name'] : '';
         $_SESSION['job_title'] = isset($user['job_title']) ? $user['job_title'] : '';
         $_SESSION['image_name'] = isset($user['image_name']) ? $user['image_name'] : '';
-        $_SESSION['admin_flag'] = isset($user['admin_flag']) && $user['admin_flag'] === 1;
+        $_SESSION['admin_flag'] = isset($user['admin_flag']) && (int) $user['admin_flag'] === 1;
         $_SESSION['last_activity'] = time();
         logAction($conn, $_SESSION['user'], "LOGIN", "Successful login for user " . $user['username']);
 
