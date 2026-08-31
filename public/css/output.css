@@ -662,6 +662,9 @@
   .bg-red-600 {
     background-color: var(--color-red-600);
   }
+  .bg-red-800 {
+    background-color: var(--color-red-800);
+  }
   .bg-slate-50 {
     background-color: var(--color-slate-50);
   }

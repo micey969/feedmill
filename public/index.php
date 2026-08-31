@@ -19,7 +19,7 @@ require_once __DIR__ . '/../app/middleware/auth.php';
   
 
   <!-- ================= MAIN CONTENT AREA ================= -->
-  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <main id="main-content" class="flex-1 flex flex-col min-w-0 overflow-y-auto">
     
     <!-- Top Action Bar -->
     <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-xs">

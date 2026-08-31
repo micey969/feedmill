@@ -9,7 +9,23 @@ if (isset($_SESSION['user'])) {
 
 session_unset();
 session_destroy();
-
-header("Location: login.php");
-exit;
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logging out...</title>
+  <script>
+    // Clear sidebar state from localStorage on logout
+    localStorage.removeItem('feedmill-sidebar-collapsed');
+  </script>
+</head>
+<body>
+  <script>
+    // Redirect to login after clearing storage
+    window.location.href = 'login.php';
+  </script>
+</body>
+</html>

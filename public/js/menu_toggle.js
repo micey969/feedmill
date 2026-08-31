@@ -17,10 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(collapsedStorageKey, String(isCollapsed));
   };
 
-  // 1. Restore state on load
+  // 1. Always start with sidebar expanded on fresh page load
   if (sidebar && window.innerWidth >= 768) {
-    const isSavedCollapsed = localStorage.getItem(collapsedStorageKey) === 'true';
-    setSidebarCollapsed(isSavedCollapsed);
+    sidebar.classList.remove('collapsed');
+    sidebar.classList.remove('md:w-20');
+    sidebar.classList.add('md:w-72');
   }
 
   // 2. Hamburger Toggle Button Handler
@@ -44,7 +45,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // 4. Close floating menus only when in collapsed mode
+  attachLinkCloseHandlers();
+
+  // 5. Initial Active Link Highlight & Section Menu Expansion Pass
+  updateActiveLinks();
 });
+
+// Attach close menu handlers to links (only active in collapsed mode)
+function attachLinkCloseHandlers() {
+  document.querySelectorAll('#sidebar-navigation a').forEach(link => {
+    link.addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && sidebar.classList.contains('collapsed')) {
+        closeAllMenus();
+      }
+    });
+  });
+}
 
 // Helper function to close all dropdown menus
 function closeAllMenus() {
@@ -68,6 +87,8 @@ function closeAllMenus() {
 function toggleMenu(button, menuId) {
   const sidebar = document.getElementById('sidebar');
   const targetMenu = document.getElementById(menuId);
+  const chevron = button.querySelector('.menu-chevron');
+  
   if (!targetMenu || !sidebar) return;
 
   const isCollapsed = sidebar.classList.contains('collapsed');
@@ -78,19 +99,84 @@ function toggleMenu(button, menuId) {
     if (!isCurrentlyOpen) {
       targetMenu.hidden = false;
       button.setAttribute('aria-expanded', 'true');
+      if (chevron) chevron.classList.add('rotate-180');
     }
   } else {
     if (isCurrentlyOpen) {
       targetMenu.hidden = true;
       button.setAttribute('aria-expanded', 'false');
-      const chevron = button.querySelector('.menu-chevron');
       if (chevron) chevron.classList.remove('rotate-180');
     } else {
       closeAllMenus();
       targetMenu.hidden = false;
       button.setAttribute('aria-expanded', 'true');
-      const chevron = button.querySelector('.menu-chevron');
       if (chevron) chevron.classList.add('rotate-180');
     }
   }
 }
+
+// Accurate Active Link Highlighting using DOM pathname resolution
+function updateActiveLinks() {
+  const currentPath = window.location.pathname;
+  const navLinks = document.querySelectorAll('#sidebar-navigation a[href]');
+
+  navLinks.forEach(link => {
+    const isCurrent = link.pathname === currentPath;
+
+    if (isCurrent) {
+      link.classList.add('bg-red-600', 'text-white');
+      link.classList.remove('hover:bg-slate-800', 'hover:text-white', 'text-slate-400');
+    } else {
+      link.classList.remove('bg-red-600', 'text-white');
+      link.classList.add('hover:bg-slate-800', 'hover:text-white', 'text-slate-400');
+    }
+  });
+
+  updateSectionHeaderHighlights(currentPath);
+}
+
+// Keep active menu section expanded and highlight header icons
+function updateSectionHeaderHighlights(currentUrl) {
+  const sidebar = document.getElementById('sidebar');
+  const isCollapsed = sidebar && sidebar.classList.contains('collapsed');
+
+  const sections = {
+    'production': ['production/mixing.php', 'production/variance.php', 'production/items.php'],
+    'product': ['products/formulas.php', 'products/feedlist.php', 'products/physical.php'],
+    'inventory': ['inventory/suppliers.php', 'inventory/transport.php', 'inventory/orders.php', 'inventory/receive.php'],
+    'reports': ['reports/materials.php', 'reports/sold.php', 'reports/feeds.php', 'reports/summary.php'],
+    'administration': ['admin/millers.php', 'admin/accounts.php', 'admin/audit.php']
+  };
+
+  Object.entries(sections).forEach(([menuPrefix, pages]) => {
+    const isSectionActive = pages.some(page => currentUrl.endsWith(page));
+    const menuBtn = document.querySelector(`button[aria-controls="${menuPrefix}-menu"]`);
+    const menuContainer = document.getElementById(`${menuPrefix}-menu`);
+
+    if (menuBtn) {
+      const iconSpan = menuBtn.querySelector('span:first-child');
+      const chevron = menuBtn.querySelector('.menu-chevron');
+
+      if (iconSpan) {
+        if (isSectionActive) {
+          iconSpan.className = 'bg-red-800 text-white px-1 py-0.5 rounded text-[9px] shrink-0 transition';
+        } else {
+          iconSpan.className = 'bg-slate-800 text-slate-400 px-1 py-0.5 rounded text-[9px] shrink-0 transition';
+        }
+      }
+
+      // Automatically keep section open in expanded mode if active
+      if (isSectionActive && !isCollapsed && menuContainer) {
+        menuContainer.hidden = false;
+        menuBtn.setAttribute('aria-expanded', 'true');
+        if (chevron) chevron.classList.add('rotate-180');
+      }
+    }
+  });
+}
+
+// HTMX Navigation Listeners
+document.addEventListener('htmx:afterSettle', () => {
+  updateActiveLinks();
+  attachLinkCloseHandlers();
+});
