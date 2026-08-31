@@ -4,13 +4,13 @@
   <!--  Dynamic Header  -->
   <?php 
     $pageTitle = 'Access Denied';
-    require_once 'includes/head.php'; 
+    require_once __DIR__ . '/../includes/head.php'
   ?>
 
   <body class="bg-slate-100 min-h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row">
 
     <!-- DYNAMIC SIDEBAR INCLUDE -->
-    <?php require_once 'includes/sidebar.php'; ?>
+    <?php require_once __DIR__ . '/../includes/sidebar.php'; ?>
 
     <!-- ================= MAIN WORKSPACE ================= -->
     <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
@@ -52,7 +52,7 @@
 
             <!-- Action Button -->
             <div class="pt-2">
-              <a href="index.php" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/20 transition w-full">
+              <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/20 transition w-full">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 <span>Back to Dashboard</span>
               </a>

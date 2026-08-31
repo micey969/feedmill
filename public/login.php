@@ -38,6 +38,7 @@ require_once __DIR__ . '/../app/views/auth/login.php';
           <p class="text-xs text-slate-500 font-medium mt-1">Please enter your credentials to access system management.</p>
         </div>
 
+        <?php if (isset($error)) echo "<div class='bg-red-50 border-l-4 border-red-500 p-4 text-red-800' role='alert'>$error</div>"; ?>
         <form action="login.php" method="POST" class="space-y-4">
           <!-- Username Input -->
           <div class="space-y-1.5">
@@ -103,7 +104,7 @@ require_once __DIR__ . '/../app/views/auth/login.php';
         </div>
         <h3 class="text-3xl font-black tracking-tight leading-tight">Precision Milling, Inventory Management, and Yield Tracking.</h3>
         <p class="text-xs text-slate-300 font-medium leading-relaxed">
-          Authorized personnel access only. Manage mixing sheets, monitor raw material usagesand generate daily output logs seamlessly.
+          Authorized personnel access only. Manage mixing sheets, monitor raw material usages and generate daily output logs seamlessly.
         </p>
       </div>
     </div>

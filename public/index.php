@@ -8,11 +8,13 @@ require_once __DIR__ . '/../app/middleware/auth.php';
 
 <!-- Dynamic Head Component -->
 <?php 
-  $siteTitle = 'ECGC - East Caribbean Feeds Dashboard';
+  $pageTitle = 'ECGC - East Caribbean Feeds Dashboard';
   require_once __DIR__ . '/../app/views/includes/head.php'; 
 ?>
+
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row">
-    <!-- Sidebar Component -->
+  
+  <!-- ================= SIDEBAR NAVIGATION ================= -->
   <?php require_once __DIR__ . '/../app/views/includes/sidebar.php'; ?>
   
 
@@ -76,7 +78,7 @@ require_once __DIR__ . '/../app/middleware/auth.php';
           <h3 class="text-base font-bold">Ready to process feed production?</h3>
           <p class="text-xs text-slate-400 mt-0.5">Select step 1 to start entering mixing sheets for today's batch.</p>
         </div>
-        <a href="mixing_sheet.php" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition shadow-lg shadow-red-600/30 whitespace-nowrap">
+        <a href="<?php echo htmlspecialchars(publicUrl('production/mixing.php')); ?>" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition shadow-lg shadow-red-600/30 whitespace-nowrap">
           + Start Mixing Sheet
         </a>
       </div>

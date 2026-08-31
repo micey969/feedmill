@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['image_name'] = isset($user['image_name']) ? $user['image_name'] : '';
         $_SESSION['admin_flag'] = isset($user['admin_flag']) && (int) $user['admin_flag'] === 1;
         $_SESSION['last_activity'] = time();
-        logAction($conn, $_SESSION['user'], "LOGIN", "Successful login for user " . $user['username']);
+        logAction($conn, $_SESSION['user'], "LOGIN", " ");
 
         header("Location: index.php");
         exit;
