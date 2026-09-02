@@ -12,7 +12,7 @@ if (isset($_GET['timeout'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $username = $_POST['username'];
-    $password = $_POST['password'];
+    $password = md5($_POST['password'] ?? '');
 
     // Gets user from database
     $sql = "SELECT * FROM accounts WHERE username='$username' AND password='$password' AND active_flag = 1";

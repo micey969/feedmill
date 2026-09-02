@@ -12,7 +12,7 @@ $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // First, get total count
 if (!empty($searchTerm)) {
-  $countQuery = "SELECT COUNT(*) as total FROM millers WHERE active_flag = 1 AND (full_name LIKE ? OR job_title LIKE ?)";
+  $countQuery = "SELECT COUNT(*) as total FROM millers WHERE (full_name LIKE ? OR job_title LIKE ?)";
   $stmt = $conn->prepare($countQuery);
   
   if (!$stmt) {
@@ -26,8 +26,8 @@ if (!empty($searchTerm)) {
   $countRow = $countResult->fetch_assoc();
   $totalRecords = $countRow['total'];
 } else {
-  // Get count of all active millers if no search term
-  $countQuery = "SELECT COUNT(*) as total FROM millers WHERE active_flag = 1";
+  // Get count of all millers if no search term
+  $countQuery = "SELECT COUNT(*) as total FROM millers";
   $countResult = $conn->query($countQuery);
   $countRow = $countResult->fetch_assoc();
   $totalRecords = $countRow['total'];
@@ -35,7 +35,7 @@ if (!empty($searchTerm)) {
 
 // Now fetch paginated results
 if (!empty($searchTerm)) {
-  $query = "SELECT * FROM millers WHERE active_flag = 1 AND (full_name LIKE ? OR job_title LIKE ?) ORDER BY full_name ASC LIMIT ? OFFSET ?";
+  $query = "SELECT * FROM millers WHERE (full_name LIKE ? OR job_title LIKE ?) ORDER BY active_flag DESC, full_name ASC LIMIT ? OFFSET ?";
   $stmt = $conn->prepare($query);
   
   if (!$stmt) {
@@ -47,8 +47,8 @@ if (!empty($searchTerm)) {
   $stmt->execute();
   $result = $stmt->get_result();
 } else {
-  // Fetch paginated active millers if no search term
-  $query = "SELECT * FROM millers WHERE active_flag = 1 ORDER BY full_name ASC LIMIT ? OFFSET ?";
+  // Fetch paginated millers if no search term
+  $query = "SELECT * FROM millers ORDER BY active_flag DESC, full_name ASC LIMIT ? OFFSET ?";
   $stmt = $conn->prepare($query);
   
   if (!$stmt) {
@@ -82,13 +82,13 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
   require_once __DIR__ . '/../../app/views/includes/head.php'; 
 ?>
 
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row">
+<body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
 
   <!-- ================= SIDEBAR NAVIGATION ================= -->
   <?php require_once __DIR__ . '/../../app/views/includes/sidebar.php'; ?>
 
   <!-- ================= MAIN WORKSPACE ================= -->
-  <main id="main-content" class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <main id="main-content" class="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
     <div class="h-1.5 bg-red-600 w-full"></div>
 
     <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-10 shadow-xs">
@@ -103,10 +103,15 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
 
       <!-- Quick Search Bar -->
       <form method="GET" class="relative w-64">
-        <input type="text" name="search" placeholder="Search miller or position..." value="<?php echo htmlspecialchars($searchTerm); ?>" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+        <input type="text" name="search" placeholder="Search miller or position..." value="<?php echo htmlspecialchars($searchTerm); ?>" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 <?php echo !empty($searchTerm) ? 'pr-9' : 'pr-3'; ?> py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
         <button type="submit" class=" flex items-center">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </button>
+        <?php if (!empty($searchTerm)): ?>
+          <a href="<?php echo htmlspecialchars(publicUrl('admin/millers.php')); ?>" aria-label="Clear search" title="Clear search" class="absolute right-0 top-2.5 pr-3 text-slate-400 hover:text-slate-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path></svg>
+          </a>
+        <?php endif; ?>
       </form>
     </header>
 
@@ -163,6 +168,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
                 <tr class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
                   <th class="py-3.5 px-6">Full Name</th>
                   <th class="py-3.5 px-6">Job Position</th>
+                  <th class="py-3.5 px-6 text-center">Active Status</th>
                   <th class="py-3.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
@@ -170,7 +176,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
                 
                 <?php if (empty($millers)): ?>
                   <tr>
-                    <td colspan="3" class="py-6 px-6 text-center text-slate-500">
+                    <td colspan="4" class="py-6 px-6 text-center text-slate-500">
                       <?php echo !empty($searchTerm) ? 'No millers found matching your search.' : 'No millers registered yet.'; ?>
                     </td>
                   </tr>
@@ -183,6 +189,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
                           <?php echo htmlspecialchars($miller['job_title']); ?>
                         </span>
                       </td>
+                      <td class="py-3.5 px-6 text-center"><input type="checkbox" disabled class="w-4 h-4 text-red-600 rounded border-slate-300 cursor-pointer" <?php echo (int) $miller ['active_flag'] === 1 ? 'checked' : ''; ?>></td>
                       <td class="py-3.5 px-6 text-right">
                         <button type="button" onclick="openMillerModal(<?php echo (int) $miller['user_id']; ?>, <?php echo htmlspecialchars(json_encode($miller['full_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($miller['job_title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo (int) $miller['active_flag']; ?>)" class="text-blue-600 hover:text-blue-800 font-bold text-xs">
                           Edit

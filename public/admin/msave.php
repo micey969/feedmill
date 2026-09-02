@@ -17,7 +17,7 @@ $Position = ucwords(strtolower($_POST['job_title']));
 $username = isset($_SESSION['user']) ? $_SESSION['user'] : 'unknown';
 $description = 'Added ' . $FullName . ' - ' . $Position;
 
-logAction($conn, $username, "ADD MILLER", $description);
+logAction($conn, $username, "ADD", $description);
 
 // Prepared statement
 // Allows for special characters in details without breaking SQL

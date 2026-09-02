@@ -268,6 +268,9 @@
   .right-0 {
     right: 0px;
   }
+  .right-3 {
+    right: calc(var(--spacing) * 3);
+  }
   .right-12 {
     right: calc(var(--spacing) * 12);
   }
@@ -879,6 +882,9 @@
   .pr-3\.5 {
     padding-right: calc(var(--spacing) * 3.5);
   }
+  .pr-9 {
+    padding-right: calc(var(--spacing) * 9);
+  }
   .pl-3 {
     padding-left: calc(var(--spacing) * 3);
   }
@@ -1197,6 +1203,9 @@
     }
     .hover\:text-slate-600:hover {
       color: var(--color-slate-600);
+    }
+    .hover\:text-slate-700:hover {
+      color: var(--color-slate-700);
     }
     .hover\:text-white:hover {
       color: var(--color-white);
