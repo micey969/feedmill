@@ -1,6 +1,76 @@
 <?php
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/admin_auth.php';
+
+// Pagination settings
+$recordsPerPage = 10;
+$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($currentPage - 1) * $recordsPerPage;
+
+// Get search term from GET parameter
+$searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+// First, get total count
+if (!empty($searchTerm)) {
+  $countQuery = "SELECT COUNT(*) as total FROM millers WHERE active_flag = 1 AND (full_name LIKE ? OR job_title LIKE ?)";
+  $stmt = $conn->prepare($countQuery);
+  
+  if (!$stmt) {
+    die("Prepare failed: " . $conn->error);
+  }
+  
+  $searchParam = '%' . $searchTerm . '%';
+  $stmt->bind_param('ss', $searchParam, $searchParam);
+  $stmt->execute();
+  $countResult = $stmt->get_result();
+  $countRow = $countResult->fetch_assoc();
+  $totalRecords = $countRow['total'];
+} else {
+  // Get count of all active millers if no search term
+  $countQuery = "SELECT COUNT(*) as total FROM millers WHERE active_flag = 1";
+  $countResult = $conn->query($countQuery);
+  $countRow = $countResult->fetch_assoc();
+  $totalRecords = $countRow['total'];
+}
+
+// Now fetch paginated results
+if (!empty($searchTerm)) {
+  $query = "SELECT * FROM millers WHERE active_flag = 1 AND (full_name LIKE ? OR job_title LIKE ?) ORDER BY full_name ASC LIMIT ? OFFSET ?";
+  $stmt = $conn->prepare($query);
+  
+  if (!$stmt) {
+    die("Prepare failed: " . $conn->error);
+  }
+  
+  $searchParam = '%' . $searchTerm . '%';
+  $stmt->bind_param('ssii', $searchParam, $searchParam, $recordsPerPage, $offset);
+  $stmt->execute();
+  $result = $stmt->get_result();
+} else {
+  // Fetch paginated active millers if no search term
+  $query = "SELECT * FROM millers WHERE active_flag = 1 ORDER BY full_name ASC LIMIT ? OFFSET ?";
+  $stmt = $conn->prepare($query);
+  
+  if (!$stmt) {
+    die("Prepare failed: " . $conn->error);
+  }
+  
+  $stmt->bind_param('ii', $recordsPerPage, $offset);
+  $stmt->execute();
+  $result = $stmt->get_result();
+}
+
+if (!$result) {
+  die("Query failed: " . $conn->error);
+}
+
+// Get millers data for current page
+$millers = $result->fetch_all(MYSQLI_ASSOC);
+
+// Calculate pagination info
+$totalPages = ceil($totalRecords / $recordsPerPage);
+$displayStart = $totalRecords > 0 ? ($offset + 1) : 0;
+$displayEnd = min($offset + $recordsPerPage, $totalRecords);
 ?>
 
 <!DOCTYPE html>
@@ -32,10 +102,12 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
       </div>
 
       <!-- Quick Search Bar -->
-      <div class="relative w-64">
-        <input type="text" placeholder="Search miller or position..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-      </div>
+      <form method="GET" class="relative w-64">
+        <input type="text" name="search" placeholder="Search miller or position..." value="<?php echo htmlspecialchars($searchTerm); ?>" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+        <button type="submit" class=" flex items-center">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </button>
+      </form>
     </header>
 
     <!-- Workspace Body -->
@@ -48,7 +120,7 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
           Add New Miller Record
         </h2>
 
-        <form action="millers.php" method="POST" class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+        <form action="msave.php" method="POST" class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
           <!-- Full Name -->
           <div class="sm:col-span-5 space-y-1">
             <label class="text-xs font-semibold text-slate-600">Full Name</label>
@@ -58,7 +130,13 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
           <!-- Position -->
           <div class="sm:col-span-5 space-y-1">
             <label class="text-xs font-semibold text-slate-600">Job Position</label>
-            <input type="text" name="position" placeholder="e.g. Senior Miller" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+            <select name="job_title" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              <option selected>Select Position</option>
+              <option value="Mill Operator">Mill Operator</option>
+              <option value="Assistant Senior Miller">Assistant Senior Miller</option>
+              <option value="Shift Supervisor">Shift Supervisor</option>
+              <option value="Assistant Mill Supervisor">Assistant Mill Supervisor</option>
+            </select>
           </div>
 
           <!-- Submit Button -->
@@ -75,7 +153,7 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <p class="text-xs font-medium text-slate-500">Click on any record row to edit staffing details.</p>
-          <span class="text-xs font-mono font-bold text-slate-600">5 Registered Personnel</span>
+          <span class="text-xs font-mono font-bold text-slate-600"><?php echo $totalRecords; ?> Registered Personnel</span>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
@@ -90,70 +168,29 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
               </thead>
               <tbody class="divide-y divide-slate-100 font-medium text-slate-800">
                 
-                <!-- Row 1 -->
-                <tr class="hover:bg-slate-50/80 transition cursor-pointer">
-                  <td class="py-3.5 px-6 font-semibold text-slate-900">Brionne Campbell</td>
-                  <td class="py-3.5 px-6">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                      Senior Miller
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-6 text-right">
-                    <button class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button>
-                  </td>
-                </tr>
-
-                <!-- Row 2 -->
-                <tr class="hover:bg-slate-50/80 transition cursor-pointer">
-                  <td class="py-3.5 px-6 font-semibold text-slate-900">Brionne Campbell</td>
-                  <td class="py-3.5 px-6">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Shift Supervisor
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-6 text-right">
-                    <button class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button>
-                  </td>
-                </tr>
-
-                <!-- Row 3 -->
-                <tr class="hover:bg-slate-50/80 transition cursor-pointer">
-                  <td class="py-3.5 px-6 font-semibold text-slate-900">Brionne Campbell</td>
-                  <td class="py-3.5 px-6">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                      Assiistant Senior Miller
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-6 text-right">
-                    <button class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button>
-                  </td>
-                </tr>
-
-                <!-- Row 4 -->
-                <tr class="hover:bg-slate-50/80 transition cursor-pointer">
-                  <td class="py-3.5 px-6 font-semibold text-slate-900">Brionne Campbell</td>
-                  <td class="py-3.5 px-6">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                      MIIl Operator
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-6 text-right">
-                    <button class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button>
-                  </td>
-                </tr>
-
-                <!-- Row 5 -->
-                <tr class="hover:bg-slate-50/80 transition cursor-pointer">
-                  <td class="py-3.5 px-6 font-semibold text-slate-900">Brionne Campbell</td>
-                  <td class="py-3.5 px-6">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                      Assiistant MIIl Supervisor
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-6 text-right">
-                    <button class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button>
-                  </td>
-                </tr>
+                <?php if (empty($millers)): ?>
+                  <tr>
+                    <td colspan="3" class="py-6 px-6 text-center text-slate-500">
+                      <?php echo !empty($searchTerm) ? 'No millers found matching your search.' : 'No millers registered yet.'; ?>
+                    </td>
+                  </tr>
+                <?php else: ?>
+                  <?php foreach ($millers as $miller): ?>
+                    <tr class="hover:bg-slate-50/80 transition cursor-pointer">
+                      <td class="py-3.5 px-6 font-semibold text-slate-900"><?php echo htmlspecialchars($miller['full_name']); ?></td>
+                      <td class="py-3.5 px-6">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                          <?php echo htmlspecialchars($miller['job_title']); ?>
+                        </span>
+                      </td>
+                      <td class="py-3.5 px-6 text-right">
+                        <button type="button" onclick="openMillerModal(<?php echo (int) $miller['user_id']; ?>, <?php echo htmlspecialchars(json_encode($miller['full_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($miller['job_title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo (int) $miller['active_flag']; ?>)" class="text-blue-600 hover:text-blue-800 font-bold text-xs">
+                          Edit
+                        </button>                      
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
 
               </tbody>
             </table>
@@ -161,23 +198,117 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
 
           <!-- Table Pagination Footer -->
           <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
-            <span class="text-slate-500 font-medium">Showing <span class="font-bold text-slate-800">1-5</span> of <span class="font-bold text-slate-800">5</span> records</span>
+            <span class="text-slate-500 font-medium">Showing <span class="font-bold text-slate-800"><?php echo $displayStart; ?>-<?php echo $displayEnd; ?></span> of <span class="font-bold text-slate-800"><?php echo $totalRecords; ?></span> records</span>
 
             <div class="flex items-center gap-1">
-              <button disabled class="p-2 rounded-lg bg-white border border-slate-200 text-slate-300 cursor-not-allowed">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-              </button>
-              <button class="px-3 py-1 rounded-lg bg-red-600 text-white font-bold text-xs shadow-xs">1</button>
-              <button disabled class="p-2 rounded-lg bg-white border border-slate-200 text-slate-300 cursor-not-allowed">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-              </button>
+              <!-- Previous Button -->
+              <?php if ($currentPage > 1): ?>
+                <a href="<?php echo htmlspecialchars(publicUrl('admin/millers.php') . '?page=' . ($currentPage - 1) . (!empty($searchTerm) ? '&search=' . urlencode($searchTerm) : '')); ?>" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </a>
+              <?php else: ?>
+                <button disabled class="p-2 rounded-lg bg-white border border-slate-200 text-slate-300 cursor-not-allowed">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+              <?php endif; ?>
+
+              <!-- Page Numbers -->
+              <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <?php if ($i == $currentPage): ?>
+                  <button class="px-3 py-1 rounded-lg bg-red-600 text-white font-bold text-xs shadow-xs"><?php echo $i; ?></button>
+                <?php else: ?>
+                  <a href="<?php echo htmlspecialchars(publicUrl('admin/millers.php') . '?page=' . $i . (!empty($searchTerm) ? '&search=' . urlencode($searchTerm) : '')); ?>" class="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition font-bold text-xs"><?php echo $i; ?></a>
+                <?php endif; ?>
+              <?php endfor; ?>
+
+              <!-- Next Button -->
+              <?php if ($currentPage < $totalPages): ?>
+                <a href="<?php echo htmlspecialchars(publicUrl('admin/millers.php') . '?page=' . ($currentPage + 1) . (!empty($searchTerm) ? '&search=' . urlencode($searchTerm) : '')); ?>" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </a>
+              <?php else: ?>
+                <button disabled class="p-2 rounded-lg bg-white border border-slate-200 text-slate-300 cursor-not-allowed">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+              <?php endif; ?>
             </div>
           </div>
 
         </div>
       </div>
     </div>
+
+    <div id="edit-miller-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+      <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Edit Miller Details</h2>
+            <p class="text-[10px] text-slate-500">Update the miller's information and status.</p>
+          </div>
+          <button onclick="document.getElementById('edit-miller-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <form action="mupdate.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
+          <input type="hidden" name="user_id" id="edit-miller-user-id">
+          
+          <div class="space-y-4">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Information</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Full Name *</label>
+                <input type="text" name="full_name" id="edit-miller-full-name" required placeholder="e.g. Jane Doe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Account Status</label>
+                <select name="status" id="edit-miller-status" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <option value="1">Active</option>
+                  <option value="0">Inactive</option>
+                </select>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">Job Title</label>
+                <select name="job_title" id="edit-miller-job-title" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <option value="Mill Operator">Mill Operator</option>
+                  <option value="Assistant Senior Miller">Assistant Senior Miller</option>
+                  <option value="Shift Supervisor">Shift Supervisor</option>
+                  <option value="Assistant Mill Supervisor">Assistant Mill Supervisor</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <hr class="border-slate-100">
+
+          <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+            <button type="button" onclick="document.getElementById('edit-miller-modal').classList.add('hidden')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition">
+              Update Miller Info
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
   </main>
+
+  <script>
+    function openMillerModal(userId, fullName, jobTitle, activeFlag) {
+      document.getElementById('edit-miller-user-id').value = userId;
+      document.getElementById('edit-miller-full-name').value = fullName;
+      document.getElementById('edit-miller-job-title').value = jobTitle;
+      document.getElementById('edit-miller-status').value = activeFlag;
+      document.getElementById('edit-miller-modal').classList.remove('hidden');
+    }
+  </script>
 
 </body>
 </html>

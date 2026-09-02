@@ -219,89 +219,89 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
       </div>
 
     </div>
-  </main>
 
-  <div id="add-user-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-      
-      <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-        <div>
-          <h2 class="text-base font-bold text-slate-900">Add New User Account</h2>
-          <p class="text-[10px] text-slate-500">Create login credentials and set system access levels.</p>
-        </div>
-        <button onclick="document.getElementById('add-user-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
 
-      <form action="save_user.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
+    <div id="add-user-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+      <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
         
-        <div class="space-y-4">
-          <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Information</h3>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">Full Name *</label>
-              <input type="text" name="full_name" required placeholder="e.g. Jane Doe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-            </div>
-
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">Email Address *</label>
-              <input type="email" name="email" required placeholder="j.doe@ecgc.vc" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block font-bold text-slate-700 mb-1">Job Title / Department</label>
-              <input type="text" name="job_title" placeholder="e.g. Production Supervisor" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-            </div>
+        <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Add New User Account</h2>
+            <p class="text-[10px] text-slate-500">Create login credentials and set system access levels.</p>
           </div>
-        </div>
-
-        <hr class="border-slate-100">
-
-        <div class="space-y-4">
-          <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Security & Permissions</h3>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">Access Role *</label>
-              <select name="role" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-                <option value="Operator">Operator (Entry Only)</option>
-                <option value="Manager">Manager (Review & Reports)</option>
-                <option value="Auditor">Auditor (Read-Only)</option>
-                <option value="Administrator">Administrator (Full Access)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">Account Status</label>
-              <select name="status" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive / Suspended</option>
-              </select>
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block font-bold text-slate-700 mb-1">Temporary Password *</label>
-              <input type="password" name="password" required placeholder="••••••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-              <p class="text-[10px] text-slate-400 mt-1">User will be prompted to change this password on initial login.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
-          <button type="button" onclick="document.getElementById('add-user-modal').classList.add('hidden')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">
-            Cancel
-          </button>
-          <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition">
-            Create User Account
+          <button onclick="document.getElementById('add-user-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
 
-      </form>
+        <form action="save_user.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
+          
+          <div class="space-y-4">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Information</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Full Name *</label>
+                <input type="text" name="full_name" required placeholder="e.g. Jane Doe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
 
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Email Address *</label>
+                <input type="email" name="email" required placeholder="j.doe@ecgc.vc" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">Job Title / Department</label>
+                <input type="text" name="job_title" placeholder="e.g. Production Supervisor" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
+            </div>
+          </div>
+
+          <hr class="border-slate-100">
+
+          <div class="space-y-4">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Security & Permissions</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Access Role *</label>
+                <select name="role" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <option value="Operator">Operator (Entry Only)</option>
+                  <option value="Manager">Manager (Review & Reports)</option>
+                  <option value="Auditor">Auditor (Read-Only)</option>
+                  <option value="Administrator">Administrator (Full Access)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Account Status</label>
+                <select name="status" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive / Suspended</option>
+                </select>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">Temporary Password *</label>
+                <input type="password" name="password" required placeholder="••••••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <p class="text-[10px] text-slate-400 mt-1">User will be prompted to change this password on initial login.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+            <button type="button" onclick="document.getElementById('add-user-modal').classList.add('hidden')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition">
+              Create User Account
+            </button>
+          </div>
+
+        </form>
+
+      </div>
     </div>
-  </div>
-
+  </main>
 </body>
 </html>
