@@ -116,7 +116,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
                     <td class="py-3.5 px-6 font-semibold text-slate-900"><?php echo htmlspecialchars($account['job_title']); ?></td>
                     <td class="py-3.5 px-6 font-mono text-slate-600"><?php echo htmlspecialchars($account['username']); ?></td>
                     <td class="py-3.5 px-6 font-mono text-slate-400">&bull;&bull;&bull;&bull;&bull;&bull;</td>
-                    <td class="py-3.5 px-6 text-center"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold <?php echo (int) $account['admin_flag'] === 1 ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-600 border-slate-200'; ?> border"><?php echo (int) $account['admin_flag'] === 1 ? 'Admin' : 'User'; ?></span></td>
+                    <td class="py-3.5 px-6 text-center"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold <?php echo (int) $account['admin_flag'] === 1 ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-100 text-blue-600 border-blue-200'; ?> border"><?php echo (int) $account['admin_flag'] === 1 ? 'Admin' : 'User'; ?></span></td>
                     <td class="py-3.5 px-6 text-center"><input type="checkbox" disabled class="w-4 h-4 text-red-600 rounded border-slate-300 cursor-pointer" <?php echo (int) $account['active_flag'] === 1 ? 'checked' : ''; ?>></td>
                     <td class="py-3.5 px-6 text-right"><button type="button" onclick="openAccountModal(<?php echo htmlspecialchars(json_encode($account), ENT_QUOTES, 'UTF-8'); ?>)" class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button></td>
                   </tr>
@@ -179,7 +179,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
           </button>
         </div>
 
-        <form action="accsave.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
+        <form action="accounts_save.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           
           <div class="space-y-4">
             <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Information</h3>
@@ -257,7 +257,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
           <div><h2 class="text-base font-bold text-slate-900">Edit User Account</h2><p class="text-[10px] text-slate-500">Update account details, permissions, or credentials.</p></div>
           <button type="button" onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg" aria-label="Close">&times;</button>
         </div>
-        <form action="accupdate.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
+        <form action="accounts_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           <input type="hidden" name="user_id" id="edit-user-id">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label class="block font-bold text-slate-700 mb-1">Full Name *</label><input type="text" name="full_name" id="edit-user-full-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>

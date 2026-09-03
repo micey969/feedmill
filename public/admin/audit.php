@@ -56,10 +56,12 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
 
           <select class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600">
             <option value="">All Action Types</option>
-            <option value="auth">Authentication</option>
-            <option value="create">Data Creation</option>
-            <option value="update">Data Modification</option>
-            <option value="delete">Deletion</option>
+            <option value="Login">Authentication</option>
+            <option value="Add">Data Creation</option>
+            <option value="Update">Data Modification</option>
+            <option value="Print">Report Generation</option>
+            <option value="Logout">Session Termination</option>
+            <option value="Timeout">Session Timeout</option>
           </select>
         </div>
 
@@ -227,25 +229,25 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
           <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div>
               <span class="block text-[10px] font-bold text-slate-400 uppercase">Timestamp</span>
-              <span id="modal-timestamp" class="font-mono font-bold text-slate-800"></span>
+              <span id="audit-timestamp" class="font-mono font-bold text-slate-800"></span>
             </div>
             <div>
               <span class="block text-[10px] font-bold text-slate-400 uppercase">IP Address</span>
-              <span id="modal-ip" class="font-mono font-bold text-slate-800"></span>
+              <span id="audit-ip" class="font-mono font-bold text-slate-800"></span>
             </div>
             <div>
               <span class="block text-[10px] font-bold text-slate-400 uppercase">Actor / User</span>
-              <span id="modal-actor" class="font-bold text-slate-800"></span>
+              <span id="audit-actor" class="font-bold text-slate-800"></span>
             </div>
             <div>
               <span class="block text-[10px] font-bold text-slate-400 uppercase">Action Code</span>
-              <span id="modal-action" class="font-mono font-bold text-red-600"></span>
+              <span id="audit-action" class="font-mono font-bold text-red-600"></span>
             </div>
           </div>
 
           <div>
             <label class="block font-bold text-slate-700 mb-1">Event Details Payload</label>
-            <div id="modal-details" class="bg-slate-900 text-slate-200 p-3 rounded-xl font-mono text-[11px] leading-relaxed"></div>
+            <div id="audit-details" class="bg-slate-900 text-slate-200 p-3 rounded-xl font-mono text-[11px] leading-relaxed"></div>
           </div>
         </div>
       </div>

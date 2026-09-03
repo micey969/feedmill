@@ -71,6 +71,13 @@ $millers = $result->fetch_all(MYSQLI_ASSOC);
 $totalPages = ceil($totalRecords / $recordsPerPage);
 $displayStart = $totalRecords > 0 ? ($offset + 1) : 0;
 $displayEnd = min($offset + $recordsPerPage, $totalRecords);
+
+$jobColors = [
+  'Mill Operator' => 'bg-slate-100 text-slate-500 border-slate-200',
+  'Assistant Senior Miller' => 'bg-blue-50 text-blue-700 border-blue-200',
+  'Shift Supervisor' => 'bg-red-50 text-red-700 border-red-200',
+  'Assistant Mill Supervisor' => 'bg-emerald-50 text-emerald-700 border-emerald-200'
+];
 ?>
 
 <!DOCTYPE html>
@@ -125,7 +132,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
           Add New Miller Record
         </h2>
 
-        <form action="msave.php" method="POST" class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+        <form action="millers_save.php" method="POST" class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
           <!-- Full Name -->
           <div class="sm:col-span-5 space-y-1">
             <label class="text-xs font-semibold text-slate-600">Full Name</label>
@@ -146,9 +153,9 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
 
           <!-- Submit Button -->
           <div class="sm:col-span-2">
-            <button type="submit" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-              <span>Add</span>
+            <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+              <span>Add Miller</span>
             </button>
           </div>
         </form>
@@ -185,7 +192,9 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
                     <tr class="hover:bg-slate-50/80 transition cursor-pointer">
                       <td class="py-3.5 px-6 font-semibold text-slate-900"><?php echo htmlspecialchars($miller['full_name']); ?></td>
                       <td class="py-3.5 px-6">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        <?php $badgeClass = $jobColors[$miller['job_title']] ?? 'bg-gray-50 text-gray-700 border-gray-200';?>
+
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold <?php echo $badgeClass; ?>">
                           <?php echo htmlspecialchars($miller['job_title']); ?>
                         </span>
                       </td>
@@ -205,7 +214,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
 
           <!-- Table Pagination Footer -->
           <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
-            <span class="text-slate-500 font-medium">Showing <span class="font-bold text-slate-800"><?php echo $displayStart; ?>-<?php echo $displayEnd; ?></span> of <span class="font-bold text-slate-800"><?php echo $totalRecords; ?></span> records</span>
+            <span class="text-slate-500 font-medium">Showing <span class="font-bold text-slate-800"><?php echo $displayStart; ?>-<?php echo $displayEnd; ?></span> of <span class="font-bold text-slate-800"><?php echo $totalRecords; ?></span> Millers</span>
 
             <div class="flex items-center gap-1">
               <!-- Previous Button -->
@@ -258,7 +267,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
           </button>
         </div>
 
-        <form action="mupdate.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
+        <form action="millers_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           <input type="hidden" name="user_id" id="edit-miller-user-id">
           
           <div class="space-y-4">
