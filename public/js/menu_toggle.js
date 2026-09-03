@@ -17,11 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(collapsedStorageKey, String(isCollapsed));
   };
 
-  // 1. Always start with sidebar expanded on fresh page load
+  // 1. Restore the user's sidebar preference on desktop page loads
   if (sidebar && window.innerWidth >= 768) {
-    sidebar.classList.remove('collapsed');
-    sidebar.classList.remove('md:w-20');
-    sidebar.classList.add('md:w-72');
+    const isCollapsed = localStorage.getItem(collapsedStorageKey) === 'true';
+    setSidebarCollapsed(isCollapsed);
   }
 
   // 2. Hamburger Toggle Button Handler
@@ -53,14 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateActiveLinks();
 });
 
-// Attach close menu handlers to links (only active in collapsed mode)
+// Close open menus before navigating to another page.
 function attachLinkCloseHandlers() {
   document.querySelectorAll('#sidebar-navigation a').forEach(link => {
     link.addEventListener('click', () => {
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar && sidebar.classList.contains('collapsed')) {
-        closeAllMenus();
-      }
+      closeAllMenus();
     });
   });
 }
@@ -151,11 +147,9 @@ function updateSectionHeaderHighlights(currentUrl) {
   Object.entries(sections).forEach(([menuPrefix, pages]) => {
     const isSectionActive = pages.some(page => currentUrl.endsWith(page));
     const menuBtn = document.querySelector(`button[aria-controls="${menuPrefix}-menu"]`);
-    const menuContainer = document.getElementById(`${menuPrefix}-menu`);
 
     if (menuBtn) {
       const iconSpan = menuBtn.querySelector('span:first-child');
-      const chevron = menuBtn.querySelector('.menu-chevron');
 
       if (iconSpan) {
         if (isSectionActive) {
@@ -165,18 +159,6 @@ function updateSectionHeaderHighlights(currentUrl) {
         }
       }
 
-      // Automatically keep section open in expanded mode if active
-      if (isSectionActive && !isCollapsed && menuContainer) {
-        menuContainer.hidden = false;
-        menuBtn.setAttribute('aria-expanded', 'true');
-        if (chevron) chevron.classList.add('rotate-180');
-      }
     }
   });
 }
-
-// HTMX Navigation Listeners
-document.addEventListener('htmx:afterSettle', () => {
-  updateActiveLinks();
-  attachLinkCloseHandlers();
-});
