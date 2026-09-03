@@ -306,16 +306,5 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
       </div>
     </div>
   </main>
-
-  <script>
-    function openMillerModal(userId, fullName, jobTitle, activeFlag) {
-      document.getElementById('edit-miller-user-id').value = userId;
-      document.getElementById('edit-miller-full-name').value = fullName;
-      document.getElementById('edit-miller-job-title').value = jobTitle;
-      document.getElementById('edit-miller-status').value = activeFlag;
-      document.getElementById('edit-miller-modal').classList.remove('hidden');
-    }
-  </script>
-
 </body>
 </html>

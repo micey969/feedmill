@@ -272,16 +272,5 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
       </div>
     </div>
   </main>
-  <script>
-    function openAccountModal(account) {
-      document.getElementById('edit-user-id').value = account.user_id;
-      document.getElementById('edit-user-full-name').value = account.full_name;
-      document.getElementById('edit-user-username').value = account.username;
-      document.getElementById('edit-user-job-title').value = account.job_title || '';
-      document.getElementById('edit-user-active').value = account.active_flag;
-      document.getElementById('edit-user-admin').value = account.admin_flag;
-      document.getElementById('edit-user-modal').classList.remove('hidden');
-    }
-  </script>
 </body>
 </html>

@@ -10,7 +10,7 @@ $password = $_POST['password'] ?? '';
 $activeFlag = filter_input(INPUT_POST, 'active_flag', FILTER_VALIDATE_INT);
 $adminFlag = filter_input(INPUT_POST, 'admin_flag', FILTER_VALIDATE_INT);
 
-if (!$userId || $fullName === '' || $username === '' || !in_array($activeFlag, [0, 1], true) || !in_array($adminFlag, [0, 1], true)) {
+if (!$userId || $fullName === '' || $jobTitle === '' || $username === '' || !in_array($activeFlag, [0, 1], true) || !in_array($adminFlag, [0, 1], true)) {
     die('All required fields are invalid.');
 }
 
@@ -50,24 +50,26 @@ $stmt->close();
 
 $changes = [];
 if ($currentAccount['full_name'] !== $fullName) {
-    $changes[] = 'Full name changed';
+    $changes[] = 'Full name: "' . $currentAccount['full_name'] . '" -> "' . $fullName . '"';
 }
 if ($currentAccount['username'] !== $username) {
-    $changes[] = 'Username changed';
+    $changes[] = 'Username: "' . $currentAccount['username'] . '" -> "' . $username . '"';
 }
 if ($currentAccount['job_title'] !== $jobTitle) {
-    $changes[] = 'Job title changed';
+    $changes[] = 'Job title: "' . $currentAccount['job_title'] . '" -> "' . $jobTitle . '"';
 }
 if ((int) $currentAccount['active_flag'] !== $activeFlag) {
-    $changes[] = 'Status changed';
+    $changes[] = 'Status: "' . ($currentAccount['active_flag'] ? 'Active' : 'Inactive') . '" -> "' . ($activeFlag ? 'Active' : 'Inactive') . '"';
 }
 if ((int) $currentAccount['admin_flag'] !== $adminFlag) {
-    $changes[] = 'Admin rights changed';
+    $changes[] = 'Admin rights: "' . ($currentAccount['admin_flag'] ? 'Yes' : 'No') . '" -> "' . ($adminFlag ? 'Yes' : 'No') . '"';
 }
 if ($password !== '') {
     $changes[] = 'Password changed';
 }
 
-logAction($conn, $_SESSION['user'] ?? 'unknown', 'UPDATE', 'Updated Account ID #' . $userId . ': ' . ($changes ? implode('; ', $changes) : 'No changes'));
+$description = 'Updated Account ID #' . $userId . ': ' . ($changes ? implode('; ', $changes) : 'No changes');
+
+logAction($conn, $_SESSION['user'] ?? 'unknown', 'UPDATE', $description);
 header('Location: accounts.php');
 exit;

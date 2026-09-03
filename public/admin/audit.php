@@ -251,17 +251,5 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
       </div>
     </div>
   </main>
-
-  <script>
-    function openAuditModal(timestamp, ip, actor, action, details) {
-      document.getElementById('modal-timestamp').innerText = timestamp;
-      document.getElementById('modal-ip').innerText = ip;
-      document.getElementById('modal-actor').innerText = actor;
-      document.getElementById('modal-action').innerText = action;
-      document.getElementById('modal-details').innerText = details;
-      document.getElementById('audit-details-modal').classList.remove('hidden');
-    }
-  </script>
-
 </body>
 </html>

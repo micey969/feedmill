@@ -65,7 +65,7 @@ if ((int) $currentMiller['active_flag'] !== $activeFlag) {
 }
 
 $description = 'Updated Miller ID #' . $userId . ': ' . ($changes ? implode('; ', $changes) : 'No changes');
-logAction($conn, $username, 'UPDATE', $description);
+logAction($conn, $username ?? 'unknown', 'UPDATE', $description);
 
 $stmt->close();
 header('Location: millers.php');
