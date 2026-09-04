@@ -4,8 +4,9 @@ require_once __DIR__ . '/../../init.php';
 session_start();
 
 
-if (isset($_GET['timeout'])) {
+if (isset($_SESSION['timeout_message'])) {
     $timeout_msg = "⏳ Session expired. Please log in again.";
+    unset($_SESSION['timeout_message']);
 }
 
 

@@ -58,7 +58,7 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
         <h1 class="text-lg font-bold text-slate-900">Suppliers</h1>
       </div>
 
-      <!-- Quick Search & Create User Trigger -->
+      <!-- Quick Search & Create SupplierTrigger -->
       <div class="flex items-center gap-3">
         <form method="GET" class="relative w-64">
           <input type="text" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>" placeholder="Search suppliers..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 <?php echo $searchTerm !== '' ? 'pr-9' : 'pr-3'; ?> py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">

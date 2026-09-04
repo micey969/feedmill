@@ -9,7 +9,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 $timeout = 600;
 
 if (!isset($_SESSION['user'])) {
-  header('Location: login.php');
+  header('Location: ' . publicUrl('login.php'));
   exit;
 }
 
@@ -20,8 +20,10 @@ if (isset($_SESSION['last_activity'])) {
     logAction($conn, $_SESSION['user'], 'TIMEOUT', 'Session timed out after 10 minutes of inactivity');
     session_unset();
     session_destroy();
+    session_start();
+    $_SESSION['timeout_message'] = true;
 
-    header('Location: login.php?timeout=1');
+    header('Location: login.php');
     exit;
   }
 }
