@@ -20,10 +20,9 @@ if (isset($_SESSION['last_activity'])) {
     logAction($conn, $_SESSION['user'], 'TIMEOUT', 'Session timed out after 10 minutes of inactivity');
     session_unset();
     session_destroy();
-    session_start();
-    $_SESSION['timeout_message'] = true;
+    // $_SESSION['timeout_message'] = true;
 
-    header('Location: login.php');
+    header('Location: login.php?timeout=1');
     exit;
   }
 }

@@ -25,6 +25,14 @@ $suppliersStmt->close();
 
 $displayStart = $totalRecords > 0 ? $offset + 1 : 0;
 $displayEnd = min($offset + $recordsPerPage, $totalRecords);
+$pageUrl = static function (int $page) use ($searchTerm): string {
+  $query = ['page' => $page];
+  if ($searchTerm !== '') {
+    $query['search'] = $searchTerm;
+  }
+
+  return publicUrl('inventory/suppliers.php') . '?' . http_build_query($query);
+};
 ?>
 
 <!DOCTYPE html>
@@ -124,39 +132,44 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
 
         <!-- Table Footer Pagination -->
         <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
-          <span class="text-slate-500 font-medium">Showing <span class="font-bold text-slate-800"><?php echo $displayStart; ?>-<?php echo $displayEnd; ?></span> of <span class="font-bold text-slate-800"><?php echo $totalRecords; ?></span> Suppliers</span>
+          <span class="text-slate-500 font-medium">Showing <span class="font-bold text-slate-800"><?php echo $displayStart; ?>-<?php echo $displayEnd; ?></span> of <span class="font-bold text-slate-800"><?php echo $totalRecords; ?></span> log entries</span>
 
-          <div class="flex items-center gap-1">
+          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-medium">
             <?php if ($currentPage > 1): ?>
-              <a href="<?php echo htmlspecialchars(publicUrl('inventory/suppliers.php'). '?page=' . ($currentPage - 1) . ($searchTerm !== '' ? '&search=' . urlencode($searchTerm) : '')); ?>" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            </a>
+              <a href="<?php echo htmlspecialchars($pageUrl(1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="First Sheet" aria-label="First page">
             <?php else: ?>
-              <button disabled class="p-2 rounded-lg bg-white border border-slate-200 text-slate-300 cursor-not-allowed">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-              </button>
+              <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed " title="First Sheet" aria-label="First page">
             <?php endif; ?>
-            
-            <?php for ($page = 1; $page <= $totalPages; $page++): ?>
-              <?php if ($page === $currentPage): ?>
-                <button class="px-3 py-1 rounded-lg bg-red-600 text-white font-bold text-xs shadow-xs"><?php echo $page; ?></button>
-              <?php else: ?>
-                <a href="<?php echo htmlspecialchars(publicUrl('inventory/suppliers.php'). '?page=' . $page . ($searchTerm !== '' ? '&search=' . urlencode($searchTerm) : '')); ?>" class="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs"><?php echo $page; ?></a>
-              <?php endif; ?>
-            <?php endfor; ?>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+            <?php if ($currentPage > 1): ?></a><?php else: ?></button><?php endif; ?>
+
+            <?php if ($currentPage > 1): ?>
+              <a href="<?php echo htmlspecialchars($pageUrl($currentPage - 1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Previous Sheet" aria-label="Previous page">
+            <?php else: ?>
+              <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Previous Sheet" aria-label="Previous page">
+            <?php endif; ?>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <?php if ($currentPage > 1): ?></a><?php else: ?></button><?php endif; ?>
+
+            <span class="px-3 font-semibold text-slate-700">Records <?php echo $displayStart; ?>-<?php echo $displayEnd; ?> of <?php echo $totalRecords; ?></span>
 
             <?php if ($currentPage < $totalPages): ?>
-              <a href="<?php echo htmlspecialchars(publicUrl('inventory/suppliers.php'). '?page=' . ($currentPage + 1) . ($searchTerm !== '' ? '&search=' . urlencode($searchTerm) : '')); ?>" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-              </a>
+              <a href="<?php echo htmlspecialchars($pageUrl($currentPage + 1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Next Sheet" aria-label="Next page">
             <?php else: ?>
-              <button disabled class="p-2 rounded-lg bg-white border border-slate-200 text-slate-300 cursor-not-allowed">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-              </button>
+              <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Next Sheet" aria-label="Next page">
             <?php endif; ?>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <?php if ($currentPage < $totalPages): ?></a><?php else: ?></button><?php endif; ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+              <a href="<?php echo htmlspecialchars($pageUrl($totalPages)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Last Sheet" aria-label="Last page">
+            <?php else: ?>
+              <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Last Sheet" aria-label="Last page">
+            <?php endif; ?>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+            <?php if ($currentPage < $totalPages): ?></a><?php else: ?></button><?php endif; ?>
           </div>
         </div>
-
       </div>
 
     </div>
@@ -240,14 +253,14 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
           <div><h2 class="text-base font-bold text-slate-900">Edit Supplier Details</h2><p class="text-[10px] text-slate-500">Update supplier information and contact details.</p></div>
           <button type="button" onclick="document.getElementById('edit-supplier-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg" aria-label="Close">&times;</button>
         </div>
-        <form action="supplier_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
+        <form action="suppliers_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           <input type="hidden" name="supplier_id" id="edit-supplier-id">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label class="block font-bold text-slate-700 mb-1">Full Name *</label><input type="text" name="full_name" id="edit-supplier-full-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Contact Person *</label><input type="text" name="contact_person" id="edit-supplier-contact-person" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
             <div><label class="block font-bold text-slate-700 mb-1">Company Name *</label><input type="text" name="company_name" id="edit-supplier-company-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
             <div><label class="block font-bold text-slate-700 mb-1">Email *</label><input type="email" name="email" id="edit-supplier-email" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
             <div><label class="block font-bold text-slate-700 mb-1">Phone *</label><input type="tel" name="phone" id="edit-supplier-phone" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
-            <div><label class="block font-bold text-slate-700 mb-1">New Password</label><input type="password" name="password" placeholder="Leave blank to keep current" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Country</label><input type="text" name="country" id="edit-supplier-country" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
           </div>
           <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3"><button type="button" onclick="document.getElementById('edit-supplier-modal').classList.add('hidden')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl">Cancel</button><button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl">Update Supplier Details</button></div>
         </form>

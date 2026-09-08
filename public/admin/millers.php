@@ -68,9 +68,18 @@ if (!$result) {
 $millers = $result->fetch_all(MYSQLI_ASSOC);
 
 // Calculate pagination info
-$totalPages = ceil($totalRecords / $recordsPerPage);
+$totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
+$currentPage = min($currentPage, $totalPages);
 $displayStart = $totalRecords > 0 ? ($offset + 1) : 0;
 $displayEnd = min($offset + $recordsPerPage, $totalRecords);
+$pageUrl = static function (int $page) use ($searchTerm): string {
+  $query = ['page' => $page];
+  if ($searchTerm !== '') {
+    $query['search'] = $searchTerm;
+  }
+
+  return publicUrl('admin/millers.php') . '?' . http_build_query($query);
+};
 
 $jobColors = [
   'Mill Operator' => 'bg-slate-100 text-slate-500 border-slate-200',
@@ -214,41 +223,44 @@ $jobColors = [
 
           <!-- Table Pagination Footer -->
           <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
-            <span class="text-slate-500 font-medium">Showing <span class="font-bold text-slate-800"><?php echo $displayStart; ?>-<?php echo $displayEnd; ?></span> of <span class="font-bold text-slate-800"><?php echo $totalRecords; ?></span> Millers</span>
+          <span class="text-slate-500 font-medium">Showing <span class="font-bold text-slate-800"><?php echo $displayStart; ?>-<?php echo $displayEnd; ?></span> of <span class="font-bold text-slate-800"><?php echo $totalRecords; ?></span> log entries</span>
 
-            <div class="flex items-center gap-1">
-              <!-- Previous Button -->
-              <?php if ($currentPage > 1): ?>
-                <a href="<?php echo htmlspecialchars(publicUrl('admin/millers.php') . '?page=' . ($currentPage - 1) . (!empty($searchTerm) ? '&search=' . urlencode($searchTerm) : '')); ?>" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </a>
-              <?php else: ?>
-                <button disabled class="p-2 rounded-lg bg-white border border-slate-200 text-slate-300 cursor-not-allowed">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-              <?php endif; ?>
+          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-medium">
+            <?php if ($currentPage > 1): ?>
+              <a href="<?php echo htmlspecialchars($pageUrl(1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="First Sheet" aria-label="First page">
+            <?php else: ?>
+              <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed " title="First Sheet" aria-label="First page">
+            <?php endif; ?>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+            <?php if ($currentPage > 1): ?></a><?php else: ?></button><?php endif; ?>
 
-              <!-- Page Numbers -->
-              <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <?php if ($i == $currentPage): ?>
-                  <button class="px-3 py-1 rounded-lg bg-red-600 text-white font-bold text-xs shadow-xs"><?php echo $i; ?></button>
-                <?php else: ?>
-                  <a href="<?php echo htmlspecialchars(publicUrl('admin/millers.php') . '?page=' . $i . (!empty($searchTerm) ? '&search=' . urlencode($searchTerm) : '')); ?>" class="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition font-bold text-xs"><?php echo $i; ?></a>
-                <?php endif; ?>
-              <?php endfor; ?>
+            <?php if ($currentPage > 1): ?>
+              <a href="<?php echo htmlspecialchars($pageUrl($currentPage - 1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Previous Sheet" aria-label="Previous page">
+            <?php else: ?>
+              <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Previous Sheet" aria-label="Previous page">
+            <?php endif; ?>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <?php if ($currentPage > 1): ?></a><?php else: ?></button><?php endif; ?>
 
-              <!-- Next Button -->
-              <?php if ($currentPage < $totalPages): ?>
-                <a href="<?php echo htmlspecialchars(publicUrl('admin/millers.php') . '?page=' . ($currentPage + 1) . (!empty($searchTerm) ? '&search=' . urlencode($searchTerm) : '')); ?>" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </a>
-              <?php else: ?>
-                <button disabled class="p-2 rounded-lg bg-white border border-slate-200 text-slate-300 cursor-not-allowed">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </button>
-              <?php endif; ?>
-            </div>
+            <span class="px-3 font-semibold text-slate-700">Records <?php echo $displayStart; ?>-<?php echo $displayEnd; ?> of <?php echo $totalRecords; ?></span>
+
+            <?php if ($currentPage < $totalPages): ?>
+              <a href="<?php echo htmlspecialchars($pageUrl($currentPage + 1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Next Sheet" aria-label="Next page">
+            <?php else: ?>
+              <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Next Sheet" aria-label="Next page">
+            <?php endif; ?>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <?php if ($currentPage < $totalPages): ?></a><?php else: ?></button><?php endif; ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+              <a href="<?php echo htmlspecialchars($pageUrl($totalPages)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Last Sheet" aria-label="Last page">
+            <?php else: ?>
+              <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Last Sheet" aria-label="Last page">
+            <?php endif; ?>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+            <?php if ($currentPage < $totalPages): ?></a><?php else: ?></button><?php endif; ?>
           </div>
+        </div>
 
         </div>
       </div>

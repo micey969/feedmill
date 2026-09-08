@@ -79,8 +79,7 @@ require_once __DIR__ . '/../app/views/auth/login.php';
       <div class="text-[11px] text-slate-400 font-medium flex items-center justify-between pt-6 border-t border-slate-100">
         <span>© 2026 ECGC Feeds</span>
         <span class="flex items-center gap-1.5 text-slate-500">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          System Online
+          Built by ICT Team
         </span>
       </div>
 

@@ -9,5 +9,6 @@
   <title><?php echo htmlspecialchars($pageTitle); ?></title>
   <link href="<?php echo htmlspecialchars(publicUrl('css/output.css')); ?>" rel="stylesheet">
   <script src="<?php echo htmlspecialchars(publicUrl('js/modals.js')); ?>"></script>
+  <script src="<?php echo htmlspecialchars(publicUrl('js/timeout.js')); ?>"></script>
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
