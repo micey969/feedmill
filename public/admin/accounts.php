@@ -111,7 +111,9 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
               <?php else: ?>
                 <?php foreach ($accounts as $account): ?>
                   <tr class="hover:bg-slate-50/80 transition cursor-pointer">
-                    <td class="py-3.5 px-6"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-slate-600 text-xs uppercase"><img src="<?php echo htmlspecialchars(publicUrl('images/' . $account['image_name']) ?: 'avatar.png'); ?>" alt="User Avatar" class="w-full h-full object-cover rounded-full"></div></td>
+                    <td class="py-3.5 px-6"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden">
+                      <img src="<?php echo htmlspecialchars(publicUrl('images/' . (!empty($account['image_name']) ? $account['image_name'] : 'avatar.png'))); ?>" alt="User Avatar" class="w-full h-full object-cover rounded-full"></div></div>
+                    </td>                    
                     <td class="py-3.5 px-6 font-semibold text-slate-900"><?php echo htmlspecialchars($account['full_name']); ?></td>
                     <td class="py-3.5 px-6 font-semibold text-slate-900"><?php echo htmlspecialchars($account['job_title']); ?></td>
                     <td class="py-3.5 px-6 font-mono text-slate-600"><?php echo htmlspecialchars($account['username']); ?></td>
@@ -254,17 +256,23 @@ $displayEnd = min($offset + $recordsPerPage, $totalRecords);
     <div id="edit-user-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
       <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
         <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-          <div><h2 class="text-base font-bold text-slate-900">Edit User Account</h2><p class="text-[10px] text-slate-500">Update account details, permissions, or credentials.</p></div>
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Edit User Account</h2>
+            <p class="text-[10px] text-slate-500">Update account details, permissions, or credentials.</p>
+          </div>
           <button type="button" onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg" aria-label="Close">&times;</button>
         </div>
+        
         <form action="accounts_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           <input type="hidden" name="user_id" id="edit-user-id">
+          
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label class="block font-bold text-slate-700 mb-1">Full Name *</label><input type="text" name="full_name" id="edit-user-full-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Username *</label><input type="text" name="username" id="edit-user-username" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Job Title</label><input type="text" name="job_title" id="edit-user-job-title" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Account Status</label><select name="active_flag" id="edit-user-active" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="1">Active</option><option value="0">Inactive</option></select></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Access</label><select name="admin_flag" id="edit-user-admin" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="0">User</option><option value="1">Administrator</option></select></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Full Name</label><input type="text" name="full_name" id="edit-user-full-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Username</label><input type="text" name="username" id="edit-user-username" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Job Title</label><input type="text" name="job_title" id="edit-user-job-title" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Image</label><input type="text" name="image_name" id="edit-user-image" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Account Status</label><select name="active_flag" id="edit-user-active" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Access</label><select name="admin_flag" id="edit-user-admin" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="0">User</option><option value="1">Administrator</option></select></div>
             <div><label class="block font-bold text-slate-700 mb-1">New Password</label><input type="password" name="password" placeholder="Leave blank to keep current" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
           </div>
           <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3"><button type="button" onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl">Cancel</button><button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl">Update User Account</button></div>
