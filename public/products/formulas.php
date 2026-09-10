@@ -41,7 +41,7 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
     </header>
 
     <!-- Workspace Body -->
-    <form action="save_formula.php" method="POST" class="p-6 sm:p-8 max-w-6xl space-y-6">
+    <form action="formula_save.php" method="POST" class="p-6 sm:p-8 max-w-6xl space-y-6">
       
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
@@ -59,25 +59,25 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
               class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
           </div>
 
-          <!-- Description -->
-          <div class="space-y-1">
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Description</label>
-            <textarea name="description" rows="2" placeholder="e.g. Starter feed for turkey chicks aged 0-4 weeks"
-              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600"></textarea>
-          </div>
-
-          <!-- PI Code -->
-          <div class="space-y-1">
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">PI Code</label>
-            <input type="text" name="pi_code" placeholder="Production Item Code"
-              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-          </div>
-
           <!-- Sold As -->
           <div class="space-y-1">
             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Sold As *</label>
             <input type="text" name="sold_as" value="TURKEY STARTER" required
               class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+          </div>
+
+          <!-- Creator -->
+          <div class="space-y-1">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Creator</label>
+            <input type="text" name="creator" placeholder="Enter creator name"
+              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+          </div>
+
+          <!-- Description -->
+          <div class="space-y-1">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Description</label>
+            <textarea name="description" rows="2" placeholder="e.g. Starter feed for turkey chicks aged 0-4 weeks"
+              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600"></textarea>
           </div>
 
           <!-- Date -->
@@ -238,9 +238,7 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
 
       <!-- Action Toolbar Footer -->
       <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-        <a href="formulas_list.php" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition">
-          Undo / Cancel
-        </a>
+        <button type="reset" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition">Undo</button>
         <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
           <span>Save Formula</span>
