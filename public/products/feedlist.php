@@ -78,14 +78,26 @@ function feedListUrl(int $page, string $search, string $status): string {
 <body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
 
 <?php require_once __DIR__ . '/../../app/views/includes/sidebar.php'; ?>
+
 <main class="flex-1 min-w-0 overflow-y-auto h-screen">
   
   <div class="h-1.5 bg-red-600 w-full"></div>
 
   <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
     <div>
-      <nav class="flex gap-2 text-xs text-slate-400"><a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600">Main Hub</a><span>/</span><span>Product Management</span></nav><h1 class="text-lg font-bold text-slate-900">Formula List</h1></div>
-    <a href="<?php echo htmlspecialchars(publicUrl('products/formulas.php')); ?>" class="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl">New Formula</a>
+      <nav class="flex gap-2 text-xs text-slate-400">
+        <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600">Main Hub</a>
+        <span>/</span>
+        <span>Product Management</span>
+      </nav>
+      <h1 class="text-lg font-bold text-slate-900">Formula List</h1>
+    </div>
+
+     <!-- Add Formula -->
+    <a href="<?php echo htmlspecialchars(publicUrl('products/formulas.php')); ?>" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+      <span>New Formula</span>
+    </a>
   </header>
 
   <div class="p-6 sm:p-8 max-w-7xl space-y-6">
@@ -284,7 +296,7 @@ function feedListUrl(int $page, string $search, string $status): string {
 <script>
 const ingredientOptions = <?php echo json_encode($ingredientOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
 const formulaModal = document.getElementById('formula-modal');
-function openFormulaModal(formula) { document.getElementById('edit-formula-id').value = formula.formula_id; document.getElementById('edit-formula-code').value = formula.formula_id; document.getElementById('edit-formula-name').value = formula.formula_name || ''; document.getElementById('edit-formula-description').value = formula.description || ''; document.getElementById('edit-formula-date').value = formula.setup_date || ''; document.getElementById('edit-formula-status').value = formula.formula_active_flag; document.getElementById('edit-ingredients-list').innerHTML = ''; (formula.ingredients || []).forEach(addIngredientRow); if (!formula.ingredients?.length) addIngredientRow(); updateTotalWeight(); formulaModal.classList.remove('hidden'); }
+function openFormulaModal(formula) { document.getElementById('edit-formula-id').value = formula.formula_id; document.getElementById('edit-formula-code').value = formula.formula_id; document.getElementById('edit-formula-name').value = formula.formula_name || ''; document.getElementById('edit-formula-description').value = formula.description || ''; document.getElementById('edit-formula-creator').value = formula.creator || ''; document.getElementById('edit-formula-date').value = formula.setup_date || ''; document.getElementById('edit-formula-status').value = formula.formula_active_flag; document.getElementById('edit-ingredients-list').innerHTML = ''; (formula.ingredients || []).forEach(addIngredientRow); if (!formula.ingredients?.length) addIngredientRow(); updateTotalWeight(); formulaModal.classList.remove('hidden'); }
 function closeFormulaModal() { formulaModal.classList.add('hidden'); }
 function addIngredientRow(item = {}) { const row = document.createElement('tr'); const options = ingredientOptions.map(option => `<option value="${option.ingredients_id}" ${String(option.ingredients_id) === String(item.ingredients_id || '') ? 'selected' : ''}>${option.name}</option>`).join(''); row.innerHTML = `<td class="p-2"><select name="ingredients[]" required class="w-full border rounded-lg px-2 py-1.5">${options}</select></td><td class="p-2"><input type="number" min="0" step="0.01" name="quantities[]" value="${item.quantity_kgs || ''}" required class="ingredient-quantity w-full border rounded-lg px-2 py-1.5"></td><td class="p-2"><button type="button" onclick="this.closest('tr').remove();updateTotalWeight()">&times;</button></td>`; document.getElementById('edit-ingredients-list').appendChild(row); row.querySelector('input').addEventListener('input', updateTotalWeight); }
 function updateTotalWeight() { let total = 0; document.querySelectorAll('.ingredient-quantity').forEach(input => total += Number(input.value) || 0); document.getElementById('edit-total-weight').textContent = `${total.toFixed(2)} Kg`; }

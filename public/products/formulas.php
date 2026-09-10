@@ -7,6 +7,8 @@ $ingredientResult = $conn->query('SELECT ingredients_id, name FROM ingredients W
 if ($ingredientResult) {
   $ingredientOptions = $ingredientResult->fetch_all(MYSQLI_ASSOC);
 }
+$catalogResult = $conn->query('SELECT ingredients_id, name, active_flag FROM ingredients ORDER BY active_flag DESC, name ASC');
+$ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : [];
 ?>
 
 <!DOCTYPE html>
@@ -41,7 +43,7 @@ if ($ingredientResult) {
       <div class="flex items-center gap-2">
         <button onclick="openMaterialModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-          <span>Add Raw Material</span>
+          <span>Manage Ingredients</span>
         </button>
       </div>
     </header>
@@ -172,65 +174,70 @@ if ($ingredientResult) {
         </button>
       </div>
     </form>
-
-    <!-- ================= RAW MATERIAL POPUP MODAL ================= -->
-  <div id="material-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-      
-      <!-- Modal Header -->
-      <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-        <div>
-          <h2 id="modal-title" class="text-base font-bold text-slate-900">Add Raw Material</h2>
-          <p class="text-[10px] text-slate-500">Register or update raw ingredient specifications.</p>
-        </div>
-        <button onclick="closeMaterialModal()" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-
-      <!-- Modal Body (Form) -->
-      <form action="save_material.php" method="POST" class="p-6 space-y-5 text-xs">
+    <!-- ================= INGREDIENT CATALOG MODAL ================= -->
+    <div id="material-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+      <div class="bg-white w-full max-w-2xl max-h-[78vh] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
         
-        <!-- Raw Material Name Input -->
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Raw Material Name *</label>
-          <input type="text" id="material_name" name="material_name" required placeholder="e.g. Wheat Middlings" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-        </div>
-
-        <!-- Material SKU / Code -->
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Material Code / SKU</label>
-          <input type="text" id="material_code" name="material_code" placeholder="e.g. RM-WHEAT-02" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-mono font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-        </div>
-
-        <!-- Active Flag Switch -->
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+        <!-- Modal Header -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div>
-            <label for="is_active" class="font-bold text-slate-800 block cursor-pointer">Active Status Flag</label>
-            <p class="text-[10px] text-slate-500">Inactive materials are excluded from active mixing sheets.</p>
+            <h2 class="text-base font-bold text-slate-900">Ingredient Catalog</h2>
+            <p class="text-[10px] text-slate-500">Add ingredients or update their names and active status.</p>
           </div>
-          
-          <!-- Toggle Checkbox Switch -->
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="is_active" name="is_active" value="1" class="sr-only peer" checked>
-            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-          </label>
-        </div>
-
-        <!-- Modal Action Buttons -->
-        <div class="pt-3 border-t border-slate-200 flex items-center justify-end gap-3">
-          <button type="button" onclick="closeMaterialModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">
-            Cancel
-          </button>
-          <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition">
-            Save Material
+          <button onclick="closeMaterialModal()" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
 
-      </form>
+        <div class="p-4 space-y-4 text-xs overflow-y-auto">
+          <form action="ingredient_save.php" method="POST" class="flex flex-col sm:flex-row sm:items-end gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <div class="flex-1">
+              <label for="ingredient-name" class="block font-bold text-slate-700 mb-1">New Ingredient Name *</label>
+              <input type="text" id="ingredient-name" name="name" required placeholder="e.g. Wheat Middlings" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-red-600">
+            </div>
+            <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition">Add Ingredient</button>
+          </form>
 
+          <form action="ingredient_update.php" method="POST">
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                    <th class="py-3 px-4 w-24">ID</th>
+                    <th class="py-3 px-4">Ingredient Name</th>
+                    <th class="py-3 px-4 w-40">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <?php if (!$ingredientCatalog): ?>
+                    <tr><td colspan="3" class="py-6 px-4 text-center text-slate-500">No ingredients have been added.</td></tr>
+                  <?php endif; ?>
+                  <?php foreach ($ingredientCatalog as $ingredient): ?>
+                    <tr>
+                      <td class="py-2 px-4 font-mono text-slate-500"><?php echo (int) $ingredient['ingredients_id']; ?></td>
+                      <td class="py-2 px-4">
+                        <input type="hidden" name="ids[]" value="<?php echo (int) $ingredient['ingredients_id']; ?>">
+                        <input type="text" name="names[]" value="<?php echo htmlspecialchars($ingredient['name']); ?>" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-600">
+                      </td>
+                      <td class="py-2 px-4">
+                        <select name="active_flags[]" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-600">
+                          <option value="1" <?php echo (int) $ingredient['active_flag'] === 1 ? 'selected' : ''; ?>>Active</option>
+                          <option value="0" <?php echo (int) $ingredient['active_flag'] === 0 ? 'selected' : ''; ?>>Inactive</option>
+                        </select>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+            <?php if ($ingredientCatalog): ?>
+              <div class="pt-4 flex justify-end">
+                <button type="submit" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition">Save Changes</button>
+              </div>
+            <?php endif; ?>
+          </form>
+      </div>
     </div>
-  </div>
   </main>
 
 </body>
@@ -239,6 +246,14 @@ if ($ingredientResult) {
   const addRowButton = document.getElementById('add-row-btn');
   const totalWeightDisplay = document.getElementById('total-weight-display');
   const formulaForm = document.querySelector('form[action="formula_save.php"]');
+
+  function openMaterialModal() {
+    document.getElementById('material-modal').classList.remove('hidden');
+  }
+
+  function closeMaterialModal() {
+    document.getElementById('material-modal').classList.add('hidden');
+  }
 
   function updateTotalWeight() {
     const total = [...document.querySelectorAll('.qty-input')]
