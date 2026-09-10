@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
+
+$ingredientOptions = [];
+$ingredientResult = $conn->query('SELECT ingredients_id, name FROM ingredients WHERE active_flag = 1 ORDER BY name ASC');
+if ($ingredientResult) {
+  $ingredientOptions = $ingredientResult->fetch_all(MYSQLI_ASSOC);
+}
 ?>
 
 <!DOCTYPE html>
@@ -55,14 +61,14 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
           <!-- Feed Code -->
           <div class="space-y-1">
             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Feed Code *</label>
-            <input type="text" name="feed_code" value="TU-ST-RB06" required
+            <input type="text" name="formula_id" placeholder="TU-ST-RB06" required
               class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
           </div>
 
           <!-- Sold As -->
           <div class="space-y-1">
             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Sold As *</label>
-            <input type="text" name="sold_as" value="TURKEY STARTER" required
+            <input type="text" name="formula_name" placeholder="TURKEY STARTER" required
               class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
           </div>
 
@@ -83,7 +89,7 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
           <!-- Date -->
           <div class="space-y-1">
             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Effective Date</label>
-            <input type="date" name="formula_date" value="2026-07-03" required
+            <input type="date" name="setup_date" value="<?php echo htmlspecialchars(date('Y-m-d')); ?>" required
               class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
           </div>
 
@@ -94,7 +100,8 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
                 <span class="text-xs font-bold text-slate-800 block">Activating Formula</span>
                 <span class="text-[10px] text-slate-500">Set as active production baseline</span>
               </div>
-              <input type="checkbox" name="is_active" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-600">
+              <input type="hidden" name="active_flag" value="0">
+              <input type="checkbox" name="active_flag" value="1" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-600">
             </label>
           </div>
         </div>
@@ -128,14 +135,14 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
                 <tr>
                   <td class="py-2 px-3">
                     <select name="ingredients[]" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-red-600">
-                      <option value="CORN" selected>CORN</option>
-                      <option value="SHORTS">SHORTS (MILLFEED)</option>
-                      <option value="SOYAMEAL">SOYAMEAL</option>
-                      <option value="LIMESTONE">LIMESTONE</option>
+                      <option value="">Select an active ingredient</option>
+                      <?php foreach ($ingredientOptions as $ingredient): ?>
+                        <option value="<?php echo (int) $ingredient['ingredients_id']; ?>"><?php echo htmlspecialchars($ingredient['name']); ?></option>
+                      <?php endforeach; ?>
                     </select>
                   </td>
                   <td class="py-2 px-3">
-                    <input type="number" step="0.1" name="quantities[]" value="397.1" class="qty-input w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
+                    <input type="number" step="0.1" name="quantities[]" value="" class="qty-input w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
                   </td>
                   <td class="py-2 px-3 text-center">
                     <button type="button" class="remove-row-btn text-slate-400 hover:text-red-600 transition p-1">
@@ -143,86 +150,6 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
                     </button>
                   </td>
                 </tr>
-
-                <!-- Row 2 -->
-                <tr>
-                  <td class="py-2 px-3">
-                    <select name="ingredients[]" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-red-600">
-                      <option value="CORN">CORN</option>
-                      <option value="SHORTS" selected>SHORTS (MILLFEED)</option>
-                      <option value="SOYAMEAL">SOYAMEAL</option>
-                      <option value="LIMESTONE">LIMESTONE</option>
-                    </select>
-                  </td>
-                  <td class="py-2 px-3">
-                    <input type="number" step="0.1" name="quantities[]" value="35.0" class="qty-input w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
-                  </td>
-                  <td class="py-2 px-3 text-center">
-                    <button type="button" class="remove-row-btn text-slate-400 hover:text-red-600 transition p-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- Row 3 -->
-                <tr>
-                  <td class="py-2 px-3">
-                    <select name="ingredients[]" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-red-600">
-                      <option value="SOYAMEAL" selected>SOYAMEAL</option>
-                      <option value="CORN">CORN</option>
-                      <option value="SHORTS">SHORTS (MILLFEED)</option>
-                      <option value="LIMESTONE">LIMESTONE</option>
-                    </select>
-                  </td>
-                  <td class="py-2 px-3">
-                    <input type="number" step="0.1" name="quantities[]" value="478.4" class="qty-input w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
-                  </td>
-                  <td class="py-2 px-3 text-center">
-                    <button type="button" class="remove-row-btn text-slate-400 hover:text-red-600 transition p-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- Row 4 -->
-                <tr>
-                  <td class="py-2 px-3">
-                    <select name="ingredients[]" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-red-600">
-                      <option value="RC/BRAN" selected>RC/BRAN</option>
-                      <option value="CORN">CORN</option>
-                      <option value="SOYAMEAL">SOYAMEAL</option>
-                      <option value="LIMESTONE">LIMESTONE</option>
-                    </select>
-                  </td>
-                  <td class="py-2 px-3">
-                    <input type="number" step="0.1" name="quantities[]" value="55.0" class="qty-input w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
-                  </td>
-                  <td class="py-2 px-3 text-center">
-                    <button type="button" class="remove-row-btn text-slate-400 hover:text-red-600 transition p-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- Row 5 -->
-                <tr>
-                  <td class="py-2 px-3">
-                    <select name="ingredients[]" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-red-600">
-                      <option value="LIMESTONE" selected>LIMESTONE</option>
-                      <option value="CORN">CORN</option>
-                      <option value="SOYAMEAL">SOYAMEAL</option>
-                    </select>
-                  </td>
-                  <td class="py-2 px-3">
-                    <input type="number" step="0.1" name="quantities[]" value="9.8" class="qty-input w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
-                  </td>
-                  <td class="py-2 px-3 text-center">
-                    <button type="button" class="remove-row-btn text-slate-400 hover:text-red-600 transition p-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                  </td>
-                </tr>
-
               </tbody>
             </table>
           </div>
@@ -230,7 +157,7 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
           <!-- Total Calculation Footer -->
           <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 flex items-center justify-between text-xs font-bold text-slate-800">
             <span>Total Batch Weight:</span>
-            <span class="font-mono text-base text-red-600" id="total-weight-display">975.30 Kg</span>
+            <span class="font-mono text-base text-red-600" id="total-weight-display">0.0 Kg</span>
           </div>
         </div>
 
@@ -307,4 +234,36 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
   </main>
 
 </body>
+<script>
+  const ingredientsList = document.getElementById('ingredients-list');
+  const addRowButton = document.getElementById('add-row-btn');
+  const totalWeightDisplay = document.getElementById('total-weight-display');
+  const formulaForm = document.querySelector('form[action="formula_save.php"]');
+
+  function updateTotalWeight() {
+    const total = [...document.querySelectorAll('.qty-input')]
+      .reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+    totalWeightDisplay.textContent = `${total.toFixed(1)} Kg`;
+  }
+
+  function addIngredientRow() {
+    const row = ingredientsList.querySelector('tr').cloneNode(true);
+    row.querySelector('select').selectedIndex = 0;
+    row.querySelector('.qty-input').value = '';
+    ingredientsList.appendChild(row);
+    updateTotalWeight();
+  }
+
+  addRowButton.addEventListener('click', addIngredientRow);
+  ingredientsList.addEventListener('click', (event) => {
+    const removeButton = event.target.closest('.remove-row-btn');
+    if (!removeButton) return;
+    const rows = ingredientsList.querySelectorAll('tr');
+    if (rows.length > 1) removeButton.closest('tr').remove();
+    updateTotalWeight();
+  });
+  ingredientsList.addEventListener('input', updateTotalWeight);
+  formulaForm.addEventListener('reset', () => setTimeout(updateTotalWeight, 0));
+  updateTotalWeight();
+</script>
 </html>
