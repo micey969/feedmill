@@ -2,6 +2,8 @@
 
 const APP_PATH = __DIR__;
 
+date_default_timezone_set('America/New_York');
+
 $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
 $scriptFilename = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME'] ?? '');
 $publicPath = str_replace('\\', '/', dirname(__DIR__) . '/public');

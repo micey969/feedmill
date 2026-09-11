@@ -29,7 +29,7 @@ $stmt = $conn->prepare("INSERT INTO suppliers
 (company_name, contact_person, country, phone, email) 
 VALUES (?, ?, ?, ?, ?)");
 
-$stmt->bind_param("ssss", $companyName, $contactPerson, $country, $_POST['phone'], $_POST['email']);
+$stmt->bind_param("sssss", $companyName, $contactPerson, $country, $_POST['phone'], $_POST['email']);
 
 
 $stmt->execute();

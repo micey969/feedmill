@@ -216,7 +216,7 @@ function feedListUrl(int $page, string $search, string $status): string {
         <button type="button" onclick="closeFormulaModal()" aria-label="Close">&times;</button>
       </div>
       
-      <form action="formula_update.php" method="POST" class="p-6 space-y-6 text-xs">
+      <form action="formula_update.php" method="POST" class="p-6 sm:p-8 space-y-6 text-xs">
         
         <input type="hidden" name="formula_id" id="edit-formula-id">
         

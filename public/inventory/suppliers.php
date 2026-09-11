@@ -216,13 +216,13 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
               <!-- Phone -->
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Phone Number *</label>
-                <input type="tel" name="phone" required placeholder="+1 (246) 000-0000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="tel" name="phone" required placeholder="(246) 000-0000" pattern="^\(\d{3}\)\s\d{3}-\d{4}$"class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <!-- Email -->
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Email Address *</label>
-                <input type="email" name="email" required placeholder="contact@supplier.com" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="email" name="email" required placeholder="contact@supplier.com" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <!-- Website -->
