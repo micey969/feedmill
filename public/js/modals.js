@@ -35,3 +35,32 @@ function openSupplierModal(supplier) {
   document.getElementById('edit-supplier-email').value = supplier.email;
   document.getElementById('edit-supplier-modal').classList.remove('hidden');
 }
+
+function logReportPrint(reportName, button) {
+  const startDate = document.querySelector('input[name="start_date"]')?.value || '';
+  const endDate = document.querySelector('input[name="end_date"]')?.value || '';
+  const endpoint = button?.dataset.printLogEndpoint;
+
+  if (!endpoint || !reportName) {
+    window.print();
+    return;
+  }
+
+  const data = new URLSearchParams({ report_name: reportName });
+  if (startDate) data.set('start_date', startDate);
+  if (endDate) data.set('end_date', endDate);
+
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon(endpoint, new Blob([data.toString()], { type: 'application/x-www-form-urlencoded' }));
+  } else {
+    fetch(endpoint, {
+      method: 'POST',
+      body: data,
+      credentials: 'same-origin',
+      keepalive: true
+    });
+  }
+
+  window.print();
+}
+

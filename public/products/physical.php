@@ -183,7 +183,7 @@ $pageUrl = publicUrl('products/physical.php');
           </a>
         </div>
 
-        <button onclick="window.print()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print Stock Sheet">
+        <button type="button" onclick="logReportPrint('Actual Daily Physical Stock', this)" data-print-log-endpoint="<?php echo htmlspecialchars(publicUrl('reports/print_log.php')); ?>" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print Report" aria-label="Print report">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
         </button>
       </div>
@@ -194,8 +194,8 @@ $pageUrl = publicUrl('products/physical.php');
 
       <!-- Sheet Top Header -->
       <div id="sheet-header" class="text-center border-b border-slate-200 pb-4 hidden">
-        <h2 class="text-xl font-bold text-slate-900 tracking-tight">East Caribbean Feeds Limited</h2>
-        <h3 class="text-xl font-black text-red-600 uppercase tracking-wide mt-0.5">Physical Stock</h3>
+        <h2 class="text-xl font-black text-slate-900 tracking-tight">East Caribbean Feeds Limited</h2>
+        <h3 class="text-xl font-bold text-red-600 uppercase tracking-wide mt-0.5">Physical Stock</h3>
       </div>
       
       <form action="physical_save.php" method="POST" class="space-y-6">

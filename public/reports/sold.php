@@ -115,6 +115,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
       page-break-inside: avoid;
     }
   }
+
 </style>
 
 <body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
@@ -148,7 +149,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
           </button>
         </form>
 
-        <button type="button" onclick="window.print()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print Report" aria-label="Print report">
+        <button type="button" onclick="logReportPrint('Items Sold Separately Report', this)" data-print-log-endpoint="<?php echo htmlspecialchars(publicUrl('reports/print_log.php')); ?>" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print Report" aria-label="Print report">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
         </button>
       </div>
