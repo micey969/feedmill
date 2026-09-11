@@ -349,6 +349,9 @@
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
   }
+  .mb-3 {
+    margin-bottom: calc(var(--spacing) * 3);
+  }
   .mb-4 {
     margin-bottom: calc(var(--spacing) * 4);
   }
@@ -1003,6 +1006,9 @@
   .pb-4 {
     padding-bottom: calc(var(--spacing) * 4);
   }
+  .pl-3 {
+    padding-left: calc(var(--spacing) * 3);
+  }
   .pl-9 {
     padding-left: calc(var(--spacing) * 9);
   }
@@ -1435,14 +1441,23 @@
     .sm\:col-span-5 {
       grid-column: span 5 / span 5;
     }
+    .sm\:w-72 {
+      width: calc(var(--spacing) * 72);
+    }
     .sm\:grid-cols-12 {
       grid-template-columns: repeat(12, minmax(0, 1fr));
     }
     .sm\:flex-row {
       flex-direction: row;
     }
+    .sm\:items-center {
+      align-items: center;
+    }
     .sm\:items-end {
       align-items: flex-end;
+    }
+    .sm\:justify-between {
+      justify-content: space-between;
     }
     .sm\:p-8 {
       padding: calc(var(--spacing) * 8);

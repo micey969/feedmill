@@ -6,13 +6,6 @@ $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $ingredients = [];
 $stockDates = [];
 
-$ingredientResult = $conn->query('SELECT DISTINCT ingredients AS ingredient FROM ingredients_closing_stock_view ORDER BY ingredients ASC');
-if ($ingredientResult) {
-  while ($row = $ingredientResult->fetch_assoc()) {
-    $ingredients[] = ['name' => $row['ingredient'], 'quantity' => ''];
-  }
-}
-
 $dateResult = $conn->query('SELECT date_time FROM ingredients_closing_stock_view GROUP BY date_time ORDER BY date_time DESC');
 if ($dateResult) {
   while ($row = $dateResult->fetch_assoc()) {
@@ -23,6 +16,16 @@ if ($dateResult) {
 $totalPages = 1 + count($stockDates);
 $currentPage = min($currentPage, $totalPages);
 $selectedDate = null;
+$isNewEntry = $currentPage === 1;
+
+if ($isNewEntry) {
+  $ingredientResult = $conn->query('SELECT name AS ingredient FROM ingredients WHERE active_flag = 1 ORDER BY name ASC');
+  if ($ingredientResult) {
+    while ($row = $ingredientResult->fetch_assoc()) {
+      $ingredients[] = ['name' => $row['ingredient'], 'quantity' => ''];
+    }
+  }
+}
 
 if ($currentPage > 1) {
   $selectedDate = $stockDates[$currentPage - 2] ?? null;
@@ -36,6 +39,7 @@ if ($currentPage > 1) {
     $stockStmt->execute();
     $savedQuantities = [];
     foreach ($stockStmt->get_result()->fetch_all(MYSQLI_ASSOC) as $row) {
+      $ingredients[] = ['name' => $row['ingredient'], 'quantity' => $row['quantity_kgs']];
       $savedQuantities[$row['ingredient']] = $row['quantity_kgs'];
     }
     $stockStmt->close();
@@ -48,7 +52,6 @@ if ($currentPage > 1) {
 
 $ingredientColumns = array_chunk($ingredients, max(1, (int) ceil(count($ingredients) / 3)));
 $ingredientColumns = array_pad($ingredientColumns, 3, []);
-$isNewEntry = $currentPage === 1;
 $formDate = $isNewEntry ? date('Y-m-d') : date('Y-m-d', strtotime($selectedDate));
 $pageUrl = publicUrl('products/physical.php');
 ?>
@@ -211,7 +214,7 @@ $pageUrl = publicUrl('products/physical.php');
               <span class="w-2 h-2 rounded-full <?php echo $isNewEntry ? 'bg-blue-500' : 'bg-slate-500'; ?>"></span>
               <?php echo $isNewEntry ? 'New stock entry' : 'Saved stock record'; ?>
             </span>
-            <span class="text-xs text-slate-500 font-medium"><?php echo count($ingredients); ?> active ingredients</span>
+            <span class="text-xs text-slate-500 font-medium"><?php echo count($ingredients); ?> <?php echo $isNewEntry ? 'active ingredients' : 'recorded ingredients'; ?></span>
           </div>
         </div>
 
