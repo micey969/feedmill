@@ -5,7 +5,7 @@ function openAccountModal(account) {
   document.getElementById('edit-user-job-title').value = account.job_title;
   document.getElementById('edit-user-image').value = account.image_name || 'avatar.png';
   document.getElementById('edit-user-active').value = account.active_flag;
-  document.getElementById('edit-user-admin').value = account.admin_flag;
+  document.getElementById('edit-user-role').value = account.role;
   document.getElementById('edit-user-modal').classList.remove('hidden');
 }
 

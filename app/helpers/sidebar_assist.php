@@ -24,7 +24,8 @@
   $reportPages = ['reports/materials.php', 'reports/sold.php', 'reports/feeds.php', 'reports/summary.php'];
   $administrationPages = ['admin/millers.php', 'admin/accounts.php', 'admin/audit.php'];
   
-  $isAdmin = (int) ($_SESSION['admin_flag'] ?? 0) === 1;
+  $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
+  $isUser = ($_SESSION['role'] ?? '') === 'user';
   
   $userImage = TRIM($_SESSION['image_name'] ?? '');
   $userImagePath = $userImage !== ''

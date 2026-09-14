@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../app/init.php';
-require_once __DIR__ . '/../../app/middleware/admin_auth.php';
+require_once __DIR__ . '/../../app/middleware/admin_only.php';
 
 $recordsPerPage = 10;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
@@ -17,7 +17,7 @@ $totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
 $currentPage = min($currentPage, $totalPages);
 $offset = ($currentPage - 1) * $recordsPerPage;
 
-$accountsStmt = $conn->prepare('SELECT user_id, full_name, username, password, image_name, admin_flag, active_flag, job_title FROM accounts WHERE full_name LIKE ? OR username LIKE ? OR job_title LIKE ? ORDER BY active_flag DESC, full_name ASC, user_id ASC LIMIT ? OFFSET ?');
+$accountsStmt = $conn->prepare('SELECT user_id, full_name, username, password, image_name, role, active_flag, job_title FROM accounts WHERE full_name LIKE ? OR username LIKE ? OR job_title LIKE ? ORDER BY active_flag DESC, full_name ASC, user_id ASC LIMIT ? OFFSET ?');
 $accountsStmt->bind_param('sssii', $searchParam, $searchParam, $searchParam, $recordsPerPage, $offset);
 $accountsStmt->execute();
 $accounts = $accountsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -126,7 +126,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                     <td class="py-3.5 px-6 font-semibold text-slate-900"><?php echo htmlspecialchars($account['job_title']); ?></td>
                     <td class="py-3.5 px-6 font-mono text-slate-600"><?php echo htmlspecialchars($account['username']); ?></td>
                     <td class="py-3.5 px-6 font-mono text-slate-400">&bull;&bull;&bull;&bull;&bull;&bull;</td>
-                    <td class="py-3.5 px-6 text-center"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold <?php echo (int) $account['admin_flag'] === 1 ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-100 text-blue-600 border-blue-200'; ?> border"><?php echo (int) $account['admin_flag'] === 1 ? 'Admin' : 'User'; ?></span></td>
+                    <td class="py-3.5 px-6 text-center"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold <?php echo $account['role'] === 'admin' ? 'bg-red-100 text-red-700 border-red-200' : ($account['role'] === 'supervisor' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-blue-100 text-blue-600 border-blue-200'); ?> border"><?php echo htmlspecialchars(ucfirst((string) $account['role'])); ?></span></td>
                     <td class="py-3.5 px-6 text-center"><input type="checkbox" disabled class="w-4 h-4 text-red-600 rounded border-slate-300 cursor-pointer" <?php echo (int) $account['active_flag'] === 1 ? 'checked' : ''; ?>></td>
                     <td class="py-3.5 px-6 text-right"><button type="button" onclick="openAccountModal(<?php echo htmlspecialchars(json_encode($account), ENT_QUOTES, 'UTF-8'); ?>)" class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button></td>
                   </tr>
@@ -218,7 +218,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Image *</label>
-                <input type="text" name="image_name" required placeholder="e.g. BS02542.png" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="image_name" placeholder="e.g. BS02542.png" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
             </div>
           </div>
@@ -233,16 +233,17 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                 <label class="block font-bold text-slate-700 mb-1">Access Role *</label>
                 <select name="role" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
                   <option selected>Select Role</option>
-                  <option value="1">Administrator</option>
-                  <option value="0">User</option>
+                  <option value="admin">Admin</option>
+                  <option value="supervisor">Supervisor</option>
+                  <option value="user">User</option>
                 </select>
               </div>
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Account Status</label>
                 <select name="status" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-                  <option value="1">Active</option>
-                  <option value="0">Inactive</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
                 </select>
               </div>
 
@@ -286,7 +287,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             <div><label class="block font-bold text-slate-700 mb-1">Job Title</label><input type="text" name="job_title" id="edit-user-job-title" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
             <div><label class="block font-bold text-slate-700 mb-1">Image</label><input type="text" name="image_name" id="edit-user-image" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
             <div><label class="block font-bold text-slate-700 mb-1">Account Status</label><select name="active_flag" id="edit-user-active" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="1">Active</option><option value="0">Inactive</option></select></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Access</label><select name="admin_flag" id="edit-user-admin" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="0">User</option><option value="1">Administrator</option></select></div>
+            <div><label class="block font-bold text-slate-700 mb-1">Access</label><select name="role" id="edit-user-role" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="user">User</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select></div>
             <div><label class="block font-bold text-slate-700 mb-1">New Password</label><input type="password" name="password" placeholder="Leave blank to keep current" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
           </div>
           <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3"><button type="button" onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl">Cancel</button><button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl">Update User Account</button></div>

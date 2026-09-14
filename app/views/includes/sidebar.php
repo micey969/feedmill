@@ -46,12 +46,15 @@
         </button>
         <div id="production-menu" class="space-y-1 group-[.collapsed]/sidebar:md:absolute group-[.collapsed]/sidebar:md:left-full group-[.collapsed]/sidebar:md:top-0 group-[.collapsed]/sidebar:md:ml-3 group-[.collapsed]/sidebar:md:w-56 group-[.collapsed]/sidebar:md:bg-slate-900 group-[.collapsed]/sidebar:md:border group-[.collapsed]/sidebar:md:border-slate-800 group-[.collapsed]/sidebar:md:rounded-xl group-[.collapsed]/sidebar:md:p-2 group-[.collapsed]/sidebar:md:shadow-2xl" hidden>
           <a href="<?php echo htmlspecialchars(publicUrl('production/mixing.php')); ?>" class="<?php echo sidebarLinkClass('production/mixing.php', $current_page); ?>">Mixing Sheet</a>
+          <?php if (!$isUser): ?>
           <a href="<?php echo htmlspecialchars(publicUrl('production/variance.php')); ?>" class="<?php echo sidebarLinkClass('production/variance.php', $current_page); ?>">Materials Used</a>
           <a href="<?php echo htmlspecialchars(publicUrl('production/items.php')); ?>" class="<?php echo sidebarLinkClass('production/items.php', $current_page); ?>">Items Sold Separately</a>
+          <?php endif; ?>
         </div>
       </div>
 
       <!-- SECTION 2: Product Management -->
+      <?php if (!$isUser): ?>
       <div class="relative group/menu">
         <button type="button" class="w-full px-3 py-1 mb-2 text-left text-[10px] font-bold text-slate-300 uppercase tracking-widest flex gap-3 items-center rounded-lg hover:bg-slate-800/50 group-[.collapsed]/sidebar:md:mb-0 group-[.collapsed]/sidebar:md:justify-center group-[.collapsed]/sidebar:md:p-2" aria-expanded="false" aria-controls="product-menu" onclick="toggleMenu(this, 'product-menu')">
           <span class="<?php echo sidebarIconClass($productPages, $current_page); ?>">
@@ -68,8 +71,10 @@
           <a href="<?php echo htmlspecialchars(publicUrl('products/physical.php')); ?>" class="<?php echo sidebarLinkClass('products/physical.php', $current_page); ?>">Physical Stock</a>
         </div>
       </div>
+      <?php endif; ?>
 
       <!-- SECTION 3: Inventory -->
+      <?php if (!$isUser): ?>
       <div class="relative group/menu">
         <button type="button" class="w-full px-3 py-1 mb-2 text-left text-[10px] font-bold text-slate-300 uppercase tracking-widest flex gap-3 items-center rounded-lg hover:bg-slate-800/50 group-[.collapsed]/sidebar:md:mb-0 group-[.collapsed]/sidebar:md:justify-center group-[.collapsed]/sidebar:md:p-2" aria-expanded="false" aria-controls="inventory-menu" onclick="toggleMenu(this, 'inventory-menu')">
           <span class="<?php echo sidebarIconClass($inventoryPages, $current_page); ?>">
@@ -86,6 +91,7 @@
           <a href="<?php echo htmlspecialchars(publicUrl('inventory/receive.php')); ?>" class="<?php echo sidebarLinkClass('inventory/receive.php', $current_page); ?>">Receive</a>
         </div>
       </div>
+      <?php endif; ?>
 
       <!-- SECTION 4: Reports -->
       <div class="relative group/menu">
@@ -107,6 +113,7 @@
       </div>
 
       <!-- SECTION 5: Administration -->
+      <?php if (!$isUser): ?>
       <div class="relative group/menu">
         <button type="button" class="w-full px-3 py-1 mb-2 text-left text-[10px] font-bold text-slate-300 uppercase tracking-widest flex gap-3 items-center rounded-lg hover:bg-slate-800/50 group-[.collapsed]/sidebar:md:mb-0 group-[.collapsed]/sidebar:md:justify-center group-[.collapsed]/sidebar:md:p-2" aria-expanded="false" aria-controls="administration-menu" onclick="toggleMenu(this, 'administration-menu')">
           <span class="<?php echo sidebarIconClass($administrationPages, $current_page); ?>">
@@ -129,6 +136,7 @@
           <?php endif; ?>
         </div>
       </div>
+      <?php endif; ?>
 
     </nav>
   </div>

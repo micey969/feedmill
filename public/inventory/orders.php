@@ -294,7 +294,7 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
             <input type="text" placeholder="e.g. John Miller" name="contact_person" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
           </div>
           <div>
-            <label class="block text-slate-700 font-bold mb-1">Contact Position</label>
+            <label class="block text-slate-700 font-bold mb-1">Millers  Position</label>
             <input type="text" placeholder="e.g. Logistics Officer" name="contact_position" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
           </div>
         </div>

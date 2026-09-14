@@ -26,4 +26,23 @@ if (isset($_SESSION['last_activity'])) {
   }
 }
 
+$role = $_SESSION['role'] ?? 'user';
+$scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+$currentPage = ltrim(substr($scriptName, strlen(PUBLIC_URL)), '/');
+$userAllowedPages = [
+  'index.php',
+  'production/mixing.php',
+  'reports/materials.php',
+  'reports/sold.php',
+  'reports/feeds.php',
+  'reports/summary.php',
+  'reports/print_log.php',
+];
+
+if ($role === 'user' && !in_array($currentPage, $userAllowedPages, true)) {
+  http_response_code(403);
+  require APP_PATH . '/views/errors/access_denied.php';
+  exit;
+}
+
 $_SESSION['last_activity'] = time();
