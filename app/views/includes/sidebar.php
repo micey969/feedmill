@@ -87,6 +87,7 @@
         </button>
         <div id="inventory-menu" class="space-y-1 group-[.collapsed]/sidebar:md:absolute group-[.collapsed]/sidebar:md:left-full group-[.collapsed]/sidebar:md:top-0 group-[.collapsed]/sidebar:md:ml-3 group-[.collapsed]/sidebar:md:w-56 group-[.collapsed]/sidebar:md:bg-slate-900 group-[.collapsed]/sidebar:md:border group-[.collapsed]/sidebar:md:border-slate-800 group-[.collapsed]/sidebar:md:rounded-xl group-[.collapsed]/sidebar:md:p-2 group-[.collapsed]/sidebar:md:shadow-2xl" hidden>
           <a href="<?php echo htmlspecialchars(publicUrl('inventory/suppliers.php')); ?>" class="<?php echo sidebarLinkClass('inventory/suppliers.php', $current_page); ?>">Suppliers</a>
+          <a href="<?php echo htmlspecialchars(publicUrl('inventory/order_history.php')); ?>" class="<?php echo sidebarLinkClass('inventory/order_history.php', $current_page); ?>">Order History</a>
           <a href="<?php echo htmlspecialchars(publicUrl('inventory/orders.php')); ?>" class="<?php echo sidebarLinkClass('inventory/orders.php', $current_page); ?>">Orders</a>
           <a href="<?php echo htmlspecialchars(publicUrl('inventory/receive.php')); ?>" class="<?php echo sidebarLinkClass('inventory/receive.php', $current_page); ?>">Receive</a>
         </div>
