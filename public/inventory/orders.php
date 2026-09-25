@@ -41,10 +41,10 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
     </header>
 
     <!-- Workspace Body -->
-    <div class="p-6 sm:p-8 max-w-6xl space-y-4">
-      
+    <div class="p-6 sm:p-8 max-w-5xl space-y-6">
       <form action="save_order.php" method="POST" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
-          <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
+        
+        <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
           <h2 class="text-xs font-bold uppercase tracking-wider text-red-600">Order Schedule</h2>
           <span class="text-xs text-slate-400">Status: <strong class="text-amber-600">Draft Order</strong></span>
         </div>
