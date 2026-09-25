@@ -1,12 +1,12 @@
 let timeout;
-const loginUrl = new URL('../login.php?timeout=1', document.currentScript.src).href;
 
 // Function to reset timer
 function resetTimer() {
     clearTimeout(timeout);
 
     timeout = setTimeout(function() {
-        window.location.href = loginUrl;
+        const publicUrl = window.feedmillPublicUrl || '';
+        window.location.href = `${publicUrl}/login.php?timeout=1`;
     }, 600000); // 10 minutes in ms
 }
 

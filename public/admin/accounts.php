@@ -120,7 +120,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                 <?php foreach ($accounts as $account): ?>
                   <tr class="hover:bg-slate-50/80 transition cursor-pointer">
                     <td class="py-3.5 px-6"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden">
-                      <img src="<?php echo htmlspecialchars(publicUrl('images/' . (!empty($account['image_name']) ? $account['image_name'] : 'avatar.png'))); ?>" alt="User Avatar" class="w-full h-full object-cover rounded-full"></div></div>
+                      <img src="<?php echo htmlspecialchars(publicUrl('assets/images/' . (!empty($account['image_name']) ? $account['image_name'] : 'avatar.png'))); ?>" alt="User Avatar" class="w-full h-full object-cover rounded-full"></div></div>
                     </td>                    
                     <td class="py-3.5 px-6 font-semibold text-slate-900"><?php echo htmlspecialchars($account['full_name']); ?></td>
                     <td class="py-3.5 px-6 font-semibold text-slate-900"><?php echo htmlspecialchars($account['job_title']); ?></td>

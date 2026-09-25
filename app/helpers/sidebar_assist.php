@@ -20,7 +20,7 @@
 
   $productionPages = ['production/mixing.php', 'production/variance.php', 'production/items.php'];
   $productPages = ['products/formulas.php', 'products/feedlist.php', 'products/physical.php'];
-  $inventoryPages = ['inventory/suppliers.php', 'inventory/transport.php', 'inventory/orders.php', 'inventory/receive.php'];
+  $inventoryPages = ['inventory/suppliers.php', 'inventory/order_history.php', 'inventory/orders.php', 'inventory/receive.php'];
   $reportPages = ['reports/materials.php', 'reports/sold.php', 'reports/feeds.php', 'reports/summary.php'];
   $administrationPages = ['admin/millers.php', 'admin/accounts.php', 'admin/audit.php'];
   
@@ -29,5 +29,5 @@
   
   $userImage = TRIM($_SESSION['image_name'] ?? '');
   $userImagePath = $userImage !== ''
-    ? publicUrl(str_starts_with($userImage, 'images/') ? $userImage : 'images/' . basename($userImage))
-    : publicUrl('images/avatar.png');
+    ? publicUrl(str_starts_with($userImage, 'assets/images/') ? $userImage : 'assets/images/' . basename($userImage))
+    : publicUrl('assets/images/avatar.png');

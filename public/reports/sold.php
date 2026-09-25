@@ -75,11 +75,12 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
   $pageTitle = 'ECGC - Items Sold Separately Report';
   require_once __DIR__ . '/../../app/views/includes/head.php'; 
 ?>
-
+<!-- 
 <style>
   @media print {
     @page {
-      margin: 14mm 12mm 18mm;
+      size: A4 portrait;
+      margin: 15mm 12mm 20mm 12mm;
     }
 
     body * {
@@ -100,6 +101,10 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
       padding: 0 !important;
     }
 
+    .report-table-wrapper {
+      overflow: visible !important;
+    }
+
     aside,
     header,
     .no-print {
@@ -114,9 +119,22 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
       break-inside: avoid;
       page-break-inside: avoid;
     }
+
+    tr {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    thead {
+      display: table-header-group;
+    }
+
+    tfoot {
+      display: table-row-group;
+    }
   }
 
-</style>
+</style> -->
 
 <body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
 
@@ -149,7 +167,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
           </button>
         </form>
 
-        <button type="button" onclick="logReportPrint('Items Sold Separately Report', this)" data-print-log-endpoint="<?php echo htmlspecialchars(publicUrl('reports/print_log.php')); ?>" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print Report" aria-label="Print report">
+        <button type="button" onclick="exportPdf()" data-print-log-endpoint="<?php echo htmlspecialchars(publicUrl('reports/print_log.php')); ?>" data-pdf-target="printable-report" data-pdf-filename="items-sold-report.pdf" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Export and print report" aria-label="Export and print report">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
         </button>
       </div>
@@ -171,7 +189,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
         </div>
 
         <!-- Data Table Grid -->
-        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+        <div class=" report-table-wrapper overflow-x-auto rounded-2xl border border-slate-200">
           <table class="w-full text-left text-xs border-collapse">
             <thead>
               <tr class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
@@ -214,13 +232,23 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
         <!-- Report Footer Meta -->
         <div class="print-footer pt-6 border-t border-slate-100 flex items-center justify-between text-[11px] font-medium text-slate-400">
           <span><?php echo $escape($ranAt); ?></span>
-          <span>Page 1</span>
+          <span>PDF export includes page numbers</span>
         </div>
 
       </div>
 
     </div>
   </main>
+  <div id="pdf-report" style="display:none;"></div>
+
+<script>
+const salesData = <?= json_encode($salesByDate) ?>;
+const ingredients = <?= json_encode($ingredients) ?>;
+const ingredientTotals = <?= json_encode($ingredientTotals) ?>;
+const grandTotal = <?= json_encode($grandTotal) ?>;
+const startDate = <?= json_encode($formatDate($startDate)) ?>;
+const endDate = <?= json_encode($formatDate($endDate)) ?>;
+</script>
 
 </body>
 </html>
