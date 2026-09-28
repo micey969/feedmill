@@ -32,6 +32,7 @@ $currentPage = ltrim(substr($scriptName, strlen(PUBLIC_URL)), '/');
 $userAllowedPages = [
   'index.php',
   'production/mixing.php',
+  'production/mixing_save.php',
   'reports/materials.php',
   'reports/sold.php',
   'reports/feeds.php',

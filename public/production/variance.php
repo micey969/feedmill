@@ -74,8 +74,6 @@ if ($sheetCount > 0) {
   $usageStmt->close();
 }
 
-$pageTitle = 'ECGC - Materials Used';
-
 function variancePageUrl(?int $id): string {
   return htmlspecialchars(publicUrl('production/variance.php' . ($id === null ? '' : '?id=' . $id)), ENT_QUOTES, 'UTF-8');
 }
@@ -87,7 +85,10 @@ function varianceNumber($value, int $decimals = 2): string {
 
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once __DIR__ . '/../../app/views/includes/head.php'; ?>
+<?php 
+  $pageTitle = 'ECGC - Materials Used';
+  require_once __DIR__ . '/../../app/views/includes/head.php'; 
+?>
 <style>
   @media print {
     body * { visibility: hidden; }
