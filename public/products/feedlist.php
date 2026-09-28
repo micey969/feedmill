@@ -171,7 +171,7 @@ function feedListUrl(int $page, string $search, string $status): string {
           <?php if ($page > 1): ?>
             <a href="<?php echo htmlspecialchars(feedListUrl(1, $search, $status)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="First Sheet" aria-label="First page">
           <?php else: ?>
-            <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed " title="First Sheet" aria-label="First page">
+            <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed " title="First Page" aria-label="First page">
           <?php endif; ?>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
           <?php if ($page > 1): ?></a><?php else: ?></button><?php endif; ?>
@@ -179,7 +179,7 @@ function feedListUrl(int $page, string $search, string $status): string {
           <?php if ($page > 1): ?>
             <a href="<?php echo htmlspecialchars(feedListUrl($page - 1, $search, $status)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Previous Sheet" aria-label="Previous page">
           <?php else: ?>
-            <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Previous Sheet" aria-label="Previous page">
+            <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Previous Page" aria-label="Previous page">
           <?php endif; ?>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
           <?php if ($page > 1): ?></a><?php else: ?></button><?php endif; ?>
@@ -187,17 +187,17 @@ function feedListUrl(int $page, string $search, string $status): string {
           <span class="px-3 font-semibold text-slate-700">Records <?php echo $start; ?>-<?php echo $end; ?> of <?php echo $total; ?></span>
 
           <?php if ($page < $pages): ?>
-            <a href="<?php echo htmlspecialchars(feedListUrl($page + 1, $search, $status)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Next Sheet" aria-label="Next page">
+            <a href="<?php echo htmlspecialchars(feedListUrl($page + 1, $search, $status)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Next Page" aria-label="Next page">
           <?php else: ?>
-            <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Next Sheet" aria-label="Next page">
+            <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Next Page" aria-label="Next page">
           <?php endif; ?>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           <?php if ($page < $pages): ?></a><?php else: ?></button><?php endif; ?>
 
           <?php if ($page < $pages): ?>
-            <a href="<?php echo htmlspecialchars(feedListUrl($pages, $search, $status)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Last Sheet" aria-label="Last page">
+            <a href="<?php echo htmlspecialchars(feedListUrl($pages, $search, $status)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Last Page" aria-label="Last page">
           <?php else: ?>
-            <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Last Sheet" aria-label="Last page">
+            <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Last Page" aria-label="Last page">
           <?php endif; ?>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
           <?php if ($page < $pages): ?></a><?php else: ?></button><?php endif; ?>

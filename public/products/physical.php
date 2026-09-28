@@ -65,86 +65,6 @@ $pageUrl = publicUrl('products/physical.php');
   require_once __DIR__ . '/../../app/views/includes/head.php'; 
 ?>
 
-<style>
-  @page {
-    size: landscape;
-    margin: 0.35in;
-  }
-
-  input[type="number"] {
-    -moz-appearance: textfield;
-  }
-
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  input[type="number"]:hover {
-    -moz-appearance: auto;
-  }
-
-  input[type="number"]:hover::-webkit-inner-spin-button,
-  input[type="number"]:hover::-webkit-outer-spin-button {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  @media print {
-    body * {
-      visibility: hidden;
-    }
-    #printable-content, #printable-content * {
-      visibility: visible;
-    }
-    #sheet-header, #sheet-header * {
-      display: block !important;
-    }
-    #printable-content {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-    }
-    aside, header, .no-print {
-      display: none !important;
-    }
-    .print-columns {
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-      gap: 0.25rem !important;
-    }
-    .print-column-header {
-      padding: 0.3rem 0.4rem !important;
-      background: transparent !important;
-      border-bottom: 0 !important;
-    }
-    .print-column-body {
-      padding: 0.35rem !important;
-      gap: 0.15rem !important;
-    }
-    .print-row {
-      gap: 0.25rem !important;
-      font-size: 12px !important;
-    }
-    .print-row input {
-      width: 4rem !important;
-      padding: 0.1rem 0.2rem !important;
-      font-size: 12px !important;
-      border: 0 !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      outline: 0 !important;
-      -webkit-appearance: none !important;
-      -moz-appearance: textfield !important;
-    }
-    .print-row input::-webkit-inner-spin-button,
-    .print-row input::-webkit-outer-spin-button {
-      display: none !important;
-    }
-  }
-</style>
-
 <body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
 
   <!-- ================= SIDEBAR NAVIGATION ================= -->
@@ -182,10 +102,6 @@ $pageUrl = publicUrl('products/physical.php');
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
           </a>
         </div>
-
-        <button type="button" onclick="logReportPrint('Actual Daily Physical Stock', this)" data-print-log-endpoint="<?php echo htmlspecialchars(publicUrl('reports/print_log.php')); ?>" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print Report" aria-label="Print report">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-        </button>
       </div>
     </header>
 
