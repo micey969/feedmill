@@ -10,6 +10,15 @@ function mixingNumber($value): string {
   return number_format((float) $value, 2, '.', ',');
 }
 
+function mixingDateLabel(string $value): string {
+  $timestamp = strtotime($value);
+  if ($timestamp === false) {
+    return '';
+  }
+  $months = [1 => 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+  return date('l j', $timestamp) . ' ' . $months[(int) date('n', $timestamp)] . ', ' . date('Y', $timestamp);
+}
+
 function mixingBatchBoxes(int $count): void {
   for ($batch = 0; $batch < $count; $batch++) {
     echo '<span class="h-5 w-5 border border-slate-400 rounded-sm inline-block"></span>';
@@ -107,11 +116,14 @@ foreach ($sheetIngredients as $ingredient) {
 ?>
 
 <style>
+  .date-print-label { display: none; }
   @media print {
     body * { visibility: hidden; }
     #printable-sheet, #printable-sheet * { visibility: visible; }
     #printable-sheet { position: absolute; inset: 0; width: 100%; padding: 0; margin: 0; box-shadow: none !important; border: none !important; }
     .no-print { display: none !important; }
+    .date-screen-control { display: none !important; }
+    .date-print-label { display: block !important; }
   }
 </style>
 
@@ -174,7 +186,7 @@ foreach ($sheetIngredients as $ingredient) {
         </div>
 
         <?php if ($sheet): ?>
-          <?php $selectedFormula = ['name' => $sheet['formula_name'] ?? '', 'description' => $sheet['formula_description'] ?? '']; $sheetDate = $sheet['date_time'] ? date('Y-m-d', strtotime($sheet['date_time'])) : ''; ?>
+          <?php $selectedFormula = ['name' => $sheet['formula_name'] ?? '', 'description' => $sheet['formula_description'] ?? '']; $sheetDate = $sheet['date_time'] ? mixingDateLabel($sheet['date_time']) : ''; ?>
           <!-- FORM CONTROLS & META DATA GRID -->
           <div class="grid grid-cols-2 gap-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
             <div class="space-y-4">
@@ -228,7 +240,8 @@ foreach ($sheetIngredients as $ingredient) {
                 <!-- Date Selection -->
                 <div>
                   <label for="sheet-date" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Date</label>
-                  <input id="sheet-date" type="date" name="sheet_date" value="<?php echo date('Y-m-d'); ?>" required class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <input id="sheet-date" type="date" name="sheet_date" value="<?php echo date('Y-m-d'); ?>" required class="date-screen-control w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <span id="sheet-date-print" class="date-print-label text-xs font-semibold text-slate-800"><?php echo mixingEscape(mixingDateLabel(date('Y-m-d'))); ?></span>
                 </div>
               </div>
 
@@ -292,10 +305,13 @@ foreach ($sheetIngredients as $ingredient) {
             <!-- FOOTER DETAILS & SIGNATURE SECTION -->
             <div class="pt-4 border-t border-slate-200 space-y-6">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-500 uppercase tracking-wider text-[10px]">Required Production:</span>
-                  <input id="required-production" type="number" name="required_production_tons" min="1" max="20" step="2" required class="w-16 bg-slate-50 border border-slate-300 rounded px-2 py-1 text-center font-mono font-bold">
-                  <span>TONNES</span>
+                <div class="flex flex-col gap-1">
+                  <p id="required-production-error" class="hidden text-[10px] font-bold text-red-600"></p>
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-500 uppercase tracking-wider text-[10px]">Required Production:</span>
+                    <input id="required-production" type="number" name="required_production_tons" min="2" max="20" step="2" required class="w-16 bg-slate-50 border border-slate-300 rounded px-2 py-1 text-center font-mono font-bold">
+                    <span>TONNES</span>
+                  </div>
                 </div>
                 <div class="flex items-center gap-2 sm:justify-end">
                   <label for="to-bin" class="text-slate-500 uppercase tracking-wider text-[10px]">To Bin No:</label>
@@ -422,6 +438,9 @@ foreach ($sheetIngredients as $ingredient) {
     const ingredientRows = document.getElementById('ingredient-rows');
     const batchHeading = document.getElementById('batch-heading');
     const requiredProduction = document.getElementById('required-production');
+    const requiredProductionError = document.getElementById('required-production-error');
+    const sheetDate = document.getElementById('sheet-date');
+    const sheetDatePrint = document.getElementById('sheet-date-print');
     const batchOptions = [...document.querySelectorAll('input[name="batch_tonnes"]')];
     const millerSelect = document.getElementById('miller-id');
     const millerPosition = document.getElementById('miller-position');
@@ -430,15 +449,38 @@ foreach ($sheetIngredients as $ingredient) {
       millerPosition.value = millerSelect.selectedOptions[0]?.dataset.jobTitle || '';
     }
 
+    function updateSheetDateDisplay() {
+      if (!sheetDate.value) {
+        sheetDatePrint.textContent = '';
+        return;
+      }
+      const selectedDate = new Date(`${sheetDate.value}T00:00:00`);
+      const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+      sheetDatePrint.textContent = `${weekdays[selectedDate.getDay()]} ${selectedDate.getDate()} ${months[selectedDate.getMonth()]}, ${selectedDate.getFullYear()}`;
+    }
+
+    sheetDate.addEventListener('change', updateSheetDateDisplay);
+
     const maxProductionByBatch = { 0.5: 5, 1: 10, 2: 20 };
+    const batchTonnageLabels = { 0.5: 'HALF TON', 1: 'ONE TON', 2: 'TWO TON' };
     const MAX_BATCH_COUNT = 10;
 
     function updateMixingTable() {
       const batchTonnes = Number(document.querySelector('input[name="batch_tonnes"]:checked')?.value || 0);
       const maxProduction = maxProductionByBatch[batchTonnes] || 0;
       requiredProduction.max = maxProduction || '';
+      requiredProduction.min = batchTonnes === 2 ? 2 : 1;
       requiredProduction.step = batchTonnes === 2 ? 2 : 1;
-      const productionTonnes = Number(requiredProduction.value || 0);
+      let productionTonnes = Number(requiredProduction.value || 0);
+      if (maxProduction && productionTonnes > maxProduction) {
+        productionTonnes = maxProduction;
+        requiredProduction.value = productionTonnes;
+      }
+      if (batchTonnes === 2 && productionTonnes % 2 !== 0) {
+        productionTonnes -= 1;
+        requiredProduction.value = productionTonnes;
+      }
       const batchCount = batchTonnes > 0 ? Math.floor(productionTonnes / batchTonnes) : 0;
       const exactBatchCount = batchTonnes > 0 ? productionTonnes / batchTonnes : 0;
       let validityMessage = '';
@@ -454,7 +496,9 @@ foreach ($sheetIngredients as $ingredient) {
         }
       }
       requiredProduction.setCustomValidity(validityMessage);
-      batchHeading.textContent = batchTonnes ? `(${batchTonnes} TON)` : '';
+      requiredProductionError.textContent = validityMessage;
+      requiredProductionError.classList.toggle('hidden', !validityMessage);
+      batchHeading.textContent = batchTonnageLabels[batchTonnes] ? `(${batchTonnageLabels[batchTonnes]})` : '';
       const ingredients = formulaIngredients[formulaSelect.value] || [];
       const formula = formulaDetails[formulaSelect.value];
       document.getElementById('formula-description').textContent = formula ? [formula.name, formula.description].filter(Boolean).join(' - ') : '';
