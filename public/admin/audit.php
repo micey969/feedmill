@@ -230,7 +230,7 @@ $actionStyles = [
                     <td class="py-3.5 px-6"><span class="font-bold text-slate-900"><?php echo htmlspecialchars($actor); ?></span><span class="block text-[10px] text-slate-400">Audited User</span></td>
                     <td class="py-3.5 px-6"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold <?php echo $actionClass; ?>"><span class="w-1.5 h-1.5 rounded-full bg-current"></span><?php echo htmlspecialchars($action); ?></span></td>
                     <td class="py-3.5 px-6 max-w-xs truncate whitespace-nowrap overflow-hidden text-ellipsistext-slate-600"><?php echo htmlspecialchars($details); ?></td>
-                    <td class="py-3.5 px-6 text-right"><button type="button" onclick="openAuditModal(...<?php echo $modalPayload; ?>)" class="text-slate-600 hover:text-red-600 font-bold transition">View Details</button></td>
+                    <td class="py-3.5 px-6 text-right"><button type="button" onclick="openAuditModal(...<?php echo $modalPayload; ?>)" class="text-blue-600 hover:text-red-600 font-bold text-xs transition">View Details</button></td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>

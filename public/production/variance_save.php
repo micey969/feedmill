@@ -32,7 +32,7 @@ $usageStmt->execute();
 $usageResult = $usageStmt->get_result();
 $calculatedQuantities = [];
 while ($row = $usageResult->fetch_assoc()) {
-  $calculatedQuantities[(int) $row['ingredient_usage_id']] = (int) $row['calculated_total_used_kgs'];
+  $calculatedQuantities[(int) $row['ingredient_usage_id']] = (float) $row['calculated_total_used_kgs'];
 }
 $usageStmt->close();
 
@@ -86,7 +86,7 @@ try {
 
   foreach ($actualQuantities as $ingredientId => $actualQuantity) {
     $quantityVariance = $actualQuantity - $calculatedQuantities[$ingredientId];
-    $updateUsageStmt->bind_param('iiii', $actualQuantity, $quantityVariance, $mixingSheetId, $ingredientId);
+    $updateUsageStmt->bind_param('idii', $actualQuantity, $quantityVariance, $mixingSheetId, $ingredientId);
     if (!$updateUsageStmt->execute()) {
       throw new RuntimeException('Unable to save ingredient variance.');
     }

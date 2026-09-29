@@ -113,9 +113,9 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
             </div>          
           </div>        
         </div>        
-        <div class="pt-4 border-t border-slate-200 flex items-center justify-between">          
-          <button type="reset" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Clear</button>          
-          <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 transition">Create & Submit Order</button>        
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">          
+          <button type="reset" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl border border-rose-200 transition">Clear</button>          
+          <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 transition">Create Order</button>        
         </div>      
       </form>    
     </div> 

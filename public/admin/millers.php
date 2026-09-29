@@ -209,7 +209,7 @@ $jobColors = [
                       </td>
                       <td class="py-3.5 px-6 text-center"><input type="checkbox" disabled class="w-4 h-4 text-red-600 rounded border-slate-300 cursor-pointer" <?php echo (int) $miller ['active_flag'] === 1 ? 'checked' : ''; ?>></td>
                       <td class="py-3.5 px-6 text-right">
-                        <button type="button" onclick="openMillerModal(<?php echo (int) $miller['user_id']; ?>, <?php echo htmlspecialchars(json_encode($miller['full_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($miller['job_title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo (int) $miller['active_flag']; ?>)" class="text-blue-600 hover:text-blue-800 font-bold text-xs">
+                        <button type="button" onclick="openMillerModal(<?php echo (int) $miller['user_id']; ?>, <?php echo htmlspecialchars(json_encode($miller['full_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($miller['job_title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo (int) $miller['active_flag']; ?>)" class="text-blue-600 hover:text-red-600 font-bold text-xs transition">
                           Edit
                         </button>                      
                       </td>

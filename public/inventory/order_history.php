@@ -91,7 +91,7 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
                   </span>
                 </td>
                 <td class="py-3.5 px-6 text-right">
-                  <button type="button" onclick="event.stopPropagation(); document.getElementById('edit-bulk-order-modal').classList.remove('hidden')" class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button>
+                  <button type="button" onclick="event.stopPropagation(); document.getElementById('edit-bulk-order-modal').classList.remove('hidden')" class="text-blue-600 hover:text-red-600 font-bold text-xs transition">Edit</button>
                 </td>
               </tr>
 

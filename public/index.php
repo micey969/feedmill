@@ -76,7 +76,7 @@ require_once __DIR__ . '/../app/middleware/auth.php';
       <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h3 class="text-base font-bold">Ready to process feed production?</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Select step 1 to start entering mixing sheets for today's batch.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Start entering mixing sheets for today's batch.</p>
         </div>
         <a href="<?php echo htmlspecialchars(publicUrl('production/mixing.php')); ?>" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition shadow-lg shadow-red-600/30 whitespace-nowrap">
           + Start Mixing Sheet

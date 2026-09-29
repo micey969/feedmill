@@ -155,7 +155,7 @@ function feedListUrl(int $page, string $search, string $status): string {
                   <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold <?php echo $active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'; ?>"><?php echo $active ? 'Active' : 'Inactive'; ?></span>
                 </td>
                 <td class="py-3.5 px-6 text-right">
-                  <button type="button" onclick="openFormulaModal(<?php echo htmlspecialchars(json_encode($formula, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>)" class="text-slate-600 hover:text-red-600 font-semibold">Edit</button>
+                  <button type="button" onclick="openFormulaModal(<?php echo htmlspecialchars(json_encode($formula, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>)" class="text-blue-600 hover:text-red-600 font-bold text-xs transition">Edit</button>
                 </td>
               </tr>
             <?php endforeach; ?>

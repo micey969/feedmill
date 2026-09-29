@@ -167,7 +167,7 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
 
       <!-- Action Toolbar Footer -->
       <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-        <button type="reset" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition">Undo</button>
+        <button type="reset" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Undo Changes</button>
         <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
           <span>Save Formula</span>

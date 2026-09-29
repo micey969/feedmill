@@ -122,7 +122,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                     <td class="py-3.5 px-6 font-mono text-slate-600"><?php echo htmlspecialchars($supplier['country']); ?></td>
                     <td class="py-3.5 px-6 font-mono text-slate-400"><?php echo htmlspecialchars($supplier['phone']); ?></td>
                     <td class="py-3.5 px-6 font-mono text-slate-400"><?php echo htmlspecialchars($supplier['email']); ?></td>
-                    <td class="py-3.5 px-6 text-right"><button type="button" onclick="openSupplierModal(<?php echo htmlspecialchars(json_encode($supplier), ENT_QUOTES, 'UTF-8'); ?>)" class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button></td>
+                    <td class="py-3.5 px-6 text-right"><button type="button" onclick="openSupplierModal(<?php echo htmlspecialchars(json_encode($supplier), ENT_QUOTES, 'UTF-8'); ?>)" class="text-blue-600 hover:text-red-600 font-bold text-xs transition">Edit</button></td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>

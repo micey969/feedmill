@@ -12,9 +12,9 @@ $previousSheetId = null;
 $nextSheetId = null;
 $sheet = null;
 $ingredients = [];
-$calculatedIngredientTotal = 0;
-$actualIngredientTotal = 0;
-$ingredientVarianceTotal = 0;
+$calculatedIngredientTotal = 0.0;
+$actualIngredientTotal = 0.0;
+$ingredientVarianceTotal = 0.0;
 
 if ($sheetCount > 0) {
   $boundsResult = $conn->query('SELECT MIN(mixing_sheet_id) AS first_id, MAX(mixing_sheet_id) AS last_id FROM mixing_sheet_ingredient_usage');
@@ -65,7 +65,7 @@ if ($sheetCount > 0) {
       $sheet = $row;
     }
     $ingredients[] = $row;
-    $calculatedQuantity = (int) $row['calculated_total_used_kgs'];
+    $calculatedQuantity = (float) $row['calculated_total_used_kgs'];
     $actualQuantity = (int) ($row['actual_total_used_kgs'] ?? 0);
     $calculatedIngredientTotal += $calculatedQuantity;
     $actualIngredientTotal += $actualQuantity;
@@ -80,6 +80,10 @@ function variancePageUrl(?int $id): string {
 
 function varianceNumber($value, int $decimals = 2): string {
   return number_format((float) $value, $decimals, '.', ',');
+}
+
+function varianceQuantityNumber($value): string {
+  return varianceNumber($value, 2);
 }
 ?>
 
@@ -202,24 +206,24 @@ function varianceNumber($value, int $decimals = 2): string {
                   <?php foreach ($ingredients as $ingredient): ?>
                     <tr class="hover:bg-slate-50/50 transition">
                       <td class="py-3 px-5 font-bold text-slate-900"><?php echo htmlspecialchars($ingredient['ingredients'], ENT_QUOTES, 'UTF-8'); ?></td>
-                      <td class="py-3 px-5 text-right font-mono font-semibold"><?php echo varianceNumber($ingredient['calculated_total_used_kgs']); ?></td>
+                      <td class="py-3 px-5 text-right font-mono font-semibold"><?php echo varianceQuantityNumber($ingredient['calculated_total_used_kgs']); ?></td>
                       <td class="py-3 px-5">
-                        <input type="number" min="0" max="8388607" step="1" required name="actual_qty[<?php echo (int) $ingredient['ingredient_usage_id']; ?>]" value="<?php echo htmlspecialchars((string) ($ingredient['actual_total_used_kgs'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" data-calculated="<?php echo (int) $ingredient['calculated_total_used_kgs']; ?>" class="actual-quantity w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
+                        <input type="number" min="0" max="8388607" step="1" required name="actual_qty[<?php echo (int) $ingredient['ingredient_usage_id']; ?>]" value="<?php echo htmlspecialchars((string) ($ingredient['actual_total_used_kgs'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" data-calculated="<?php echo number_format((float) $ingredient['calculated_total_used_kgs'], 2, '.', ''); ?>" class="actual-quantity w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
                       </td>
-                      <td class="py-3 px-5 text-right font-mono font-semibold ingredient-variance"><?php echo varianceNumber((int) ($ingredient['actual_total_used_kgs'] ?? 0) - (int) $ingredient['calculated_total_used_kgs']); ?></td>
+                      <td class="py-3 px-5 text-right font-mono font-semibold ingredient-variance"><?php echo varianceQuantityNumber((int) ($ingredient['actual_total_used_kgs'] ?? 0) - (float) $ingredient['calculated_total_used_kgs']); ?></td>
                     </tr>
                   <?php endforeach; ?>
                 </tbody>
                 <tfoot><tr class="bg-slate-50 border-t-2 border-slate-300 font-bold text-slate-900">
                   <td class="py-3.5 px-5 uppercase tracking-wider">Total</td>
-                  <td id="calculated-total" class="py-3.5 px-5 text-right font-mono text-sm"><?php echo varianceNumber($calculatedIngredientTotal); ?></td>
+                  <td id="calculated-total" class="py-3.5 px-5 text-right font-mono text-sm"><?php echo varianceQuantityNumber($calculatedIngredientTotal); ?></td>
                   <td id="actual-total" class="py-3.5 px-5 text-right font-mono text-sm"><?php echo varianceNumber($actualIngredientTotal); ?></td>
-                  <td id="variance-total" class="py-3.5 px-5 text-right font-mono text-sm text-slate-600"><?php echo varianceNumber($ingredientVarianceTotal); ?></td>
+                  <td id="variance-total" class="py-3.5 px-5 text-right font-mono text-sm text-slate-600"><?php echo varianceQuantityNumber($ingredientVarianceTotal); ?></td>
                 </tr></tfoot>
               </table>
             </div>
             <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 no-print">
-              <a href="<?php echo variancePageUrl($sheetId); ?>" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition">Undo Changes</a>
+              <a href="<?php echo variancePageUrl($sheetId); ?>" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Undo Changes</a>
               <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Save Variance Record</span>
               </button>

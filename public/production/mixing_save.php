@@ -23,6 +23,7 @@ if ($formulaId === '' || !isset($batchSizes[$batchInput]) || $productionInput ==
 }
 
 $batchTonnes = $batchSizes[$batchInput];
+$calculatedBagsProduced = round(($productionInput * 1000) / 22.6796, 2);
 $batchCount = $productionInput / $batchTonnes;
 if (abs($batchCount - round($batchCount)) > 0.000001) {
   header('Location: ' . publicUrl('production/mixing.php?error=invalid'));
@@ -64,7 +65,7 @@ if (!$account || !$miller || !$formulaIngredients) {
 
 $usageRows = [];
 foreach ($formulaIngredients as $ingredient) {
-  $perBatch = (int) round((float) $ingredient['quantity_kgs'] * $batchTonnes, 0, PHP_ROUND_HALF_UP);
+  $perBatch = (float) $ingredient['quantity_kgs'] * $batchTonnes;
   $total = $perBatch * $batchCount;
   if ($perBatch > 8388607 || $total > 8388607) {
     header('Location: ' . publicUrl('production/mixing.php?error=invalid'));
@@ -75,7 +76,7 @@ foreach ($formulaIngredients as $ingredient) {
 
 $dateTime = $sheetDate . ' ' . date('H:i:s');
 $accountId = (int) $account['user_id'];
-$insertSheet = $conn->prepare('INSERT INTO mixing_sheet (formula_id, miller_user_id, account_user_id, date_time, note, required_production_tons, batch_configuration_tons) VALUES (?, ?, ?, ?, ?, ?, ?)');
+$insertSheet = $conn->prepare('INSERT INTO mixing_sheet (formula_id, miller_user_id, account_user_id, date_time, note, required_production_tons, calculated_bags_produced, batch_configuration_tons) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 $insertUsage = $conn->prepare('INSERT INTO ingredient_usage (mixing_sheet_id, ingredients_id, calculated_per_batch_used_kgs, calculated_total_used_kgs) VALUES (?, ?, ?, ?)');
 if (!$insertSheet || !$insertUsage) {
   http_response_code(500);
@@ -86,13 +87,13 @@ $transactionStarted = false;
 try {
   $conn->begin_transaction();
   $transactionStarted = true;
-  $insertSheet->bind_param('siissid', $formulaId, $millerId, $accountId, $dateTime, $note, $productionInput, $batchTonnes);
+  $insertSheet->bind_param('siissidd', $formulaId, $millerId, $accountId, $dateTime, $note, $productionInput, $calculatedBagsProduced, $batchTonnes);
   if (!$insertSheet->execute()) {
     throw new RuntimeException('Unable to save sheet metadata.');
   }
   $mixingSheetId = (int) $conn->insert_id;
   foreach ($usageRows as [$ingredientId, $perBatch, $total]) {
-    $insertUsage->bind_param('iiii', $mixingSheetId, $ingredientId, $perBatch, $total);
+    $insertUsage->bind_param('iidd', $mixingSheetId, $ingredientId, $perBatch, $total);
     if (!$insertUsage->execute()) {
       throw new RuntimeException('Unable to save ingredient usage.');
     }

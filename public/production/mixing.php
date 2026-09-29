@@ -10,6 +10,24 @@ function mixingNumber($value): string {
   return number_format((float) $value, 2, '.', ',');
 }
 
+function mixingScaleNumber($value): string {
+  return number_format((float) $value, 2, '.', ',');
+}
+
+function mixingBatchTonnageLabel($value): string {
+  $tonnes = (float) $value;
+  if ($tonnes === 0.5) {
+    return 'HALF TON';
+  }
+  if ($tonnes === 1.0) {
+    return 'ONE TON';
+  }
+  if ($tonnes === 2.0) {
+    return 'TWO TON';
+  }
+  return mixingNumber($tonnes) . ' TON';
+}
+
 function mixingDateLabel(string $value): string {
   $timestamp = strtotime($value);
   if ($timestamp === false) {
@@ -99,11 +117,12 @@ if (!$isNewEntry && $sheetId !== null) {
 $batchCount = $sheet && (float) $sheet['batch_configuration_tons'] > 0
   ? (int) round((int) $sheet['required_production_tons'] / (float) $sheet['batch_configuration_tons'])
   : 0;
-$scaleTotal = 0;
-$sheetTotal = 0;
+$batchTonnageLabel = $sheet ? mixingBatchTonnageLabel($sheet['batch_configuration_tons']) : '';
+$scaleTotal = 0.0;
+$sheetTotal = 0.0;
 foreach ($sheetIngredients as $ingredient) {
-  $scaleTotal += (int) $ingredient['calculated_per_batch_used_kgs'];
-  $sheetTotal += (int) $ingredient['calculated_total_used_kgs'];
+  $scaleTotal += (float) $ingredient['calculated_per_batch_used_kgs'];
+  $sheetTotal += (float) $ingredient['calculated_total_used_kgs'];
 }
 ?>
 
@@ -190,7 +209,7 @@ foreach ($sheetIngredients as $ingredient) {
           <!-- FORM CONTROLS & META DATA GRID -->
           <div class="grid grid-cols-2 gap-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
             <div class="space-y-4">
-              <div>
+              <div class="no-print">
                 <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Select Tonnes Per Batch</span>
                 <span class="text-xs font-semibold"><?php echo mixingNumber($sheet['batch_configuration_tons']); ?> TON</span>
               </div>
@@ -225,7 +244,7 @@ foreach ($sheetIngredients as $ingredient) {
               <div class="space-y-4">
 
                 <!-- Tonnes Radio Selection -->
-                <div>
+                <div class="no-print">
                   <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Select Tonnes Per Batch</label>
                   <div class="flex items-center gap-4 text-xs font-semibold">
                     <?php foreach (['0.5' => '1/2 TON', '1' => '1 TON', '2' => '2 TON'] as $value => $label): ?>
@@ -240,8 +259,10 @@ foreach ($sheetIngredients as $ingredient) {
                 <!-- Date Selection -->
                 <div>
                   <label for="sheet-date" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Date</label>
-                  <input id="sheet-date" type="date" name="sheet_date" value="<?php echo date('Y-m-d'); ?>" required class="date-screen-control w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600">
-                  <span id="sheet-date-print" class="date-print-label text-xs font-semibold text-slate-800"><?php echo mixingEscape(mixingDateLabel(date('Y-m-d'))); ?></span>
+                  <div class="relative w-full rounded-lg focus-within:ring-2 focus-within:ring-red-600">
+                   <input id="sheet-date" type="date" name="sheet_date" value="<?php echo date('Y-m-d'); ?>" required class="date-screen-control w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600">
+                    <span id="sheet-date-print" class="date-print-label text-xs font-semibold text-slate-800"><?php echo mixingEscape(mixingDateLabel(date('Y-m-d'))); ?></span>
+                  </div>
                 </div>
               </div>
 
@@ -346,13 +367,13 @@ foreach ($sheetIngredients as $ingredient) {
                 </div>
                 <div>
                   <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Scale Man Signature</label>
-                  <div class="h-9 border border-dashed border-slate-300 rounded bg-slate-50 flex items-center justify-center text-slate-400 text-[10px] font-mono">[ Sign Here ]</div>
+                  <div class="h-8 border border-dashed border-slate-300 rounded bg-slate-50 flex items-center justify-center text-slate-400 text-[10px] font-mono">[ Sign Here ]</div>
                 </div>
               </div>
             </div>
-            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between no-print">
+            <div class="bg-white p-4 flex items-center justify-end no-print">
               <div class="flex items-center gap-3">
-                <button type="reset" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition">Undo Changes</button>
+                <button type="reset" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Undo Changes</button>
                 <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-1.5">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                   <span>Save Mixing Sheet</span>
@@ -372,22 +393,22 @@ foreach ($sheetIngredients as $ingredient) {
                   <th class="py-2 px-3">Ingredients</th>
                   <th class="py-2 px-3 text-right w-28">Scale Reading (kg)</th>
                   <th class="py-2 px-3 text-center w-36">Batches
-                    <br><span class="text-[10px] font-normal text-slate-500"> (<?php echo $batchCount; ?>)</span>
+                    <br><span class="text-[10px] font-normal text-slate-500"> (<?php echo mixingEscape($batchTonnageLabel); ?>)</span>
                   </th>
                   <th class="py-2 px-3 text-right w-28">Total (kg)</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200 font-medium text-slate-800">
-                <?php $runningScale = 0; 
-                foreach ($sheetIngredients as $ingredient): $perBatch = (int) $ingredient['calculated_per_batch_used_kgs']; $runningScale += $perBatch; ?>
+                <?php $runningScale = 0.0;
+                foreach ($sheetIngredients as $ingredient): $perBatch = (float) $ingredient['calculated_per_batch_used_kgs']; $runningScale += $perBatch; ?>
                 <tr>
-                  <td class="py-2 px-3 text-right font-mono font-bold"><?php echo mixingNumber($perBatch); ?></td>
+                  <td class="py-2 px-3 text-right font-mono font-bold"><?php echo mixingScaleNumber($perBatch); ?></td>
                   <td class="py-2 px-3 font-bold text-slate-900"><?php echo mixingEscape($ingredient['ingredients']); ?></td>
-                  <td class="py-2 px-3 text-right font-mono text-slate-600"><?php echo mixingNumber($runningScale); ?></td>
+                  <td class="py-2 px-3 text-right font-mono text-slate-600"><?php echo mixingScaleNumber($runningScale); ?></td>
                   <td class="py-2 px-3 text-center">
                     <div class="inline-flex gap-1 justify-center"><?php mixingBatchBoxes($batchCount); ?></div>
                   </td>
-                  <td class="py-2 px-3 text-right font-mono font-bold text-slate-900"><?php echo mixingNumber($ingredient['calculated_total_used_kgs']); ?></td>
+                  <td class="py-2 px-3 text-right font-mono font-bold text-slate-900"><?php echo mixingScaleNumber($ingredient['calculated_total_used_kgs']); ?></td>
                 </tr>
                 <?php endforeach; ?>
                 <?php if (!$sheetIngredients): ?>
@@ -398,11 +419,11 @@ foreach ($sheetIngredients as $ingredient) {
               </tbody>
               <tfoot>
                 <tr class="border-t-2 border-slate-300 font-bold text-slate-900">
-                  <td class="py-2.5 px-3 text-right font-mono"><?php echo mixingNumber($scaleTotal); ?></td>
+                  <td class="py-2.5 px-3 text-right font-mono"><?php echo mixingScaleNumber($scaleTotal); ?></td>
                   <td class="py-2.5 px-3 uppercase">Totals</td>
-                  <td class="py-2.5 px-3 text-right font-mono"><?php echo mixingNumber($scaleTotal); ?></td>
+                  <td class="py-2.5 px-3 text-right font-mono"><?php echo mixingScaleNumber($scaleTotal); ?></td>
                   <td></td>
-                  <td class="py-2.5 px-3 text-right font-mono text-red-600"><?php echo mixingNumber($sheetTotal); ?></td>
+                  <td class="py-2.5 px-3 text-right font-mono text-red-600"><?php echo mixingScaleNumber($sheetTotal); ?></td>
                 </tr>
               </tfoot>
             </table>
@@ -412,7 +433,7 @@ foreach ($sheetIngredients as $ingredient) {
           <div class="pt-4 border-t border-slate-200 space-y-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
               <div class="flex items-center gap-2"><span class="text-slate-500 uppercase tracking-wider text-[10px]">Required Production:</span><span class="w-16 bg-slate-50 border border-slate-300 rounded px-2 py-1 text-center font-mono font-bold"><?php echo (int) $sheet['required_production_tons']; ?></span><span>TONNES</span></div>
-              <div class="flex items-center gap-2 sm:justify-end"><span class="text-slate-500 uppercase tracking-wider text-[10px]">To Bin No:</span><div class="w-24 bg-slate-50 border border-slate-300 rounded px-2 py-1 font-mono font-bold"></div></div>
+              <div class="flex items-center gap-2 sm:justify-end"><span class="text-slate-500 uppercase tracking-wider text-[10px]">To Bin No:</span><div class="h-6 w-24 bg-slate-50 border border-slate-300 rounded px-2 py-1 font-mono font-bold"></div></div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -423,7 +444,7 @@ foreach ($sheetIngredients as $ingredient) {
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs">
               <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Miller Name</label><div class="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 font-medium"><?php echo mixingEscape($sheet['miller_name'] ?? ''); ?></div></div>
               <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Position</label><div class="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 font-medium"><?php echo mixingEscape($sheet['job_title'] ?? ''); ?></div></div>
-              <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Scale Man Signature</label><div class="h-9 border border-dashed border-slate-300 rounded bg-slate-50 flex items-center justify-center text-slate-400 text-[10px] font-mono">[ Sign Here ]</div></div>
+              <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Scale Man Signature</label><div class="h-8 border border-dashed border-slate-300 rounded bg-slate-50 flex items-center justify-center text-slate-400 text-[10px] font-mono">[ Sign Here ]</div></div>
             </div>
           </div>
         <?php endif; ?>
@@ -440,7 +461,7 @@ foreach ($sheetIngredients as $ingredient) {
     const requiredProduction = document.getElementById('required-production');
     const requiredProductionError = document.getElementById('required-production-error');
     const sheetDate = document.getElementById('sheet-date');
-    const sheetDatePrint = document.getElementById('sheet-date-print');
+    const sheetDateDisplay = document.getElementById('sheet-date-display');
     const batchOptions = [...document.querySelectorAll('input[name="batch_tonnes"]')];
     const millerSelect = document.getElementById('miller-id');
     const millerPosition = document.getElementById('miller-position');
@@ -451,13 +472,13 @@ foreach ($sheetIngredients as $ingredient) {
 
     function updateSheetDateDisplay() {
       if (!sheetDate.value) {
-        sheetDatePrint.textContent = '';
+        sheetDateDisplay.textContent = '';
         return;
       }
       const selectedDate = new Date(`${sheetDate.value}T00:00:00`);
       const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-      sheetDatePrint.textContent = `${weekdays[selectedDate.getDay()]} ${selectedDate.getDate()} ${months[selectedDate.getMonth()]}, ${selectedDate.getFullYear()}`;
+      sheetDateDisplay.textContent = `${weekdays[selectedDate.getDay()]} ${selectedDate.getDate()} ${months[selectedDate.getMonth()]}, ${selectedDate.getFullYear()}`;
     }
 
     sheetDate.addEventListener('change', updateSheetDateDisplay);
@@ -472,15 +493,7 @@ foreach ($sheetIngredients as $ingredient) {
       requiredProduction.max = maxProduction || '';
       requiredProduction.min = batchTonnes === 2 ? 2 : 1;
       requiredProduction.step = batchTonnes === 2 ? 2 : 1;
-      let productionTonnes = Number(requiredProduction.value || 0);
-      if (maxProduction && productionTonnes > maxProduction) {
-        productionTonnes = maxProduction;
-        requiredProduction.value = productionTonnes;
-      }
-      if (batchTonnes === 2 && productionTonnes % 2 !== 0) {
-        productionTonnes -= 1;
-        requiredProduction.value = productionTonnes;
-      }
+      const productionTonnes = Number(requiredProduction.value || 0);
       const batchCount = batchTonnes > 0 ? Math.floor(productionTonnes / batchTonnes) : 0;
       const exactBatchCount = batchTonnes > 0 ? productionTonnes / batchTonnes : 0;
       let validityMessage = '';
@@ -514,7 +527,7 @@ foreach ($sheetIngredients as $ingredient) {
       let perBatchTotal = 0;
       ingredientRows.replaceChildren();
       for (const ingredient of ingredients) {
-        const perBatch = Math.round(ingredient.quantity * batchTonnes);
+        const perBatch = ingredient.quantity * batchTonnes;
         runningScale += perBatch;
         perBatchTotal += perBatch;
         const row = document.createElement('tr');
@@ -545,6 +558,21 @@ foreach ($sheetIngredients as $ingredient) {
 
     formulaSelect.addEventListener('change', updateMixingTable);
     requiredProduction.addEventListener('input', updateMixingTable);
+    requiredProduction.addEventListener('blur', () => {
+      const batchTonnes = Number(document.querySelector('input[name="batch_tonnes"]:checked')?.value || 0);
+      const maxProduction = maxProductionByBatch[batchTonnes] || 0;
+      let productionTonnes = Number(requiredProduction.value || 0);
+      if (maxProduction && productionTonnes > maxProduction) {
+        productionTonnes = maxProduction;
+      }
+      if (batchTonnes === 2 && productionTonnes % 2 !== 0) {
+        productionTonnes -= 1;
+      }
+      if (productionTonnes !== Number(requiredProduction.value || 0)) {
+        requiredProduction.value = productionTonnes;
+      }
+      updateMixingTable();
+    });
     batchOptions.forEach((option) => option.addEventListener('change', updateMixingTable));
     millerSelect.addEventListener('change', updateMillerPosition);
     updateMixingTable();

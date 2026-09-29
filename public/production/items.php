@@ -115,10 +115,10 @@ if ($ingredientResult) {
         </div>
 
         <!-- Action Controls Toolbar -->
-        <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+        <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3">
           <div class="flex items-center gap-2">
             <button type="reset" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl transition border border-rose-200">
-              Undo
+              Undo Changes
             </button>
             <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 transition">
               Save Entry
