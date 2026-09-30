@@ -3,13 +3,13 @@ require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
 $nextSaleId = 1;
-$saleIdResult = $conn->query('SELECT COALESCE(MAX(sale_id), 0) + 1 AS next_sale_id FROM ingredients_sold_separately_view');
+$saleIdResult = $conn->query('SELECT COALESCE(MAX(sale_id), 0) + 1 AS next_sale_id FROM v_ingredients_sold_separately');
 if ($saleIdResult && ($saleIdRow = $saleIdResult->fetch_assoc())) {
   $nextSaleId = (int) $saleIdRow['next_sale_id'];
 }
 
 $ingredients = [];
-$ingredientResult = $conn->query('SELECT ingredients_id, ingredients FROM ingredients_sold_separately_view WHERE ingredients_id IS NOT NULL AND ingredients IS NOT NULL GROUP BY ingredients_id, ingredients ORDER BY ingredients ASC');
+$ingredientResult = $conn->query('SELECT ingredients_id, ingredients FROM v_ingredients_sold_separately WHERE ingredients_id IS NOT NULL AND ingredients IS NOT NULL GROUP BY ingredients_id, ingredients ORDER BY ingredients ASC');
 if ($ingredientResult) {
   while ($row = $ingredientResult->fetch_assoc()) {
     $ingredients[] = $row;

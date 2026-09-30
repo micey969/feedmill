@@ -23,7 +23,7 @@ $grandTotal = 0;
 
 $ingredientResult = $conn->query(
   'SELECT DISTINCT ingredients
-   FROM ingredients_sold_separately_view
+  FROM v_ingredients_sold_separately
    WHERE ingredients IS NOT NULL AND ingredients <> ""
    ORDER BY ingredients ASC'
 );
@@ -36,7 +36,7 @@ if ($ingredientResult) {
 
 $salesStmt = $conn->prepare(
   'SELECT DATE(date_time) AS sale_date, ingredients, SUM(quantity_kgs) AS total_quantity
-   FROM ingredients_sold_separately_view
+  FROM v_ingredients_sold_separately
    WHERE date_time >= ? AND date_time < ?
    GROUP BY DATE(date_time), ingredients
    ORDER BY sale_date ASC, ingredients ASC'

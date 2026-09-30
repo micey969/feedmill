@@ -45,7 +45,7 @@ function mixingBatchBoxes(int $count): void {
 
 $formulas = [];
 $formulaIngredients = [];
-$formulaResult = $conn->query('SELECT formula_id, formula_name, description, ingredients_id, ingredients, quantity_kgs FROM formula_metadata_composition_view WHERE formula_active_flag = 1 AND ingredients_id IS NOT NULL AND ingredients_active_flag = 1 ORDER BY formula_id, ingredients_id');
+$formulaResult = $conn->query('SELECT formula_id, formula_name, description, ingredients_id, ingredients, quantity_kgs FROM v_formulas WHERE formula_active_flag = 1 AND ingredients_id IS NOT NULL AND ingredients_active_flag = 1 ORDER BY formula_id, ingredients_id');
 if ($formulaResult) {
   while ($row = $formulaResult->fetch_assoc()) {
     $formulaId = $row['formula_id'];
@@ -102,7 +102,7 @@ if (!$isNewEntry && $sheetId !== null) {
     $sheetStmt->close();
   }
   if ($sheet) {
-    $usageStmt = $conn->prepare('SELECT ingredient_usage_id, ingredients, calculated_per_batch_used_kgs, calculated_total_used_kgs FROM mixing_sheet_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
+    $usageStmt = $conn->prepare('SELECT ingredient_usage_id, ingredients, calculated_per_batch_used_kgs, calculated_total_used_kgs FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
     if ($usageStmt) {
       $usageStmt->bind_param('i', $sheetId);
       $usageStmt->execute();
@@ -143,6 +143,7 @@ foreach ($sheetIngredients as $ingredient) {
     .no-print { display: none !important; }
     .date-screen-control { display: none !important; }
     .date-print-label { display: block !important; }
+    .signature-placeholder { display: none !important; }
     .mixing-table-scroll { overflow: visible !important; }
     .mixing-table { width: 100% !important; min-width: 0 !important; }
     .mixing-table th:last-child,
@@ -372,7 +373,9 @@ foreach ($sheetIngredients as $ingredient) {
                 </div>
                 <div>
                   <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Scale Man Signature</label>
-                  <div class="h-8 border border-dashed border-slate-300 rounded bg-slate-50 flex items-center justify-center text-slate-400 text-[10px] font-mono">[ Sign Here ]</div>
+                  <div class="h-8 border border-dashed border-slate-300 rounded bg-slate-50 flex items-center justify-center text-slate-400 text-[10px] font-mono">
+                    <span class="signature-placeholder">[ Sign Here ]</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -449,7 +452,7 @@ foreach ($sheetIngredients as $ingredient) {
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs">
               <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Miller Name</label><div class="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 font-medium"><?php echo mixingEscape($sheet['miller_name'] ?? ''); ?></div></div>
               <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Position</label><div class="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 font-medium"><?php echo mixingEscape($sheet['job_title'] ?? ''); ?></div></div>
-              <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Scale Man Signature</label><div class="h-8 border border-dashed border-slate-300 rounded bg-slate-50 flex items-center justify-center text-slate-400 text-[10px] font-mono">[ Sign Here ]</div></div>
+              <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Scale Man Signature</label><div class="h-8 border border-dashed border-slate-300 rounded bg-slate-50 flex items-center justify-center text-slate-400 text-[10px] font-mono"><span class="signature-placeholder">[ Sign Here ]</span></div></div>
             </div>
           </div>
         <?php endif; ?>

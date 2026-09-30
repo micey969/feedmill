@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
-$sheetCountResult = $conn->query('SELECT COUNT(DISTINCT mixing_sheet_id) AS sheet_count FROM mixing_sheet_ingredient_usage');
+$sheetCountResult = $conn->query('SELECT COUNT(DISTINCT mixing_sheet_id) AS sheet_count FROM v_ingredient_usage');
 $sheetCount = $sheetCountResult ? (int) $sheetCountResult->fetch_assoc()['sheet_count'] : 0;
 $firstSheetId = null;
 $lastSheetId = null;
@@ -17,14 +17,14 @@ $actualIngredientTotal = 0.0;
 $ingredientVarianceTotal = 0.0;
 
 if ($sheetCount > 0) {
-  $boundsResult = $conn->query('SELECT MIN(mixing_sheet_id) AS first_id, MAX(mixing_sheet_id) AS last_id FROM mixing_sheet_ingredient_usage');
+  $boundsResult = $conn->query('SELECT MIN(mixing_sheet_id) AS first_id, MAX(mixing_sheet_id) AS last_id FROM v_ingredient_usage');
   $bounds = $boundsResult->fetch_assoc();
   $firstSheetId = (int) $bounds['first_id'];
   $lastSheetId = (int) $bounds['last_id'];
 
   $requestedSheetId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
   $sheetId = $requestedSheetId && $requestedSheetId > 0 ? $requestedSheetId : $lastSheetId;
-  $existsStmt = $conn->prepare('SELECT 1 FROM mixing_sheet_ingredient_usage WHERE mixing_sheet_id = ? LIMIT 1');
+  $existsStmt = $conn->prepare('SELECT 1 FROM v_ingredient_usage WHERE mixing_sheet_id = ? LIMIT 1');
   $existsStmt->bind_param('i', $sheetId);
   $existsStmt->execute();
   if (!$existsStmt->get_result()->fetch_row()) {
@@ -32,7 +32,7 @@ if ($sheetCount > 0) {
   }
   $existsStmt->close();
 
-  $positionStmt = $conn->prepare('SELECT COUNT(DISTINCT mixing_sheet_id) FROM mixing_sheet_ingredient_usage WHERE mixing_sheet_id <= ?');
+  $positionStmt = $conn->prepare('SELECT COUNT(DISTINCT mixing_sheet_id) FROM v_ingredient_usage WHERE mixing_sheet_id <= ?');
   $positionStmt->bind_param('i', $sheetId);
   $positionStmt->execute();
   $positionStmt->bind_result($sheetPosition);
@@ -40,7 +40,7 @@ if ($sheetCount > 0) {
   $positionStmt->close();
   $sheetPosition = (int) $sheetPosition;
 
-  $previousStmt = $conn->prepare('SELECT MAX(mixing_sheet_id) FROM mixing_sheet_ingredient_usage WHERE mixing_sheet_id < ?');
+  $previousStmt = $conn->prepare('SELECT MAX(mixing_sheet_id) FROM v_ingredient_usage WHERE mixing_sheet_id < ?');
   $previousStmt->bind_param('i', $sheetId);
   $previousStmt->execute();
   $previousStmt->bind_result($previousSheetId);
@@ -48,7 +48,7 @@ if ($sheetCount > 0) {
   $previousStmt->close();
   $previousSheetId = $previousSheetId === null ? null : (int) $previousSheetId;
 
-  $nextStmt = $conn->prepare('SELECT MIN(mixing_sheet_id) FROM mixing_sheet_ingredient_usage WHERE mixing_sheet_id > ?');
+  $nextStmt = $conn->prepare('SELECT MIN(mixing_sheet_id) FROM v_ingredient_usage WHERE mixing_sheet_id > ?');
   $nextStmt->bind_param('i', $sheetId);
   $nextStmt->execute();
   $nextStmt->bind_result($nextSheetId);
@@ -56,7 +56,7 @@ if ($sheetCount > 0) {
   $nextStmt->close();
   $nextSheetId = $nextSheetId === null ? null : (int) $nextSheetId;
 
-  $usageStmt = $conn->prepare('SELECT mixing_sheet_id, formula_id, ingredient_usage_id, ingredients, date_time, required_production_tons, calculated_bags_produced, actual_bags_produced, variance_bags_produced, calculated_total_used_kgs, actual_total_used_kgs, total_variance_kgs FROM mixing_sheet_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
+  $usageStmt = $conn->prepare('SELECT mixing_sheet_id, formula_id, ingredient_usage_id, ingredients, date_time, required_production_tons, calculated_bags_produced, actual_bags_produced, variance_bags_produced, calculated_total_used_kgs, actual_total_used_kgs, total_variance_kgs FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
   $usageStmt->bind_param('i', $sheetId);
   $usageStmt->execute();
   $usageResult = $usageStmt->get_result();
@@ -93,14 +93,6 @@ function varianceQuantityNumber($value): string {
   $pageTitle = 'ECGC - Materials Used';
   require_once __DIR__ . '/../../app/views/includes/head.php'; 
 ?>
-<style>
-  @media print {
-    body * { visibility: hidden; }
-    #printable-content, #printable-content * { visibility: visible; }
-    #printable-content { position: absolute; left: 0; top: 0; width: 100%; }
-    aside, header, .no-print { display: none !important; }
-  }
-</style>
 
 <body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
   <?php require_once __DIR__ . '/../../app/views/includes/sidebar.php'; ?>

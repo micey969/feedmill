@@ -244,7 +244,10 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
             <?php endif; ?>
             <?php if ($ingredientCatalog): ?>
               <div class="pt-4 flex justify-end">
-                <button type="submit" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition">Save Changes</button>
+                <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                  <span>Save Changes</span>
+                </button>
               </div>
             <?php endif; ?>
           </form>

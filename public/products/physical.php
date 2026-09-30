@@ -6,7 +6,7 @@ $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $ingredients = [];
 $stockDates = [];
 
-$dateResult = $conn->query('SELECT date_time FROM ingredients_closing_stock_view GROUP BY date_time ORDER BY date_time DESC');
+$dateResult = $conn->query('SELECT date_time FROM v_ingredients_closing_stock GROUP BY date_time ORDER BY date_time DESC');
 if ($dateResult) {
   while ($row = $dateResult->fetch_assoc()) {
     $stockDates[] = $row['date_time'];
@@ -30,7 +30,7 @@ if ($isNewEntry) {
 if ($currentPage > 1) {
   $selectedDate = $stockDates[$currentPage - 2] ?? null;
   if ($selectedDate !== null) {
-    $stockStmt = $conn->prepare('SELECT ingredients AS ingredient, quantity_kgs FROM ingredients_closing_stock_view WHERE date_time = ? ORDER BY ingredients ASC');
+    $stockStmt = $conn->prepare('SELECT ingredients AS ingredient, quantity_kgs FROM v_ingredients_closing_stock WHERE date_time = ? ORDER BY ingredients ASC');
     if (!$stockStmt) {
       http_response_code(500);
       exit('Unable to load the saved stock record: ' . $conn->error);

@@ -7,7 +7,7 @@ $page = max(1, (int) ($_GET['page'] ?? 1));
 $search = trim((string) ($_GET['search'] ?? ''));
 $status = $_GET['status'] ?? 'all';
 $status = in_array($status, ['all', 'active', 'inactive'], true) ? $status : 'all';
-$view = 'formula_metadata_composition_view';
+$view = 'v_formulas';
 $like = "%$search%";
 $where = '(formula_id LIKE ? OR formula_name LIKE ? OR description LIKE ? OR creator LIKE ?)';
 $types = 'ssss';
@@ -267,7 +267,10 @@ function feedListUrl(int $page, string $search, string $status): string {
           <div class="lg:col-span-3 space-y-4">
             <div class="flex justify-between">
               <h3 class="text-[10px] font-bold text-slate-400 uppercase">Formula Ingredients</h3>
-              <button type="button" onclick="addIngredientRow()" class="px-3 py-1.5 bg-red-50 text-red-700 font-bold rounded-xl border">Add Item</button>
+              <button type="button" onclick="addIngredientRow()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold rounded-xl border border-red-200 transition flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <span>Add Item</span>
+              </button>
             </div>
             
             <table class="w-full text-left text-xs">
@@ -286,8 +289,11 @@ function feedListUrl(int $page, string $search, string $status): string {
         </div>
         
         <div class="border-t pt-4 flex justify-end gap-3">
-          <button type="button" onclick="closeFormulaModal()" class="px-4 py-2 bg-slate-100 rounded-xl">Cancel</button>
-          <button type="submit" class="px-5 py-2 bg-red-600 text-white font-bold rounded-xl">Update Formula</button>
+          <button type="button" onclick="closeFormulaModal()" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span>Update Formula</span>
+          </button>
         </div>
       </form>
     </div>

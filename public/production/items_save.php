@@ -13,7 +13,7 @@ if (!$date || $date->format('Y-m-d') !== $entryDate || $ingredientId === false |
   exit('Invalid sale entry.');
 }
 
-$ingredientStmt = $conn->prepare('SELECT ingredients_id FROM ingredients_sold_separately_view WHERE ingredients_id = ? LIMIT 1');
+$ingredientStmt = $conn->prepare('SELECT ingredients_id FROM v_ingredients_sold_separately WHERE ingredients_id = ? LIMIT 1');
 $insertStmt = $conn->prepare('INSERT INTO ingredients_sold_separately (ingredients_id, date_time, quantity_kgs, overseas_flag) VALUES (?, ?, ?, ?)');
 if (!$ingredientStmt || !$insertStmt) {
   http_response_code(500);

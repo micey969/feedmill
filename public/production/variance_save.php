@@ -22,7 +22,7 @@ if ($actualBags > 9999.99) {
   exit('Actual bags are outside the supported range.');
 }
 
-$usageStmt = $conn->prepare('SELECT ingredient_usage_id, calculated_total_used_kgs FROM mixing_sheet_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
+$usageStmt = $conn->prepare('SELECT ingredient_usage_id, calculated_total_used_kgs FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
 if (!$usageStmt) {
   http_response_code(500);
   exit('Unable to load the mixing sheet ingredients.');

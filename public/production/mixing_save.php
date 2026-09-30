@@ -37,7 +37,7 @@ if ($batchCount > 10 || $productionInput > $maxProductionByBatch[$batchInput] ||
 }
 
 $accountStmt = $conn->prepare('SELECT user_id FROM accounts WHERE username = ? AND active_flag = 1 LIMIT 1');
-$formulaStmt = $conn->prepare('SELECT ingredients_id, quantity_kgs FROM formula_metadata_composition_view WHERE formula_id = ? AND formula_active_flag = 1 AND ingredients_id IS NOT NULL AND ingredients_active_flag = 1 ORDER BY ingredients_id');
+$formulaStmt = $conn->prepare('SELECT ingredients_id, quantity_kgs FROM v_formulas WHERE formula_id = ? AND formula_active_flag = 1 AND ingredients_id IS NOT NULL AND ingredients_active_flag = 1 ORDER BY ingredients_id');
 $millerStmt = $conn->prepare('SELECT user_id FROM millers WHERE user_id = ? AND active_flag = 1 LIMIT 1');
 if (!$accountStmt || !$formulaStmt || !$millerStmt) {
   http_response_code(500);
