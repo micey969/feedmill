@@ -143,6 +143,12 @@ foreach ($sheetIngredients as $ingredient) {
     .no-print { display: none !important; }
     .date-screen-control { display: none !important; }
     .date-print-label { display: block !important; }
+    .mixing-table-scroll { overflow: visible !important; }
+    .mixing-table { width: 100% !important; min-width: 0 !important; }
+    .mixing-table th:last-child,
+    .mixing-table td:last-child { white-space: nowrap; }
+    #formula-id,
+    #miller-id { appearance: none; -webkit-appearance: none; background-image: none !important; }
   }
 </style>
 
@@ -186,8 +192,7 @@ foreach ($sheetIngredients as $ingredient) {
           </a>
         </nav>
         <button onclick="window.print()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-          <span>Print Mixing Sheet</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
         </button>
       </div>
     </header>
@@ -295,8 +300,8 @@ foreach ($sheetIngredients as $ingredient) {
             </div>
 
             <!-- MIXING TABLE WITH BATCH CHECKLIST GRID -->
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs border-collapse min-w-[720px]">
+            <div class="overflow-x-auto mixing-table-scroll">
+              <table class="w-full text-left text-xs border-collapse min-w-[720px] mixing-table">
                 <thead>
                   <tr class="border-b-2 border-slate-300 text-slate-600 font-bold uppercase tracking-wider">
                     <th class="py-2 px-3 text-right w-24">Per Batch</th>
@@ -385,17 +390,17 @@ foreach ($sheetIngredients as $ingredient) {
 
         <?php if ($sheet): ?>
           <!-- MIXING TABLE WITH BATCH CHECKLIST GRID -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse min-w-[720px]">
+          <div class="overflow-x-auto mixing-table-scroll">
+            <table class="w-full text-left text-xs border-collapse min-w-[720px] mixing-table">
               <thead>
                 <tr class="border-b-2 border-slate-300 text-slate-600 font-bold uppercase tracking-wider">
-                  <th class="py-2 px-3 text-right w-24">Per Batch (kg)</th>
+                  <th class="py-2 px-3 text-right w-24">Per Batch</th>
                   <th class="py-2 px-3">Ingredients</th>
-                  <th class="py-2 px-3 text-right w-28">Scale Reading (kg)</th>
+                  <th class="py-2 px-3 text-right w-28">Scale Reading</th>
                   <th class="py-2 px-3 text-center w-36">Batches
                     <br><span class="text-[10px] font-normal text-slate-500"> (<?php echo mixingEscape($batchTonnageLabel); ?>)</span>
                   </th>
-                  <th class="py-2 px-3 text-right w-28">Total (kg)</th>
+                  <th class="py-2 px-3 text-right w-28">Total</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200 font-medium text-slate-800">
