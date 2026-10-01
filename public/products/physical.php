@@ -148,10 +148,10 @@ $pageUrl = publicUrl('products/physical.php');
             </div>
           <?php endforeach; ?>
         </div>
-
+        
+        <?php if ($isNewEntry): ?>
         <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between no-print">
           <p class="text-xs text-slate-500 font-medium">Verify physical counts prior to saving stock records.</p>
-          <?php if ($isNewEntry): ?>
             <div class="flex items-center gap-3">
               <button type="reset" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Reset Counts</button>
               <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-1.5">
@@ -159,8 +159,8 @@ $pageUrl = publicUrl('products/physical.php');
                 <span>Save Physical Stock Count</span>
               </button>
             </div>
-          <?php endif; ?>
-        </div>
+          </div>
+         <?php endif; ?>
       </form>
     </div>
   </main>

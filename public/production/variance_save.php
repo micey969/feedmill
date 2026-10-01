@@ -22,7 +22,7 @@ if ($actualBags > 9999.99) {
   exit('Actual bags are outside the supported range.');
 }
 
-$usageStmt = $conn->prepare('SELECT ingredient_usage_id, calculated_total_used_kgs FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
+$usageStmt = $conn->prepare('SELECT ingredient_usage_id, calculated_total_used_kgs, actual_total_used_kgs, actual_bags_produced FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
 if (!$usageStmt) {
   http_response_code(500);
   exit('Unable to load the mixing sheet ingredients.');
@@ -31,10 +31,19 @@ $usageStmt->bind_param('i', $mixingSheetId);
 $usageStmt->execute();
 $usageResult = $usageStmt->get_result();
 $calculatedQuantities = [];
+$isFinalized = true;
 while ($row = $usageResult->fetch_assoc()) {
   $calculatedQuantities[(int) $row['ingredient_usage_id']] = (float) $row['calculated_total_used_kgs'];
+  if ($row['actual_total_used_kgs'] === null || (float) $row['actual_total_used_kgs'] <= 0 || $row['actual_bags_produced'] === null || (float) $row['actual_bags_produced'] <= 0) {
+    $isFinalized = false;
+  }
 }
 $usageStmt->close();
+
+if ($calculatedQuantities !== [] && $isFinalized) {
+  http_response_code(403);
+  exit('This mixing sheet variance has already been finalized and cannot be edited.');
+}
 
 if ($calculatedQuantities === [] || count($submittedQuantities) !== count($calculatedQuantities)) {
   http_response_code(400);
