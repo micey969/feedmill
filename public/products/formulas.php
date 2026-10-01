@@ -54,7 +54,7 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- ================= LEFT COLUMN: FORMULA METADATA CARD ================= -->
-        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
+        <div id="formula-details-card" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
           <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
             <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Formula Details</h2>
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">New Draft</span>
@@ -109,8 +109,8 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
         </div>
 
         <!-- ================= RIGHT COLUMN: INGREDIENTS ORDER-FORM CARD ================= -->
-        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div id="formula-ingredients-card" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4 flex flex-col min-h-0">
+          <div class="sticky top-0 z-10 bg-white flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Formula Ingredients</h2>
               <p class="text-[11px] text-slate-500">Add materials and set target quantities per batch.</p>
@@ -122,10 +122,10 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
           </div>
 
           <!-- Ingredients Order Table -->
-          <div class="overflow-x-auto">
+          <div class="flex-1 min-h-0 overflow-auto">
             <table class="w-full text-left text-xs border-collapse" id="ingredients-table">
               <thead>
-                <tr class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                <tr class="sticky top-0 z-10 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
                   <th class="py-2.5 px-3">Raw Material</th>
                   <th class="py-2.5 px-3 text-right w-36">Quantity (Kg)</th>
                   <th class="py-2.5 px-3 text-center w-12"></th>
@@ -174,6 +174,7 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
         </button>
       </div>
     </form>
+    
     <!-- ================= INGREDIENT CATALOG MODAL ================= -->
     <div id="material-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
       <div class="bg-white w-full max-w-2xl max-h-[78vh] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
@@ -189,7 +190,7 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
           </button>
         </div>
 
-        <div class="p-5 space-y-4 text-xs overflow-y-auto">
+        <div class="p-5 flex flex-1 min-h-0 flex-col gap-4 text-xs overflow-hidden">
           <form action="ingredient_save.php" method="POST" class="flex flex-col sm:flex-row sm:items-end gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
             <div class="flex-1">
               <label for="ingredient-name" class="block font-bold text-slate-700 mb-1">New Ingredient Name *</label>
@@ -198,7 +199,7 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
             <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition">Add Ingredient</button>
           </form>
 
-          <form action="ingredient_update.php" method="POST">
+          <form id="ingredient-update-form" action="ingredient_update.php" method="POST" class="flex flex-1 min-h-0 flex-col">
             <div class="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-slate-50 border-b border-slate-200 p-3 rounded-xl">
               <label for="ingredient-catalog-search" class="font-bold text-slate-700">Find an ingredient</label>
               <div class="relative w-full sm:w-72">
@@ -206,10 +207,10 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
                   class="w-full bg-white border border-slate-300 rounded-lg pl-3 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
             </div>
-            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <div class="flex-1 min-h-0 overflow-x-auto overflow-y-auto border border-slate-200 rounded-xl">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                  <tr class="sticky top-0 z-10 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
                     <th class="py-3 px-4 w-24">ID</th>
                     <th class="py-3 px-4">Ingredient Name</th>
                     <th class="py-3 px-4 w-40">Status</th>
@@ -242,15 +243,17 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
                 Showing <?php echo count($ingredientCatalog); ?> of <?php echo count($ingredientCatalog); ?> ingredients
               </p>
             <?php endif; ?>
-            <?php if ($ingredientCatalog): ?>
-              <div class="pt-4 flex justify-end">
-                <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                  <span>Save Changes</span>
-                </button>
-              </div>
-            <?php endif; ?>
           </form>
+        </div>
+        <footer class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+          <button type="button" onclick="closeMaterialModal()" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Cancel</button>
+          <?php if ($ingredientCatalog): ?>
+            <button type="submit" form="ingredient-update-form" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              <span>Save Changes</span>
+            </button>
+          <?php endif; ?>
+        </footer>
       </div>
     </div>
   </main>
@@ -261,6 +264,9 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
   const addRowButton = document.getElementById('add-row-btn');
   const totalWeightDisplay = document.getElementById('total-weight-display');
   const formulaForm = document.querySelector('form[action="formula_save.php"]');
+  const formulaDetailsCard = document.getElementById('formula-details-card');
+  const formulaIngredientsCard = document.getElementById('formula-ingredients-card');
+  const desktopLayout = window.matchMedia('(min-width: 1024px)');
   const catalogSearch = document.getElementById('ingredient-catalog-search');
   const catalogRows = [...document.querySelectorAll('.ingredient-catalog-row')];
   const catalogCount = document.getElementById('ingredient-catalog-count');
@@ -296,6 +302,14 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
     totalWeightDisplay.textContent = `${total.toFixed(1)} Kg`;
   }
 
+  function syncIngredientsCardHeight() {
+    if (desktopLayout.matches) {
+      formulaIngredientsCard.style.maxHeight = `${formulaDetailsCard.getBoundingClientRect().height}px`;
+    } else {
+      formulaIngredientsCard.style.removeProperty('max-height');
+    }
+  }
+
   function addIngredientRow() {
     const row = ingredientsList.querySelector('tr').cloneNode(true);
     row.querySelector('select').selectedIndex = 0;
@@ -315,6 +329,9 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
   ingredientsList.addEventListener('input', updateTotalWeight);
   formulaForm.addEventListener('reset', () => setTimeout(updateTotalWeight, 0));
   catalogSearch?.addEventListener('input', filterIngredientCatalog);
+  new ResizeObserver(syncIngredientsCardHeight).observe(formulaDetailsCard);
+  desktopLayout.addEventListener('change', syncIngredientsCardHeight);
+  syncIngredientsCardHeight();
   updateTotalWeight();
 </script>
 </html>

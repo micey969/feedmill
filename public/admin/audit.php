@@ -169,7 +169,7 @@ $actionStyles = [
             <input type="text" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>" placeholder="Search by IP, User, Action, or Details..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 0 0114 0z"></path></svg>
             <?php if ($searchTerm !== ''): ?>
-              <a href="<?php echo htmlspecialchars(publicUrl('admin/audit.php')); ?>" aria-label="Clear search" title="Clear search" class="absolute right-0 top-2.5 pr-3 text-slate-400 hover:text-slate-700 transition">
+              <a href="<?php echo htmlspecialchars(publicUrl('admin/audit.php')); ?>" aria-label="Clear search" title="Clear search" class="absolute right-0 top-2 pr-3 text-slate-400 hover:text-slate-700 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path></svg>
               </a>          
             <?php endif; ?>
@@ -282,7 +282,7 @@ $actionStyles = [
     </div>
 
     <div id="audit-details-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
-      <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+      <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
         
         <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div>

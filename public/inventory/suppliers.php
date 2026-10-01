@@ -251,7 +251,9 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
       <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
         <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div><h2 class="text-base font-bold text-slate-900">Edit Supplier Details</h2><p class="text-[10px] text-slate-500">Update supplier information and contact details.</p></div>
-          <button type="button" onclick="document.getElementById('edit-supplier-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg" aria-label="Close">&times;</button>
+          <button type="button" onclick="document.getElementById('edit-supplier-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg" aria-label="Close">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
         <form action="suppliers_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           <input type="hidden" name="supplier_id" id="edit-supplier-id">

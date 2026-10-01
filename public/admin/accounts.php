@@ -270,31 +270,87 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
     <div id="edit-user-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
       <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+
         <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div>
             <h2 class="text-base font-bold text-slate-900">Edit User Account</h2>
-            <p class="text-[10px] text-slate-500">Update account details, permissions, or credentials.</p>
+            <p class="text-[10px] text-slate-500">Update account details, permissions, or access credentials.</p>
           </div>
-          <button type="button" onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg" aria-label="Close">&times;</button>
+          <button type="button" onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
-        
+
         <form action="accounts_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           <input type="hidden" name="user_id" id="edit-user-id">
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label class="block font-bold text-slate-700 mb-1">Full Name</label><input type="text" name="full_name" id="edit-user-full-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Username</label><input type="text" name="username" id="edit-user-username" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Job Title</label><input type="text" name="job_title" id="edit-user-job-title" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Image</label><input type="text" name="image_name" id="edit-user-image" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Account Status</label><select name="active_flag" id="edit-user-active" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="1">Active</option><option value="0">Inactive</option></select></div>
-            <div><label class="block font-bold text-slate-700 mb-1">Access</label><select name="role" id="edit-user-role" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"><option value="user">User</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select></div>
-            <div><label class="block font-bold text-slate-700 mb-1">New Password</label><input type="password" name="password" placeholder="Leave blank to keep current" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium"></div>
+
+          <div class="space-y-4">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Information</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Full Name *</label>
+                <input type="text" name="full_name" id="edit-user-full-name" required placeholder="e.g. Jane Doe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Username *</label>
+                <input type="text" name="username" id="edit-user-username" required placeholder="e.g. jdoe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Job Title *</label>
+                <input type="text" name="job_title" id="edit-user-job-title" required placeholder="e.g. Production Supervisor" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Image *</label>
+                <input type="text" name="image_name" id="edit-user-image" placeholder="e.g. BS02542.png" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
+            </div>
           </div>
+
+          <hr class="border-slate-100">
+
+          <div class="space-y-4">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Security & Permissions</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Access Role *</label>
+                <select name="role" id="edit-user-role" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <option value="user">User</option>
+                  <option value="supervisor">Supervisor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Account Status</label>
+                <select name="active_flag" id="edit-user-active" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <option value="1">Active</option>
+                  <option value="0">Inactive</option>
+                </select>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">New Password</label>
+                <input type="password" name="password" placeholder="Leave blank to keep current" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              </div>
+            </div>
+          </div>
+
           <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
-            <button type="button" onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl">Update User Account</button>
+            <button type="button" onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition">
+              Update User Account
+            </button>
           </div>
+
         </form>
+
       </div>
     </div>
   </main>

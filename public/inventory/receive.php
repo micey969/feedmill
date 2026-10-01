@@ -1,6 +1,50 @@
 <?php
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
+
+$escape = static fn ($value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+$pendingResult = $conn->query(
+  "SELECT o.order_id, o.ordered_date_time, o.expected_arrival, s.company_name,
+          SUM(oi.ordered_quantity_kgs) AS pending_quantity
+   FROM v_order_ingredients oi
+   INNER JOIN orders o ON o.order_id = oi.order_id
+   LEFT JOIN suppliers s ON s.supplier_id = o.supplier_id
+   WHERE COALESCE(oi.received_flag, b'0') = b'0'
+   GROUP BY o.order_id, o.ordered_date_time, o.expected_arrival, s.company_name
+   ORDER BY o.expected_arrival, o.order_id"
+);
+$pendingOrders = $pendingResult->fetch_all(MYSQLI_ASSOC);
+$selectedOrderId = filter_input(INPUT_GET, 'order_id', FILTER_VALIDATE_INT);
+$selectedOrder = null;
+foreach ($pendingOrders as $pendingOrder) {
+  if ((int) $pendingOrder['order_id'] === $selectedOrderId) {
+    $selectedOrder = $pendingOrder;
+    break;
+  }
+}
+$pendingLines = [];
+$orderReceipt = ['invoice_number' => '', 'received_transport_id' => ''];
+if ($selectedOrder) {
+  $linesStmt = $conn->prepare(
+    "SELECT oi.ingredients_id, oi.name, oi.ordered_quantity_kgs
+     FROM v_order_ingredients oi
+     WHERE oi.order_id = ? AND COALESCE(oi.received_flag, b'0') = b'0'
+     ORDER BY oi.name"
+  );
+  $linesStmt->bind_param('i', $selectedOrderId);
+  $linesStmt->execute();
+  $pendingLines = $linesStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+  $linesStmt->close();
+
+  $receiptStmt = $conn->prepare('SELECT invoice_number, received_transport_id FROM orders WHERE order_id = ?');
+  $receiptStmt->bind_param('i', $selectedOrderId);
+  $receiptStmt->execute();
+  $orderReceipt = $receiptStmt->get_result()->fetch_assoc() ?: $orderReceipt;
+  $receiptStmt->close();
+}
+
+$transports = $conn->query('SELECT transport_id, transport_name FROM transport ORDER BY transport_name')->fetch_all(MYSQLI_ASSOC);
+$millers = $conn->query("SELECT user_id, full_name FROM millers WHERE active_flag = b'1' ORDER BY full_name")->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -34,46 +78,51 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
 
     <!-- Workspace Body -->
     <div class="p-6 sm:p-8 max-w-5xl space-y-6">
-      
-      <!-- ASSOCIATED ORDER REFERENCE SECTION -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
+      <?php if (isset($_GET['success'])): ?>
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs font-semibold">Receipt saved.</div>
+      <?php elseif (isset($_GET['error'])): ?>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold">The receipt could not be saved. Check the selected order, transport, and quantities.</div>
+      <?php elseif (isset($_GET['transport_saved'])): ?>
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs font-semibold">Transport list saved.</div>
+      <?php elseif (isset($_GET['transport_error'])): ?>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold">Transport changes could not be saved. Check for duplicate names.</div>
+      <?php endif; ?>
+
+      <?php if (!$pendingOrders): ?>
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-xs p-8 text-center">
+          <h2 class="text-sm font-bold text-slate-900">No pending orders</h2>
+          <p class="mt-1 text-xs text-slate-500">Orders appear here when at least one ingredient has not been received.</p>
+        </section>
+      <?php else: ?>
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Select Order to Receive</h2>
-          </div>
-          <span class="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">STATUS: PENDING RECEIPT</span>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Select Order to Receive</h2>
+          <span class="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">PENDING RECEIPT</span>
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <div class="sm:col-span-1">
-            <label class="block text-slate-400 font-medium mb-1">Select Pending Order ID</label>
-            <select name="select_order_id" class="w-full bg-slate-50 border border-red-300 font-mono font-bold text-red-600 rounded-xl p-2.5 text-xs focus:bg-white focus:ring-2 focus:ring-red-600 outline-none cursor-pointer">
-              <option value="B0848" selected>Order #B0848 Ã¢â‚¬â€ ADM Grain Co.</option>
-              <option value="B0847">Order #B0847 Ã¢â‚¬â€ Cargill Caribbean</option>
+          <form method="GET" class="sm:col-span-1">
+            <label for="pending-order-select" class="block text-slate-500 font-medium mb-1">Pending Order</label>
+            <select id="pending-order-select" name="order_id" onchange="this.form.submit()" class="w-full bg-slate-50 border border-red-300 font-mono font-bold text-red-600 rounded-xl p-2.5 text-xs focus:bg-white focus:ring-2 focus:ring-red-600 outline-none cursor-pointer">
+              <option value="" <?php echo !$selectedOrder ? 'selected' : ''; ?>>-- Select Order --</option>
+              <?php foreach ($pendingOrders as $pendingOrder): ?>
+                <option value="<?php echo (int) $pendingOrder['order_id']; ?>" <?php echo (int) $pendingOrder['order_id'] === $selectedOrderId ? 'selected' : ''; ?>>Order #<?php echo (int) $pendingOrder['order_id']; ?> - <?php echo $escape($pendingOrder['company_name'] ?: 'Supplier unavailable'); ?></option>
+              <?php endforeach; ?>
             </select>
-          </div>
-
-          <!-- Associated Order Summary Card -->
-          <div class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px]">
-            <div>
-              <span class="text-slate-400 block font-medium">Supplier:</span>
-              <strong class="text-slate-800">ADM Grain Co. Ltd.</strong>
+          </form>
+          <?php if ($selectedOrder): ?>
+            <div class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px]">
+              <div><span class="text-slate-400 block font-medium">Supplier</span><strong class="text-slate-800"><?php echo $escape($selectedOrder['company_name'] ?: 'Supplier unavailable'); ?></strong></div>
+              <div><span class="text-slate-400 block font-medium">Order Date</span><strong class="text-slate-800 font-mono"><?php echo $escape($selectedOrder['ordered_date_time']); ?></strong></div>
+              <div><span class="text-slate-400 block font-medium">Pending Quantity</span><strong class="text-slate-900 font-mono"><?php echo number_format((float) $selectedOrder['pending_quantity'], 2); ?> kg</strong></div>
             </div>
-            <div>
-              <span class="text-slate-400 block font-medium">Order Date:</span>
-              <strong class="text-slate-800 font-mono">8/5/2026 @ 14:51</strong>
-            </div>
-            <div>
-              <span class="text-slate-400 block font-medium">Ordered Weight:</span>
-              <strong class="text-slate-900 font-mono">20,700.00 KGS</strong>
-            </div>
-          </div>
+          <?php endif; ?>
         </div>
-      </div>
+      </section>
 
+      <?php if ($selectedOrder): ?>
       <!-- ACTUAL RECEIVING ENTRY FORM -->
-      <form action="" method="POST" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
+      <form action="receive_save.php" method="POST" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
+        <input type="hidden" name="order_id" value="<?php echo (int) $selectedOrderId; ?>">
         
         <div class="border-b border-slate-100 pb-3">
           <h2 class="text-xs font-bold uppercase tracking-wider text-red-600">Shipment Arrival Log</h2>
@@ -82,38 +131,39 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
             <label class="block text-slate-700 font-bold mb-1">Arrival Date</label>
-            <input type="date" value="2026-08-21" name="arrival_date" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
+            <input type="date" value="<?php echo date('Y-m-d'); ?>" name="arrival_date" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
           </div>
           <div>
             <label class="block text-slate-700 font-bold mb-1">Arrival Time</label>
-            <input type="time" value="11:15" name="arrival_time" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
+            <input type="time" value="<?php echo date('H:i'); ?>" name="arrival_time" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div>
-            <label class="block text-slate-700 font-bold mb-1">Miller / Receiving Inspector</label>
-            <select name="miller_id" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none cursor-pointer">
-              <option value="">-- Select Inspector --</option>
-              <option value="1" selected>R. Thomas (Shift A)</option>
-              <option value="2">M. Charles (Shift B)</option>
+            <label class="block text-slate-700 font-bold mb-1">Received By</label>
+            <select name="miller_id" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none cursor-pointer">
+              <option value="">-- Select Miller --</option>
+              <?php foreach ($millers as $miller): ?>
+                <option value="<?php echo (int) $miller['user_id']; ?>"><?php echo $escape($miller['full_name']); ?></option>
+              <?php endforeach; ?>
             </select>
           </div>
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="block text-slate-700 font-bold mb-1">Name of Vessel / Boat</label>
-              <button onclick="document.getElementById('vesselModal').classList.remove('hidden')" class="text-slate-400 block font-small">[Edit]</span>   
+              <label for="received-transport" class="block text-slate-700 font-bold mb-1">Transport</label>
+              <button type="button" onclick="document.getElementById('transport-modal').classList.remove('hidden')" class="text-blue-700 hover:text-red-600 font-bold">[Edit]</button>
             </div>
-            
-            <select name="boat_id" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none cursor-pointer">
-              <option value="">-- Select Boat --</option>
-              <option value="carib_star" selected>M/V Caribbean Star</option>
-              <option value="island_trader">M/V Island Trader</option>
+            <select id="received-transport" name="transport_id" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none cursor-pointer">
+              <option value="">-- Select Transport --</option>
+              <?php foreach ($transports as $transport): ?>
+                <option value="<?php echo $escape($transport['transport_id']); ?>" <?php echo ($transport['transport_id'] === ($orderReceipt['received_transport_id'] ?? '') || $transport['transport_id'] === ($_GET['transport_id'] ?? '')) ? 'selected' : ''; ?>><?php echo $escape($transport['transport_name']); ?></option>
+              <?php endforeach; ?>
             </select>
           </div>
           <div>
-            <label class="block text-slate-700 font-bold mb-1">Invoice / Delivery Note No.</label>
-            <input type="text" placeholder="e.g. INV-2026-881" name="invoice_no" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
+            <label class="block text-slate-700 font-bold mb-1">Invoice / Delivery Note Number</label>
+            <input type="text" maxlength="50" value="<?php echo $escape($orderReceipt['invoice_number']); ?>" name="invoice_number" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
           </div>
         </div>
 
@@ -122,89 +172,114 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
           <label class="block text-xs font-bold text-slate-700 mb-3 uppercase tracking-wider">Quantities Received vs Ordered</label>
           
           <div class="space-y-3">
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <span class="text-xs font-bold text-slate-900 block">Yellow Corn Bulk</span>
-                <span class="text-[10px] text-slate-400">Ordered: <strong class="text-slate-600 font-mono">12,500.00 KGS</strong></span>
+            <?php foreach ($pendingLines as $line): ?>
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                <label class="flex items-start gap-3 flex-1 min-w-56">
+                  <input type="checkbox" name="receive_ingredients[]" value="<?php echo (int) $line['ingredients_id']; ?>" checked class="receive-line-checkbox mt-0.5 w-4 h-4 rounded text-red-600 focus:ring-red-600">
+                  <span><strong class="text-xs text-slate-900 block"><?php echo $escape($line['name']); ?></strong><span class="text-[10px] text-slate-500">Ordered: <strong class="font-mono text-slate-700"><?php echo number_format((float) $line['ordered_quantity_kgs'], 2); ?> kg</strong></span></span>
+                </label>
+                <div class="relative w-44">
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Received Quantity</label>
+                  <input type="number" min="0" max="999999.99" step="0.01" value="<?php echo $escape($line['ordered_quantity_kgs']); ?>" name="received_quantities[<?php echo (int) $line['ingredients_id']; ?>]" class="receive-line-quantity w-full bg-white border border-slate-300 rounded-lg pl-2 pr-12 py-2 text-right font-mono text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
+                  <span class="absolute right-2 bottom-2 text-[10px] font-bold text-slate-400">KGS</span>
+                </div>
               </div>
-              <div class="relative w-40">
-                <input type="number" step="0.01" value="12500.00" name="qty_received[]" class="w-full bg-white border border-slate-300 rounded-lg pl-2 pr-10 py-2 text-right font-mono text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
-                <span class="absolute right-2 top-2 text-[10px] font-bold text-slate-400">KGS</span>
-              </div>
-            </div>
-
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <span class="text-xs font-bold text-slate-900 block">Soybean Meal Bulk</span>
-                <span class="text-[10px] text-slate-400">Ordered: <strong class="text-slate-600 font-mono">8,200.00 KGS</strong></span>
-              </div>
-              <div class="relative w-40">
-                <input type="number" step="0.01" value="8200.00" name="qty_received[]" class="w-full bg-white border border-slate-300 rounded-lg pl-2 pr-10 py-2 text-right font-mono text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
-                <span class="absolute right-2 top-2 text-[10px] font-bold text-slate-400">KGS</span>
-              </div>
-            </div>
+            <?php endforeach; ?>
           </div>
         </div>
 
         <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" name="is_received" class="w-4 h-4 rounded text-red-600 focus:ring-red-600" checked>
-            <span class="text-xs font-bold text-slate-800">Mark Order #B0848 as Fully Received</span>
+            <span class="text-xs text-slate-500">Uncheck any line that is not part of this delivery. It will remain pending.</span>
           </label>
 
           <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 transition">Save Receiving Entry</button>
         </div>
       </form>
+      <?php endif; ?>
+      <?php endif; ?>
     </div>
 
-    <!-- Vessel Management Modal -->
-    <div id="vesselModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden">
-      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md mx-4 overflow-hidden">
-        
-        <!-- Modal Header -->
-        <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
-          <h3 class="text-xs font-bold uppercase tracking-wider">Manage Vessels / Boats</h3>
-          <button type="button" onclick="document.getElementById('vesselModal').classList.add('hidden')" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
-        </div>
-
-        <div class="p-5 space-y-4">
-          <!-- Add New Vessel Form -->
-          <form action="" method="POST" class="flex gap-2 border-b border-slate-100 pb-4">
-            <input type="hidden" name="action" value="add">
-            <input type="text" name="vessel_name" placeholder="New vessel name..." required class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
-            <button type="submit" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition">+ Add</button>
+    <!-- ================= TRANSPORT CATALOG MODAL ================= -->
+    <div id="transport-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden" onclick="if (event.target === this) this.classList.add('hidden')">
+      <section class="bg-white w-full max-w-2xl max-h-[78vh] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+        <header class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div><h2 class="text-base font-bold text-slate-900">Transport Catalog</h2><p class="text-[10px] text-slate-500">Add a transport or update its display name.</p></div>
+          <button type="button" onclick="document.getElementById('transport-modal').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-700 text-xl" aria-label="Close">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </header>
+        <div class="p-5 flex flex-1 min-h-0 flex-col gap-4 text-xs overflow-hidden">
+          <form action="transport_save.php" method="POST" class="flex flex-col sm:flex-row sm:items-end gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <input type="hidden" name="order_id" value="<?php echo (int) ($selectedOrderId ?? 0); ?>">
+            <div class="flex-1">
+              <label for="new-transport-name" class="block font-bold text-slate-700 mb-1">New Transport Name</label>
+              <input id="new-transport-name" type="text" name="transport_name" maxlength="100" required class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600">
+            </div>
+            <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl">Add Transport</button>
           </form>
 
-          <!-- Vessel List (Edit In-Place) -->
-          <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
-            
-            <!-- Example Row 1 -->
-            <form action="" method="POST" class="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-200">
-              <input type="hidden" name="action" value="update">
-              <input type="hidden" name="vessel_id" value="1">
-              <input type="text" name="vessel_name" value="M/V Caribbean Star" required class="flex-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-red-600 outline-none">
-              <button type="submit" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-bold rounded-lg transition">Save</button>
-            </form>
-
-            <!-- Example Row 2 -->
-            <form action="" method="POST" class="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-200">
-              <input type="hidden" name="action" value="update">
-              <input type="hidden" name="vessel_id" value="2">
-              <input type="text" name="vessel_name" value="M/V Island Trader" required class="flex-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-red-600 outline-none">
-              <button type="submit" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-bold rounded-lg transition">Save</button>
-            </form>
-
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-slate-50 border-b border-slate-200 p-3 rounded-xl">
+            <label for="transport-catalog-search" class="font-bold text-slate-700">Find a transport</label>
+            <input type="search" id="transport-catalog-search" placeholder="Search by name or ID" class="w-full sm:w-72 bg-white border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600">
           </div>
-        </div>
 
-        <!-- Modal Footer -->
-        <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
-          <button type="button" onclick="document.getElementById('vesselModal').classList.add('hidden')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">Done</button>
+          <form id="transport-update-form" action="transport_update.php" method="POST" class="flex flex-1 min-h-0 flex-col">
+            <input type="hidden" name="order_id" value="<?php echo (int) ($selectedOrderId ?? 0); ?>">
+            <div class="flex-1 min-h-0 overflow-x-auto overflow-y-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left border-collapse">
+                <thead><tr class="sticky top-0 z-10 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200"><th class="py-3 px-4 w-40">ID</th><th class="py-3 px-4">Transport Name</th></tr></thead>
+                <tbody class="divide-y divide-slate-100">
+                  <?php if (!$transports): ?>
+                    <tr><td colspan="2" class="py-6 px-4 text-center text-slate-500">No transports have been added.</td></tr>
+                  <?php endif; ?>
+                  <?php foreach ($transports as $transport): ?>
+                    <tr class="transport-catalog-row">
+                      <td class="py-2 px-4 font-mono text-slate-500"><input type="hidden" name="transport_ids[]" value="<?php echo $escape($transport['transport_id']); ?>"><?php echo $escape($transport['transport_id']); ?></td>
+                      <td class="py-2 px-4"><input type="text" name="transport_names[]" value="<?php echo $escape($transport['transport_name']); ?>" maxlength="100" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-600"></td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+            <p id="transport-catalog-count" class="pt-2 text-[10px] text-slate-500" aria-live="polite">Showing <?php echo count($transports); ?> of <?php echo count($transports); ?> transports</p>
+          </form>
         </div>
-
-      </div>
+        <footer class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+          <button type="button" onclick="document.getElementById('transport-modal').classList.add('hidden')" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Cancel</button>
+          <?php if ($transports): ?>
+            <button type="submit" form="transport-update-form" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition">Save Changes</button>
+          <?php endif; ?>
+        </footer>
+      </section>
     </div>
   </main>
+  <script>
+    const transportSearch = document.getElementById('transport-catalog-search');
+    const transportRows = [...document.querySelectorAll('.transport-catalog-row')];
+    const transportCount = document.getElementById('transport-catalog-count');
+    transportSearch?.addEventListener('input', () => {
+      const term = transportSearch.value.trim().toLowerCase();
+      let visibleCount = 0;
+      transportRows.forEach((row) => {
+        const name = row.querySelector('input[name="transport_names[]"]').value;
+        const id = row.querySelector('input[name="transport_ids[]"]').value;
+        const matches = `${name} ${id}`.toLowerCase().includes(term);
+        row.hidden = !matches;
+        if (matches) visibleCount += 1;
+      });
+      if (transportCount) transportCount.textContent = `Showing ${visibleCount} of ${transportRows.length} transports`;
+    });
 
+    document.querySelectorAll('.receive-line-checkbox').forEach((checkbox) => {
+      const quantity = checkbox.closest('.p-3').querySelector('.receive-line-quantity');
+      const syncQuantity = () => {
+        quantity.disabled = !checkbox.checked;
+        quantity.required = checkbox.checked;
+      };
+      checkbox.addEventListener('change', syncQuantity);
+      syncQuantity();
+    });
+  </script>
 </body>
 </html>

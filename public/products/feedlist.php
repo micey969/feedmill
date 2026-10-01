@@ -206,91 +206,103 @@ function feedListUrl(int $page, string $search, string $status): string {
     </div>
   </div>
   
-  <div id="formula-modal" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto">
-      <div class="p-5 bg-slate-50 border-b flex justify-between">
+  <div id="formula-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white w-full max-w-6xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
+      <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
         <div>
-          <h2 class="font-bold">Edit Formula</h2>
+          <h2 class="text-base font-bold text-slate-900">Edit Formula</h2>
           <p class="text-[10px] text-slate-500">Update formula metadata and ingredient quantities.</p>
         </div>
-        <button type="button" onclick="closeFormulaModal()" aria-label="Close">&times;</button>
+        <button type="button" onclick="closeFormulaModal()" aria-label="Close" class="p-1 text-slate-400 hover:text-slate-700 rounded-lg transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
       </div>
       
-      <form action="formula_update.php" method="POST" class="p-6 sm:p-8 space-y-6 text-xs">
-        
+      <form action="formula_update.php" method="POST" class="flex-1 min-h-0 p-6 sm:p-8 space-y-6 text-xs overflow-y-auto lg:overflow-hidden flex flex-col">
         <input type="hidden" name="formula_id" id="edit-formula-id">
         
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div class="lg:col-span-2 space-y-4">
-            <h3 class="text-[10px] font-bold text-slate-400 uppercase">Formula Details</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:flex-1 lg:min-h-0">
+          <div id="edit-formula-details-card" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
+            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Formula Details</h3>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">Editing</span>
+            </div>
           
             <!-- Feed Code -->
             <div class="space-y-1">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Feed Code *</label>
-              <input id="edit-formula-code" disabled class="w-full bg-slate-100 border rounded-lg px-3 py-2 font-mono">
+              <input id="edit-formula-code" disabled class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900">
             </div>
 
             <!-- Sold As -->
             <div class="space-y-1">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Sold As *</label>
-              <input name="formula_name" id="edit-formula-name" required placeholder="Formula name" class="w-full bg-slate-50 border rounded-lg px-3 py-2">
+              <input name="formula_name" id="edit-formula-name" required placeholder="Formula name" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
             </div>
 
             <!-- Creator -->
             <div class="space-y-1">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Creator</label>
-              <input name="creator" id="edit-formula-creator" class="w-full bg-slate-50 border rounded-lg px-3 py-2">
+              <input name="creator" id="edit-formula-creator" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
             </div>
 
             <!-- Description -->
             <div class="space-y-1">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Description</label>
-              <textarea name="description" id="edit-formula-description" rows="4" placeholder="Description" class="w-full bg-slate-50 border rounded-lg px-3 py-2"></textarea>
+              <textarea name="description" id="edit-formula-description" rows="2" placeholder="Formula description" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600"></textarea>
             </div>
             
             <!-- Effective Date -->
             <div class="space-y-1">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Effective Date</label>
-              <input type="date" name="setup_date" id="edit-formula-date" required class="w-full bg-slate-50 border rounded-lg px-3 py-2">
+              <input type="date" name="setup_date" id="edit-formula-date" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
             </div>
             
             <!-- Status -->
-            <div class="space-y-1">
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Status</label>
-              <select name="active_flag" id="edit-formula-status" class="w-full bg-slate-50 border rounded-lg px-3 py-2">
+            <div class="pt-2 border-t border-slate-100 space-y-1">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Formula Status</label>
+              <select name="active_flag" id="edit-formula-status" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
               </select>
             </div>
           </div>
 
-          <div class="lg:col-span-3 space-y-4">
-            <div class="flex justify-between">
-              <h3 class="text-[10px] font-bold text-slate-400 uppercase">Formula Ingredients</h3>
+          <div id="edit-formula-ingredients-card" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4 flex flex-col min-h-0 max-h-[45vh] lg:max-h-none">
+            <div class="sticky top-0 z-20 bg-white flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Formula Ingredients</h3>
+                <p class="text-[11px] text-slate-500">Adjust materials and target quantities per batch.</p>
+              </div>
               <button type="button" onclick="addIngredientRow()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold rounded-xl border border-red-200 transition flex items-center gap-1">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 <span>Add Item</span>
               </button>
             </div>
             
-            <table class="w-full text-left text-xs">
+            <div class="flex-1 min-h-0 overflow-y-auto">
+            <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="bg-slate-50 font-bold uppercase">
-                  <th class="p-2">Raw Material</th>
-                  <th class="p-2">Quantity (Kg)</th>
-                  <th></th>
+                <tr class="sticky top-0 z-10 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                  <th class="py-2.5 px-3">Raw Material</th>
+                  <th class="py-2.5 px-3 text-right w-36">Quantity (Kg)</th>
+                  <th class="py-2.5 px-3 text-center w-12"></th>
                 </tr>
               </thead>
-              <tbody id="edit-ingredients-list"></tbody>
+              <tbody id="edit-ingredients-list" class="divide-y divide-slate-100"></tbody>
             </table>
+            </div>
             
-            <div class="bg-slate-50 rounded-xl p-4 border flex justify-between font-bold">Total Batch Weight:<span id="edit-total-weight" class="font-mono text-red-600">0.00 Kg</span></div>
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 flex items-center justify-between text-xs font-bold text-slate-800">
+              <span>Total Batch Weight:</span>
+              <span id="edit-total-weight" class="font-mono text-base text-red-600">0.00 Kg</span>
+            </div>
           </div>
         </div>
         
-        <div class="border-t pt-4 flex justify-end gap-3">
+        <div class="shrink-0 flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
           <button type="button" onclick="closeFormulaModal()" class="px-5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition">Cancel</button>
-          <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
+          <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             <span>Update Formula</span>
           </button>
@@ -302,9 +314,15 @@ function feedListUrl(int $page, string $search, string $status): string {
 <script>
 const ingredientOptions = <?php echo json_encode($ingredientOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
 const formulaModal = document.getElementById('formula-modal');
-function openFormulaModal(formula) { document.getElementById('edit-formula-id').value = formula.formula_id; document.getElementById('edit-formula-code').value = formula.formula_id; document.getElementById('edit-formula-name').value = formula.formula_name || ''; document.getElementById('edit-formula-description').value = formula.description || ''; document.getElementById('edit-formula-creator').value = formula.creator || ''; document.getElementById('edit-formula-date').value = formula.setup_date || ''; document.getElementById('edit-formula-status').value = formula.formula_active_flag; document.getElementById('edit-ingredients-list').innerHTML = ''; (formula.ingredients || []).forEach(addIngredientRow); if (!formula.ingredients?.length) addIngredientRow(); updateTotalWeight(); formulaModal.classList.remove('hidden'); }
+const editFormulaDetailsCard = document.getElementById('edit-formula-details-card');
+const editFormulaIngredientsCard = document.getElementById('edit-formula-ingredients-card');
+const editFormulaDesktopLayout = window.matchMedia('(min-width: 1024px)');
+function syncEditIngredientsCardHeight() { if (editFormulaDesktopLayout.matches) { editFormulaIngredientsCard.style.maxHeight = `${editFormulaDetailsCard.getBoundingClientRect().height}px`; } else { editFormulaIngredientsCard.style.removeProperty('max-height'); } }
+function openFormulaModal(formula) { document.getElementById('edit-formula-id').value = formula.formula_id; document.getElementById('edit-formula-code').value = formula.formula_id; document.getElementById('edit-formula-name').value = formula.formula_name || ''; document.getElementById('edit-formula-description').value = formula.description || ''; document.getElementById('edit-formula-creator').value = formula.creator || ''; document.getElementById('edit-formula-date').value = formula.setup_date || ''; document.getElementById('edit-formula-status').value = formula.formula_active_flag; document.getElementById('edit-ingredients-list').innerHTML = ''; (formula.ingredients || []).forEach(addIngredientRow); if (!formula.ingredients?.length) addIngredientRow(); updateTotalWeight(); formulaModal.classList.remove('hidden'); syncEditIngredientsCardHeight(); }
 function closeFormulaModal() { formulaModal.classList.add('hidden'); }
-function addIngredientRow(item = {}) { const row = document.createElement('tr'); const options = ingredientOptions.map(option => `<option value="${option.ingredients_id}" ${String(option.ingredients_id) === String(item.ingredients_id || '') ? 'selected' : ''}>${option.name}</option>`).join(''); row.innerHTML = `<td class="p-2"><select name="ingredients[]" required class="w-full border rounded-lg px-2 py-1.5">${options}</select></td><td class="p-2"><input type="number" min="0" step="0.01" name="quantities[]" value="${item.quantity_kgs || ''}" required class="ingredient-quantity w-full border rounded-lg px-2 py-1.5"></td><td class="p-2"><button type="button" onclick="this.closest('tr').remove();updateTotalWeight()">&times;</button></td>`; document.getElementById('edit-ingredients-list').appendChild(row); row.querySelector('input').addEventListener('input', updateTotalWeight); }
+function addIngredientRow(item = {}) { const row = document.createElement('tr'); const options = ingredientOptions.map(option => `<option value="${option.ingredients_id}" ${String(option.ingredients_id) === String(item.ingredients_id || '') ? 'selected' : ''}>${option.name}</option>`).join(''); row.innerHTML = `<td class="py-2 px-3"><select name="ingredients[]" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-red-600">${options}</select></td><td class="py-2 px-3"><input type="number" min="0" step="0.01" name="quantities[]" value="${item.quantity_kgs || ''}" required class="ingredient-quantity w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600"></td><td class="py-2 px-3 text-center"><button type="button" onclick="this.closest('tr').remove();updateTotalWeight()" aria-label="Remove ingredient" class="text-slate-400 hover:text-red-600 transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>`; document.getElementById('edit-ingredients-list').appendChild(row); row.querySelector('input').addEventListener('input', updateTotalWeight); }
 function updateTotalWeight() { let total = 0; document.querySelectorAll('.ingredient-quantity').forEach(input => total += Number(input.value) || 0); document.getElementById('edit-total-weight').textContent = `${total.toFixed(2)} Kg`; }
+new ResizeObserver(syncEditIngredientsCardHeight).observe(editFormulaDetailsCard);
+editFormulaDesktopLayout.addEventListener('change', syncEditIngredientsCardHeight);
 </script>
 </body></html>
