@@ -53,10 +53,10 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
   <main id="main-content" class="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
     
     <!-- Red Header Accent Line -->
-    <div class="h-1.5 bg-red-600 w-full"></div>
+    <div class="h-1.5 shrink-0 bg-red-600 w-full sticky top-0 z-10"></div>
 
     <!-- Page Header Bar -->
-    <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-10 shadow-xs">
+    <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs">
       <div>
         <nav class="flex items-center gap-2 text-xs text-slate-400 font-medium">
           <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600 transition">Main Hub</a>
@@ -249,7 +249,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
               <div class="md:col-span-2">
                 <label class="block font-bold text-slate-700 mb-1">Password *</label>
-                <input type="password" name="password" required placeholder="••••••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="password" name="password" required placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
             </div>
           </div>

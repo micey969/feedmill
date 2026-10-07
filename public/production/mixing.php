@@ -162,9 +162,9 @@ foreach ($sheetIngredients as $ingredient) {
   
   <main id="main-content" class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
     
-    <div class="h-1.5 bg-red-600 w-full no-print"></div>
+    <div class="h-1.5 shrink-0 bg-red-600 w-full no-print sticky top-0 z-10"></div>
 
-    <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-10 no-print">
+    <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 no-print">
       <div>
         <nav class="flex items-center gap-2 text-xs text-slate-400 font-medium">
           <a href="<?php echo mixingEscape(publicUrl('index.php')); ?>" class="hover:text-red-600">Main Hub</a>

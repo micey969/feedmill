@@ -139,7 +139,7 @@ function updateSectionHeaderHighlights(currentUrl) {
   const sections = {
     'production': ['production/mixing.php', 'production/variance.php', 'production/items.php'],
     'product': ['products/formulas.php', 'products/feedlist.php', 'products/physical.php'],
-    'inventory': ['inventory/suppliers.php', 'inventory/transport.php', 'inventory/orders.php', 'inventory/receive.php'],
+    'inventory': ['inventory/suppliers.php', 'inventory/order_history.php', 'inventory/orders.php', 'inventory/receive.php'],
     'reports': ['reports/materials.php', 'reports/sold.php', 'reports/feeds.php', 'reports/summary.php'],
     'administration': ['admin/millers.php', 'admin/accounts.php', 'admin/audit.php']
   };

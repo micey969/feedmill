@@ -14,7 +14,7 @@
   function sidebarIconClass(array $pages, string $currentPage): string {
     $baseClass = 'bg-slate-800 text-slate-400 px-1 py-0.5 rounded text-[9px] shrink-0';
     return in_array($currentPage, $pages, true)
-      ? $baseClass . ' group-[.collapsed]/sidebar:md:bg-red-800 group-[.collapsed]/sidebar:md:text-white'
+      ? 'bg-red-800 text-white px-1 py-0.5 rounded text-[9px] shrink-0'
       : $baseClass;
   }
 

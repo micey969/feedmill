@@ -81,9 +81,9 @@ function feedListUrl(int $page, string $search, string $status): string {
 
 <main class="flex-1 min-w-0 overflow-y-auto h-screen">
   
-  <div class="h-1.5 bg-red-600 w-full"></div>
+  <div class="h-1.5 shrink-0 bg-red-600 w-full sticky top-0 z-10"></div>
 
-  <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+  <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex items-center justify-between sticky top-1.5 z-10">
     <div>
       <nav class="flex gap-2 text-xs text-slate-400">
         <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600">Main Hub</a>
