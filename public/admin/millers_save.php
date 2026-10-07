@@ -3,35 +3,41 @@ require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/admin_auth.php';
 
 
-if (
-    empty($_POST['full_name']) ||
-    empty($_POST['job_title']) 
-) {
-    die("All fields are required.");
+$fullNameInput = $_POST['full_name'] ?? null;
+$jobTitleInput = $_POST['job_title'] ?? null;
+if (!is_string($fullNameInput) || trim($fullNameInput) === '' || !is_string($jobTitleInput) || !in_array($jobTitleInput, ['Mill Operator', 'Assistant Senior Miller', 'Shift Supervisor', 'Assistant Mill Supervisor'], true)) {
+    header('Location: ' . publicUrl('admin/millers.php?error=invalid'));
+    exit;
 }
 
 // Captialize the first letter of each word in the full name and position
-$FullName = ucwords(strtolower($_POST['full_name']));
-$Position = ucwords(strtolower($_POST['job_title']));
+$FullName = ucwords(strtolower(trim($fullNameInput)));
+$Position = ucwords(strtolower($jobTitleInput));
 
-$username = isset($_SESSION['user']) ? $_SESSION['user'] : 'unknown';
-$description = 'Added ' . $FullName . ' - ' . $Position;
+$stmt = null;
+try {
+    $stmt = $conn->prepare('INSERT INTO millers (full_name, job_title, active_flag) VALUES (?, ?, 1)');
+    if (!$stmt) {
+        throw new RuntimeException('Unable to prepare miller creation.');
+    }
+    $stmt->bind_param('ss', $FullName, $Position);
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Unable to create miller record.');
+    }
 
-logAction($conn, $username, "ADD", $description);
-
-// Prepared statement
-// Allows for special characters in details without breaking SQL
-$stmt = $conn->prepare("INSERT INTO millers 
-(full_name, job_title, active_flag) 
-VALUES (?, ?, 1)");
-
-$stmt->bind_param("ss", $FullName, $Position);
-
-
-$stmt->execute();
+    $username = $_SESSION['user'] ?? 'unknown';
+    logAction($conn, $username, 'ADD', 'Added ' . $FullName . ' - ' . $Position);
+} catch (Throwable $error) {
+    header('Location: ' . publicUrl('admin/millers.php?error=save'));
+    exit;
+} finally {
+    if ($stmt instanceof mysqli_stmt) {
+        $stmt->close();
+    }
+}
 
 
 // Refresh page to show the new record in the table
-header("Location: millers.php");
+header('Location: ' . publicUrl('admin/millers.php?success=created'));
 exit;
 ?>

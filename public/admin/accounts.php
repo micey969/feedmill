@@ -4,24 +4,53 @@ require_once __DIR__ . '/../../app/middleware/admin_only.php';
 
 $recordsPerPage = 10;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
-$searchTerm = trim($_GET['search'] ?? '');
+$searchTerm = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
 $searchParam = '%' . $searchTerm . '%';
+$accountMessages = [
+  'invalid' => 'Check the required account fields and try again.',
+  'duplicate' => 'That username is already in use. Choose a different username.',
+  'not_found' => 'The account could not be found. Refresh the list and try again.',
+  'save' => 'The account could not be saved. Please try again.',
+];
+$accountError = $accountMessages[$_GET['error'] ?? ''] ?? '';
+$accountSuccess = match ($_GET['success'] ?? '') {
+  'created' => 'Account created successfully.',
+  'updated' => 'Account updated successfully.',
+  default => '',
+};
+$pageError = '';
 
-$countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM accounts WHERE full_name LIKE ? OR username LIKE ? OR job_title LIKE ?');
-$countStmt->bind_param('sss', $searchParam, $searchParam, $searchParam);
-$countStmt->execute();
-$totalRecords = (int) $countStmt->get_result()->fetch_assoc()['total'];
-$countStmt->close();
+$totalRecords = 0;
+$accounts = [];
+$totalPages = 1;
+$offset = 0;
+try {
+  $countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM accounts WHERE full_name LIKE ? OR username LIKE ? OR job_title LIKE ?');
+  if (!$countStmt) {
+    throw new RuntimeException('Unable to prepare account count query.');
+  }
+  $countStmt->bind_param('sss', $searchParam, $searchParam, $searchParam);
+  $countStmt->execute();
+  $totalRecords = (int) $countStmt->get_result()->fetch_assoc()['total'];
+  $countStmt->close();
 
-$totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
-$currentPage = min($currentPage, $totalPages);
-$offset = ($currentPage - 1) * $recordsPerPage;
+  $totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
+  $currentPage = min($currentPage, $totalPages);
+  $offset = ($currentPage - 1) * $recordsPerPage;
 
-$accountsStmt = $conn->prepare('SELECT user_id, full_name, username, password, image_name, role, active_flag, job_title FROM accounts WHERE full_name LIKE ? OR username LIKE ? OR job_title LIKE ? ORDER BY active_flag DESC, full_name ASC, user_id ASC LIMIT ? OFFSET ?');
-$accountsStmt->bind_param('sssii', $searchParam, $searchParam, $searchParam, $recordsPerPage, $offset);
-$accountsStmt->execute();
-$accounts = $accountsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$accountsStmt->close();
+  $accountsStmt = $conn->prepare('SELECT user_id, full_name, username, password, image_name, role, active_flag, job_title FROM accounts WHERE full_name LIKE ? OR username LIKE ? OR job_title LIKE ? ORDER BY active_flag DESC, full_name ASC, user_id ASC LIMIT ? OFFSET ?');
+  if (!$accountsStmt) {
+    throw new RuntimeException('Unable to prepare account list query.');
+  }
+  $accountsStmt->bind_param('sssii', $searchParam, $searchParam, $searchParam, $recordsPerPage, $offset);
+  $accountsStmt->execute();
+  $accounts = $accountsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+  $accountsStmt->close();
+} catch (Throwable $error) {
+  $pageError = 'Accounts could not be loaded. Please refresh the page or try again later.';
+  $totalRecords = 0;
+  $accounts = [];
+}
 
 $displayStart = $totalRecords > 0 ? $offset + 1 : 0;
 $displayEnd = min($offset + $recordsPerPage, $totalRecords);
@@ -87,6 +116,15 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
     <!-- Workspace Body -->
     <div class="p-6 sm:p-8 max-w-6xl space-y-4">
+
+      <?php if ($accountError !== ''): ?>
+        <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($accountError); ?></div>
+      <?php elseif ($accountSuccess !== ''): ?>
+        <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status"><?php echo htmlspecialchars($accountSuccess); ?></div>
+      <?php endif; ?>
+      <?php if ($pageError !== ''): ?>
+        <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($pageError); ?></div>
+      <?php endif; ?>
       
       <!-- Helper Banner -->
       <div class="flex items-center justify-between bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-2xl text-xs font-medium">

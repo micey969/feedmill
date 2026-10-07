@@ -8,68 +8,65 @@ $currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($currentPage - 1) * $recordsPerPage;
 
 // Get search term from GET parameter
-$searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
-
-// First, get total count
-if (!empty($searchTerm)) {
-  $countQuery = "SELECT COUNT(*) as total FROM millers WHERE (full_name LIKE ? OR job_title LIKE ?)";
-  $stmt = $conn->prepare($countQuery);
-  
-  if (!$stmt) {
-    die("Prepare failed: " . $conn->error);
+$searchTerm = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
+$millerMessages = [
+  'invalid' => 'Enter a full name and select a valid job position.',
+  'not_found' => 'The miller record could not be found. Refresh the list and try again.',
+  'save' => 'The miller record could not be saved. Please try again.',
+];
+$millerError = $millerMessages[$_GET['error'] ?? ''] ?? '';
+$millerSuccess = match ($_GET['success'] ?? '') {
+  'created' => 'Miller added successfully.',
+  'updated' => 'Miller updated successfully.',
+  default => '',
+};
+$pageError = '';
+$totalRecords = 0;
+$millers = [];
+$totalPages = 1;
+try {
+  if ($searchTerm !== '') {
+    $searchParam = '%' . $searchTerm . '%';
+    $countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM millers WHERE full_name LIKE ? OR job_title LIKE ?');
+    if (!$countStmt) {
+      throw new RuntimeException('Unable to prepare miller count query.');
+    }
+    $countStmt->bind_param('ss', $searchParam, $searchParam);
+  } else {
+    $countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM millers');
+    if (!$countStmt) {
+      throw new RuntimeException('Unable to prepare miller count query.');
+    }
   }
-  
-  $searchParam = '%' . $searchTerm . '%';
-  $stmt->bind_param('ss', $searchParam, $searchParam);
-  $stmt->execute();
-  $countResult = $stmt->get_result();
-  $countRow = $countResult->fetch_assoc();
-  $totalRecords = $countRow['total'];
-} else {
-  // Get count of all millers if no search term
-  $countQuery = "SELECT COUNT(*) as total FROM millers";
-  $countResult = $conn->query($countQuery);
-  $countRow = $countResult->fetch_assoc();
-  $totalRecords = $countRow['total'];
+  $countStmt->execute();
+  $totalRecords = (int) $countStmt->get_result()->fetch_assoc()['total'];
+  $countStmt->close();
+
+  $totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
+  $currentPage = min($currentPage, $totalPages);
+  $offset = ($currentPage - 1) * $recordsPerPage;
+  if ($searchTerm !== '') {
+    $listStmt = $conn->prepare('SELECT * FROM millers WHERE full_name LIKE ? OR job_title LIKE ? ORDER BY active_flag DESC, full_name ASC LIMIT ? OFFSET ?');
+    if (!$listStmt) {
+      throw new RuntimeException('Unable to prepare miller list query.');
+    }
+    $listStmt->bind_param('ssii', $searchParam, $searchParam, $recordsPerPage, $offset);
+  } else {
+    $listStmt = $conn->prepare('SELECT * FROM millers ORDER BY active_flag DESC, full_name ASC LIMIT ? OFFSET ?');
+    if (!$listStmt) {
+      throw new RuntimeException('Unable to prepare miller list query.');
+    }
+    $listStmt->bind_param('ii', $recordsPerPage, $offset);
+  }
+  $listStmt->execute();
+  $millers = $listStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+  $listStmt->close();
+} catch (Throwable $error) {
+  $pageError = 'Millers could not be loaded. Please refresh the page or try again later.';
+  $totalRecords = 0;
+  $millers = [];
 }
 
-// Now fetch paginated results
-if (!empty($searchTerm)) {
-  $query = "SELECT * FROM millers WHERE (full_name LIKE ? OR job_title LIKE ?) ORDER BY active_flag DESC, full_name ASC LIMIT ? OFFSET ?";
-  $stmt = $conn->prepare($query);
-  
-  if (!$stmt) {
-    die("Prepare failed: " . $conn->error);
-  }
-  
-  $searchParam = '%' . $searchTerm . '%';
-  $stmt->bind_param('ssii', $searchParam, $searchParam, $recordsPerPage, $offset);
-  $stmt->execute();
-  $result = $stmt->get_result();
-} else {
-  // Fetch paginated millers if no search term
-  $query = "SELECT * FROM millers ORDER BY active_flag DESC, full_name ASC LIMIT ? OFFSET ?";
-  $stmt = $conn->prepare($query);
-  
-  if (!$stmt) {
-    die("Prepare failed: " . $conn->error);
-  }
-  
-  $stmt->bind_param('ii', $recordsPerPage, $offset);
-  $stmt->execute();
-  $result = $stmt->get_result();
-}
-
-if (!$result) {
-  die("Query failed: " . $conn->error);
-}
-
-// Get millers data for current page
-$millers = $result->fetch_all(MYSQLI_ASSOC);
-
-// Calculate pagination info
-$totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
-$currentPage = min($currentPage, $totalPages);
 $displayStart = $totalRecords > 0 ? ($offset + 1) : 0;
 $displayEnd = min($offset + $recordsPerPage, $totalRecords);
 $pageUrl = static function (int $page) use ($searchTerm): string {
@@ -133,6 +130,15 @@ $jobColors = [
 
     <!-- Workspace Body -->
     <div class="p-6 sm:p-8 max-w-5xl space-y-6">
+
+      <?php if ($millerError !== ''): ?>
+        <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($millerError); ?></div>
+      <?php elseif ($millerSuccess !== ''): ?>
+        <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status"><?php echo htmlspecialchars($millerSuccess); ?></div>
+      <?php endif; ?>
+      <?php if ($pageError !== ''): ?>
+        <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($pageError); ?></div>
+      <?php endif; ?>
       
       <!-- ADD NEW MILLER FORM CARD -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">

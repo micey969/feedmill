@@ -178,7 +178,7 @@ try {
 }
 
 $description = $changes
-  ? 'Updated purchase order #' . $orderId . ': ' . implode('; ', $changes)
+  ? 'Updated purchase order #' . $orderId . ":\n" . implode("\n", $changes)
   : 'Reviewed purchase order #' . $orderId . ': no changes made';
 logAction($conn, $_SESSION['user'] ?? 'unknown', 'UPDATE', $description);
 

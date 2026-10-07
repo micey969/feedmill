@@ -133,16 +133,16 @@ try {
       ? 'not set'
       : number_format((float) $previousLine['received_quantity_kgs'], 2) . ' kg';
     $lineChanges = [
-      'status Pending -> Received',
-      'received quantity ' . $previousQuantity . ' -> ' . number_format($quantity, 2) . ' kg',
+      'Status Pending -> Received',
+      'Received quantity ' . $previousQuantity . ' -> ' . number_format($quantity, 2) . ' kg',
     ];
     if ((string) ($previousLine['received_by_user_id'] ?? '') !== (string) $millerId) {
-      $lineChanges[] = 'inspector "' . ($previousLine['received_by_user_id'] ?? 'not set') . '" -> "' . $millerId . '"';
+      $lineChanges[] = 'Miller "' . ($previousLine['received_by_user_id'] ?? 'not set') . '" -> "' . $millerId . '"';
     }
     if ((string) ($previousLine['received_date_time'] ?? '') !== $receivedDateTime) {
-      $lineChanges[] = 'received at "' . ($previousLine['received_date_time'] ?? 'not set') . '" -> "' . $receivedDateTime . '"';
+      $lineChanges[] = 'Received at "' . ($previousLine['received_date_time'] ?? 'not set') . '" -> "' . $receivedDateTime . '"';
     }
-    $changes[] = 'ingredient #' . $ingredientId . ': ' . implode(', ', $lineChanges);
+    $changes[] = 'Ingredient #' . $ingredientId . ': ' . implode("\n  ", $lineChanges);
 
     $lineStmt->bind_param('idsii', $millerId, $quantity, $receivedDateTime, $orderId, $ingredientId);
     $lineStmt->execute();
@@ -161,7 +161,7 @@ try {
   $redirect('error');
 }
 
-$description = 'Received ingredients for order #' . $orderId . ': ' . implode('; ', $changes);
+$description = 'Received ingredients for order #' . $orderId . ":\n" . implode("\n", $changes);
 logAction($conn, $_SESSION['user'] ?? 'unknown', 'UPDATE', $description);
 
 $redirect('success');

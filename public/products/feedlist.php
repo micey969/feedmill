@@ -19,7 +19,20 @@ if ($status !== 'all') {
   $params[] = $status === 'active' ? 1 : 0;
 }
 
+$formulas = [];
+$ingredientsByFormula = [];
+$ingredientOptions = [];
+$total = 0;
+$pages = 1;
+$offset = 0;
+$start = 0;
+$end = 0;
+$pageError = '';
+try {
 $count = $conn->prepare("SELECT COUNT(DISTINCT formula_id) AS total FROM `$view` WHERE $where");
+if (!$count) {
+  throw new RuntimeException('Unable to prepare formula count query.');
+}
 $count->bind_param($types, ...$params);
 $count->execute();
 $total = (int) $count->get_result()->fetch_assoc()['total'];
@@ -29,6 +42,9 @@ $pages = max(1, (int) ceil($total / $limit));
 $page = min($page, $pages);
 $offset = ($page - 1) * $limit;
 $list = $conn->prepare("SELECT formula_id, MAX(formula_name) AS formula_name, MAX(creator) AS creator, MAX(setup_date) AS setup_date, MAX(description) AS description, MAX(formula_active_flag) AS formula_active_flag FROM `$view` WHERE $where GROUP BY formula_id ORDER BY formula_active_flag DESC, formula_id ASC LIMIT ? OFFSET ?");
+if (!$list) {
+  throw new RuntimeException('Unable to prepare formula list query.');
+}
 $listParams = array_merge($params, [$limit, $offset]);
 $list->bind_param($types . 'ii', ...$listParams);
 $list->execute();
@@ -40,6 +56,9 @@ if ($formulas) {
   $formulaIds = array_column($formulas, 'formula_id');
   $placeholders = implode(',', array_fill(0, count($formulaIds), '?'));
   $items = $conn->prepare("SELECT formula_id, ingredients_id, ingredients, quantity_kgs FROM `$view` WHERE formula_id IN ($placeholders) ORDER BY formula_id, ingredients_id");
+  if (!$items) {
+    throw new RuntimeException('Unable to prepare formula ingredient query.');
+  }
   $items->bind_param(str_repeat('s', count($formulaIds)), ...$formulaIds);
   $items->execute();
   foreach ($items->get_result()->fetch_all(MYSQLI_ASSOC) as $item) {
@@ -48,7 +67,11 @@ if ($formulas) {
   $items->close();
 }
 
-$ingredientOptions = $conn->query('SELECT ingredients_id, name FROM ingredients ORDER BY active_flag DESC, name ASC')->fetch_all(MYSQLI_ASSOC);
+$ingredientResult = $conn->query('SELECT ingredients_id, name FROM ingredients ORDER BY active_flag DESC, name ASC');
+if (!$ingredientResult) {
+  throw new RuntimeException('Unable to load ingredient options.');
+}
+$ingredientOptions = $ingredientResult->fetch_all(MYSQLI_ASSOC);
 foreach ($formulas as &$formula) {
   $formula['ingredients'] = $ingredientsByFormula[$formula['formula_id']] ?? [];
 }
@@ -56,6 +79,31 @@ unset($formula);
 
 $start = $total > 0 ? $offset + 1 : 0;
 $end = min($offset + $limit, $total);
+} catch (Throwable $error) {
+  $pageError = 'Formula records could not be loaded. Please refresh the page or try again later.';
+  $formulas = [];
+  $ingredientsByFormula = [];
+  $ingredientOptions = [];
+  $total = 0;
+  $pages = 1;
+  $page = 1;
+  $start = 0;
+  $end = 0;
+}
+$formulaErrorMessages = [
+  'invalid' => 'Check the formula details and ingredient quantities, then try again.',
+  'duplicate' => 'That formula code already exists. Use a different code or edit the existing formula.',
+  'not_found' => 'The formula could not be found. Refresh the list and try again.',
+  'ingredient' => 'One or more selected ingredients could not be found.',
+  'remove_ingredient' => 'The formula could not remove an ingredient. Contact an administrator to review database permissions.',
+  'save' => 'The formula could not be saved. Please try again.',
+];
+$formulaError = $formulaErrorMessages[$_GET['error'] ?? ''] ?? '';
+$formulaSuccess = match ($_GET['success'] ?? '') {
+  'created' => 'Formula created successfully.',
+  'updated' => 'Formula updated successfully.',
+  default => '',
+};
 
 function feedListUrl(int $page, string $search, string $status): string {
   $query = http_build_query(array_filter([
@@ -101,6 +149,14 @@ function feedListUrl(int $page, string $search, string $status): string {
   </header>
 
   <div class="p-6 sm:p-8 max-w-7xl space-y-6">
+    <?php if ($pageError !== ''): ?>
+      <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($pageError); ?></div>
+    <?php endif; ?>
+    <?php if ($formulaError !== ''): ?>
+      <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($formulaError); ?></div>
+    <?php elseif ($formulaSuccess !== ''): ?>
+      <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status"><?php echo htmlspecialchars($formulaSuccess); ?></div>
+    <?php endif; ?>
     <form method="GET" class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
         <?php foreach (['all' => 'All Formulas', 'active' => 'Active', 'inactive' => 'Inactive'] as $value => $label): ?>

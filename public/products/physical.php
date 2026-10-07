@@ -3,38 +3,47 @@ require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
+$stockPageError = '';
+$stockError = match ($_GET['error'] ?? '') {
+  'invalid' => 'Check the stock date and ingredient quantities, then try again.',
+  'save' => 'The physical stock count could not be saved. Please try again.',
+  default => '',
+};
+$stockSuccess = isset($_GET['success']);
 $ingredients = [];
 $stockDates = [];
 
-$dateResult = $conn->query('SELECT date_time FROM v_ingredients_closing_stock GROUP BY date_time ORDER BY date_time DESC');
-if ($dateResult) {
+try {
+  $dateResult = $conn->query('SELECT date_time FROM v_ingredients_closing_stock GROUP BY date_time ORDER BY date_time DESC');
+  if (!$dateResult) {
+    throw new RuntimeException('Unable to load stock history.');
+  }
   while ($row = $dateResult->fetch_assoc()) {
     $stockDates[] = $row['date_time'];
   }
-}
 
-$totalPages = 1 + count($stockDates);
-$currentPage = min($currentPage, $totalPages);
-$selectedDate = null;
-$isNewEntry = $currentPage === 1;
+  $totalPages = 1 + count($stockDates);
+  $currentPage = min($currentPage, $totalPages);
+  $selectedDate = null;
+  $isNewEntry = $currentPage === 1;
 
-if ($isNewEntry) {
-  $ingredientResult = $conn->query('SELECT name AS ingredient FROM ingredients WHERE active_flag = 1 ORDER BY name ASC');
-  if ($ingredientResult) {
+  if ($isNewEntry) {
+    $ingredientResult = $conn->query('SELECT name AS ingredient FROM ingredients WHERE active_flag = 1 ORDER BY name ASC');
+    if (!$ingredientResult) {
+      throw new RuntimeException('Unable to load active ingredients.');
+    }
     while ($row = $ingredientResult->fetch_assoc()) {
       $ingredients[] = ['name' => $row['ingredient'], 'quantity' => ''];
     }
   }
-}
 
-if ($currentPage > 1) {
-  $selectedDate = $stockDates[$currentPage - 2] ?? null;
-  if ($selectedDate !== null) {
-    $stockStmt = $conn->prepare('SELECT ingredients AS ingredient, quantity_kgs FROM v_ingredients_closing_stock WHERE date_time = ? ORDER BY ingredients ASC');
-    if (!$stockStmt) {
-      http_response_code(500);
-      exit('Unable to load the saved stock record: ' . $conn->error);
-    }
+  if ($currentPage > 1) {
+    $selectedDate = $stockDates[$currentPage - 2] ?? null;
+    if ($selectedDate !== null) {
+      $stockStmt = $conn->prepare('SELECT ingredients AS ingredient, quantity_kgs FROM v_ingredients_closing_stock WHERE date_time = ? ORDER BY ingredients ASC');
+      if (!$stockStmt) {
+        throw new RuntimeException('Unable to load the saved stock record.');
+      }
     $stockStmt->bind_param('s', $selectedDate);
     $stockStmt->execute();
     $savedQuantities = [];
@@ -47,7 +56,16 @@ if ($currentPage > 1) {
       $ingredient['quantity'] = $savedQuantities[$ingredient['name']] ?? '';
     }
     unset($ingredient);
+    }
   }
+} catch (Throwable $error) {
+  $stockPageError = 'Stock records could not be loaded. Please refresh the page or try again later.';
+  $ingredients = [];
+  $stockDates = [];
+  $selectedDate = null;
+  $currentPage = 1;
+  $totalPages = 1;
+  $isNewEntry = true;
 }
 
 $ingredientColumns = array_chunk($ingredients, max(1, (int) ceil(count($ingredients) / 3)));
@@ -107,6 +125,15 @@ $pageUrl = publicUrl('products/physical.php');
 
     <!-- Printable Content Container -->
     <div id="printable-content" class="p-6 sm:p-8 max-w-7xl space-y-6">
+
+      <?php if ($stockError !== ''): ?>
+        <div class="no-print border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($stockError); ?></div>
+      <?php elseif ($stockSuccess): ?>
+        <div class="no-print border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status">Physical stock saved successfully.</div>
+      <?php endif; ?>
+      <?php if ($stockPageError !== ''): ?>
+        <div class="no-print border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($stockPageError); ?></div>
+      <?php endif; ?>
 
       <!-- Sheet Top Header -->
       <div id="sheet-header" class="text-center border-b border-slate-200 pb-4 hidden">

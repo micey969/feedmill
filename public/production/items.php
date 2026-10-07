@@ -9,6 +9,12 @@ if ($saleIdResult && ($saleIdRow = $saleIdResult->fetch_assoc())) {
 }
 
 $ingredients = [];
+$entryError = match ($_GET['error'] ?? '') {
+  'invalid' => 'Check the date, ingredient, quantity, and destination, then try again.',
+  'save' => 'The sale entry could not be saved. Please try again.',
+  default => '',
+};
+$entrySuccess = isset($_GET['success']);
 $ingredientResult = $conn->query('SELECT ingredients_id, ingredients FROM v_ingredients_sold_separately WHERE ingredients_id IS NOT NULL AND ingredients IS NOT NULL GROUP BY ingredients_id, ingredients ORDER BY ingredients ASC');
 if ($ingredientResult) {
   while ($row = $ingredientResult->fetch_assoc()) {
@@ -53,6 +59,12 @@ if ($ingredientResult) {
 
     <!-- Workspace Body -->
     <div class="p-6 sm:p-8 max-w-4xl space-y-6">
+
+      <?php if ($entryError !== ''): ?>
+        <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($entryError); ?></div>
+      <?php elseif ($entrySuccess): ?>
+        <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status">Sale entry saved successfully.</div>
+      <?php endif; ?>
       
       <form action="items_save.php" method="POST" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 sm:p-8 space-y-6">
         

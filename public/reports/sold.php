@@ -2,17 +2,21 @@
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
-$startDate = trim($_GET['start_date'] ?? date('Y-m-01'));
-$endDate = trim($_GET['end_date'] ?? date('Y-m-d'));
+$startDate = is_string($_GET['start_date'] ?? null) ? trim($_GET['start_date']) : date('Y-m-01');
+$endDate = is_string($_GET['end_date'] ?? null) ? trim($_GET['end_date']) : date('Y-m-d');
 
 $start = DateTime::createFromFormat('!Y-m-d', $startDate);
 $end = DateTime::createFromFormat('!Y-m-d', $endDate);
 $validStart = $start && $start->format('Y-m-d') === $startDate;
 $validEnd = $end && $end->format('Y-m-d') === $endDate;
 
+$reportError = '';
 if (!$validStart || !$validEnd || $startDate > $endDate) {
-  http_response_code(400);
-  exit('Please provide a valid date range.');
+  $reportError = 'Please provide a valid start and end date.';
+  $startDate = date('Y-m-01');
+  $endDate = date('Y-m-d');
+  $start = DateTime::createFromFormat('!Y-m-d', $startDate);
+  $end = DateTime::createFromFormat('!Y-m-d', $endDate);
 }
 
 $endExclusive = (clone $end)->modify('+1 day')->format('Y-m-d');
@@ -21,46 +25,55 @@ $ingredientTotals = [];
 $ingredients = [];
 $grandTotal = 0;
 
-$ingredientResult = $conn->query(
-  'SELECT DISTINCT ingredients
-  FROM v_ingredients_sold_separately
-   WHERE ingredients IS NOT NULL AND ingredients <> ""
-   ORDER BY ingredients ASC'
-);
-
-if ($ingredientResult) {
+try {
+  $ingredientResult = $conn->query(
+    'SELECT DISTINCT ingredients
+    FROM v_ingredients_sold_separately
+     WHERE ingredients IS NOT NULL AND ingredients <> ""
+     ORDER BY ingredients ASC'
+  );
+  if (!$ingredientResult) {
+    throw new RuntimeException('Unable to load the sold ingredient list.');
+  }
   while ($ingredientRow = $ingredientResult->fetch_assoc()) {
     $ingredients[] = (string) $ingredientRow['ingredients'];
   }
+
+  $salesStmt = $conn->prepare(
+    'SELECT DATE(date_time) AS sale_date, ingredients, SUM(quantity_kgs) AS total_quantity
+    FROM v_ingredients_sold_separately
+     WHERE date_time >= ? AND date_time < ?
+     GROUP BY DATE(date_time), ingredients
+     ORDER BY sale_date ASC, ingredients ASC'
+  );
+  if (!$salesStmt) {
+    throw new RuntimeException('Unable to prepare the sales report.');
+  }
+  $salesStmt->bind_param('ss', $startDate, $endExclusive);
+  $salesStmt->execute();
+  $salesResult = $salesStmt->get_result();
+
+  while ($row = $salesResult->fetch_assoc()) {
+    $row['total_quantity'] = (float) $row['total_quantity'];
+    $ingredient = (string) $row['ingredients'];
+    $saleDate = (string) $row['sale_date'];
+    $salesByDate[$saleDate][$ingredient] = $row['total_quantity'];
+    $ingredientTotals[$ingredient] = ($ingredientTotals[$ingredient] ?? 0) + $row['total_quantity'];
+    $grandTotal += $row['total_quantity'];
+  }
+  $salesStmt->close();
+} catch (Throwable $error) {
+  $reportError = 'The sales report could not be loaded. Please try again later.';
+  $salesByDate = [];
+  $ingredientTotals = [];
+  $ingredients = [];
+  $grandTotal = 0;
+} finally {
+  if (isset($salesStmt) && $salesStmt instanceof mysqli_stmt) {
+    $salesStmt->close();
+  }
 }
 
-$salesStmt = $conn->prepare(
-  'SELECT DATE(date_time) AS sale_date, ingredients, SUM(quantity_kgs) AS total_quantity
-  FROM v_ingredients_sold_separately
-   WHERE date_time >= ? AND date_time < ?
-   GROUP BY DATE(date_time), ingredients
-   ORDER BY sale_date ASC, ingredients ASC'
-);
-
-if (!$salesStmt) {
-  http_response_code(500);
-  exit('Unable to prepare the sales report.');
-}
-
-$salesStmt->bind_param('ss', $startDate, $endExclusive);
-$salesStmt->execute();
-$salesResult = $salesStmt->get_result();
-
-while ($row = $salesResult->fetch_assoc()) {
-  $row['total_quantity'] = (float) $row['total_quantity'];
-  $ingredient = (string) $row['ingredients'];
-  $saleDate = (string) $row['sale_date'];
-  $salesByDate[$saleDate][$ingredient] = $row['total_quantity'];
-  $ingredientTotals[$ingredient] = ($ingredientTotals[$ingredient] ?? 0) + $row['total_quantity'];
-  $grandTotal += $row['total_quantity'];
-}
-
-$salesStmt->close();
 $ingredientCount = count($ingredients);
 $ranAt = date('F j, Y g:i A');
 $formatDate = static fn(string $date): string => date('d-M-Y', strtotime($date));
@@ -175,6 +188,9 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
 
     <!-- Workspace Body -->
     <div class="p-6 sm:p-8 max-w-6xl">
+      <?php if ($reportError !== ''): ?>
+        <div class="no-print mb-4 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo $escape($reportError); ?></div>
+      <?php endif; ?>
       
       <!-- REPORT SHEET CARD -->
       <div id="printable-report" class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">

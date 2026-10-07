@@ -152,6 +152,14 @@ function varianceQuantityNumber($value): string {
       <?php if (isset($_GET['success'])): ?>
         <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm" role="status">Variance saved.</div>
       <?php endif; ?>
+      <?php if (isset($_GET['error'])): ?>
+        <?php $varianceError = match ($_GET['error']) {
+          'finalized' => 'This mixing sheet variance has already been finalized and cannot be edited.',
+          'invalid' => 'The submitted variance is invalid. Check the bag and ingredient quantities, then try again.',
+          default => 'The variance could not be saved. Please try again.',
+        }; ?>
+        <div class="p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm" role="alert"><?php echo htmlspecialchars($varianceError); ?></div>
+      <?php endif; ?>
 
       <?php if ($isReadOnly): ?>
         <div class="p-3 bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-sm flex items-center gap-2" role="status">

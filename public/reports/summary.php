@@ -51,63 +51,31 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
         <h1 class="text-lg font-bold text-slate-900">Production Summary Report</h1>
       </div>
 
-      <div class="flex items-center gap-3">
-        <button onclick="window.print()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-          <span>Print / Export PDF</span>
+      <!-- Date Range Controls & Print Trigger -->
+      <div class="flex flex-wrap items-center gap-3">
+        <form action="raw_materials_report.php" method="GET" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-xs">
+          <span class="text-slate-500 font-medium pl-2">Range:</span>
+          <input type="date" name="start_date" value="2026-06-01" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-red-600">
+          <span class="text-slate-400 font-medium">to</span>
+          <input type="date" name="end_date" value="2026-06-28" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-red-600">
+          <button type="submit" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs">
+            Go
+          </button>
+        </form>
+
+        <button onclick="window.print()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print Report">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
         </button>
       </div>
     </header>
 
     <!-- Printable Report Container -->
     <div id="printable-content" class="p-6 sm:p-8 max-w-7xl space-y-6">
-      
-      <!-- DATE RANGE FILTER BAR -->
-      <form action="feed_production_report.php" method="GET" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print">
-        <div class="flex items-center gap-4 text-xs font-medium">
-          <div class="flex items-center gap-2">
-            <label class="text-slate-500 font-bold uppercase text-[10px]">From:</label>
-            <input type="date" name="from_date" value="2026-01-01" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600">
-          </div>
-          <div class="flex items-center gap-2">
-            <label class="text-slate-500 font-bold uppercase text-[10px]">To:</label>
-            <input type="date" name="to_date" value="2026-08-01" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600">
-          </div>
-          <button type="submit" class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-sm transition">
-            Filter Report
-          </button>
-        </div>
-
-        <div class="text-xs font-semibold text-slate-500">
-          Range: <span class="text-slate-900 font-bold">01/01/2026</span> to <span class="text-slate-900 font-bold">08/01/2026</span>
-        </div>
-      </form>
-
       <!-- PRINT HEADER ONLY -->
       <div class="hidden print:block mb-6 border-b border-slate-300 pb-4">
         <h1 class="text-2xl font-black text-slate-900">EAST CARIBBEAN FEEDS</h1>
         <h2 class="text-base font-bold text-slate-600">Feed Production Summary & Variance Report</h2>
         <p class="text-xs text-slate-500">Reporting Period: 01/01/2026 To 08/01/2026</p>
-      </div>
-
-      <!-- OVERALL SUMMARY STATS CARDS -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Target Usage</p>
-          <p class="text-xl font-mono font-bold text-slate-900">96,000.00 kg</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Actual Usage</p>
-          <p class="text-xl font-mono font-bold text-slate-900">86,174.40 kg</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Actual Bags Produced</p>
-          <p class="text-xl font-mono font-bold text-slate-900">3,778.00</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Net Usage Variance</p>
-          <p class="text-xl font-mono font-bold text-emerald-600">+174.40 kg</p>
-        </div>
       </div>
 
       <!-- MAIN DATA TABLE -->
@@ -255,8 +223,18 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
                 <td class="py-2.5 px-4 text-right font-mono text-red-600">-33.00</td>
                 <td class="py-2.5 px-4 text-right font-mono text-slate-500">0.00</td>
               </tr>
-
             </tbody>
+            <tfoot class="bg-slate-100/80 font-sans border-y border-slate-200">
+              <tr>
+                <td colspan="2" class="py-2.5 px-4 text-right uppercase text-[11px] font-black text-red-700">Grand Total:</td>
+                <td class="py-2.5 px-4 text-right font-mono">66,000.00</td>
+                <td class="py-2.5 px-4 text-right font-mono">86,174.40</td>
+                <td class="py-2.5 px-4 text-right font-mono text-emerald-700">+174.40</td>
+                <td class="py-2.5 px-4 text-right font-mono">3,778.00</td>
+                <td class="py-2.5 px-4 text-right font-mono text-red-600">+16.00</td>
+                <td class="py-2.5 px-4 text-right font-mono text-slate-500">0.00</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>

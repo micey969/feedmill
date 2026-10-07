@@ -4,10 +4,11 @@ require_once __DIR__ . '/../../app/middleware/admin_only.php';
 
 $recordsPerPage = 10;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
-$searchTerm = trim((string) ($_GET['search'] ?? ''));
-$dateFrom = trim((string) ($_GET['date_from'] ?? ''));
-$dateTo = trim((string) ($_GET['date_to'] ?? ''));
-$actionFilter = trim((string) ($_GET['action'] ?? ''));
+$queryString = static fn (string $key): string => is_string($_GET[$key] ?? null) ? trim($_GET[$key]) : '';
+$searchTerm = $queryString('search');
+$dateFrom = $queryString('date_from');
+$dateTo = $queryString('date_to');
+$actionFilter = $queryString('action');
 $allowedActions = ['Login', 'Add', 'Update', 'Print', 'Logout', 'Timeout'];
 
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
@@ -59,46 +60,74 @@ if ($actionFilter !== '') {
 }
 
 $whereSql = $conditions ? ' WHERE ' . implode(' AND ', $conditions) : '';
-$countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM audit_log' . $whereSql);
-if ($types !== '') {
-  $countStmt->bind_param($types, ...$params);
+$pageError = '';
+$totalRecords = 0;
+$auditRecords = [];
+$totalPages = 1;
+$offset = 0;
+try {
+  $countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM audit_log' . $whereSql);
+  if (!$countStmt) {
+    throw new RuntimeException('Unable to prepare audit count query.');
+  }
+  if ($types !== '') {
+    $countStmt->bind_param($types, ...$params);
+  }
+  $countStmt->execute();
+  $totalRecords = (int) $countStmt->get_result()->fetch_assoc()['total'];
+  $countStmt->close();
+
+  $totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
+  $currentPage = min($currentPage, $totalPages);
+  $offset = ($currentPage - 1) * $recordsPerPage;
+
+  $query = 'SELECT username, action_type, time_stamp, ip_address, details FROM audit_log' . $whereSql . ' ORDER BY time_stamp DESC LIMIT ? OFFSET ?';
+  $dataStmt = $conn->prepare($query);
+  if (!$dataStmt) {
+    throw new RuntimeException('Unable to prepare audit list query.');
+  }
+  $dataTypes = $types . 'ii';
+  $dataParams = array_merge($params, [$recordsPerPage, $offset]);
+  $dataStmt->bind_param($dataTypes, ...$dataParams);
+  $dataStmt->execute();
+  $auditRecords = $dataStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+  $dataStmt->close();
+} catch (Throwable $error) {
+  $pageError = 'Audit records could not be loaded. Please refresh the page or try again later.';
+  $totalRecords = 0;
+  $auditRecords = [];
 }
-$countStmt->execute();
-$totalRecords = (int) $countStmt->get_result()->fetch_assoc()['total'];
-$countStmt->close();
-
-$totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
-$currentPage = min($currentPage, $totalPages);
-$offset = ($currentPage - 1) * $recordsPerPage;
-
-$query = 'SELECT username, action_type, time_stamp, ip_address, details FROM audit_log' . $whereSql . ' ORDER BY time_stamp DESC LIMIT ? OFFSET ?';
-$dataStmt = $conn->prepare($query);
-$dataTypes = $types . 'ii';
-$dataParams = array_merge($params, [$recordsPerPage, $offset]);
-$dataStmt->bind_param($dataTypes, ...$dataParams);
-$dataStmt->execute();
-$auditRecords = $dataStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$dataStmt->close();
 
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-  $exportStmt = $conn->prepare('SELECT username, action_type, time_stamp, ip_address, details FROM audit_log' . $whereSql . ' ORDER BY time_stamp DESC');
-  if ($types !== '') {
-    $exportStmt->bind_param($types, ...$params);
+  $exportError = '';
+  try {
+    $exportStmt = $conn->prepare('SELECT username, action_type, time_stamp, ip_address, details FROM audit_log' . $whereSql . ' ORDER BY time_stamp DESC');
+    if (!$exportStmt) {
+      throw new RuntimeException('Unable to prepare audit export query.');
+    }
+    if ($types !== '') {
+      $exportStmt->bind_param($types, ...$params);
+    }
+    $exportStmt->execute();
+    $exportRecords = $exportStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $exportStmt->close();
+  } catch (Throwable $error) {
+    $exportError = 'Audit records could not be exported. Please try again later.';
   }
-  $exportStmt->execute();
-  $exportRecords = $exportStmt->get_result();
 
-  header('Content-Type: text/csv; charset=utf-8');
-  header('Content-Disposition: attachment; filename="audit-log-' . date('Y-m-d') . '.csv"');
-  $output = fopen('php://output', 'w');
-  fputcsv($output, ['Timestamp', 'IP Address', 'User', 'Action', 'Details']);
-  while ($record = $exportRecords->fetch_assoc()) {
-    fputcsv($output, [$record['time_stamp'], $record['ip_address'], $record['username'], $record['action_type'], $record['details']]);
+  if ($exportError === '') {
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="audit-log-' . date('Y-m-d') . '.csv"');
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['Timestamp', 'IP Address', 'User', 'Action', 'Details']);
+    foreach ($exportRecords as $record) {
+      fputcsv($output, [$record['time_stamp'], $record['ip_address'], $record['username'], $record['action_type'], $record['details']]);
+    }
+    fclose($output);
+    logAction($conn, $_SESSION['user'] ?? 'unknown', 'EXPORT', 'Export Audit Logs');
+    exit;
   }
-  fclose($output);
-  $exportStmt->close();
-  logAction($conn, $_SESSION['user'], "EXPORT", "Export Audit Logs");
-  exit;
+  $pageError = $exportError;
 }
 
 $displayStart = $totalRecords > 0 ? $offset + 1 : 0;
@@ -162,6 +191,10 @@ $actionStyles = [
     </header>
 
     <div class="p-6 sm:p-8 max-w-6xl space-y-4">
+
+      <?php if ($pageError !== ''): ?>
+        <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($pageError); ?></div>
+      <?php endif; ?>
       
       <form method="GET" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-3 flex-1">
@@ -316,7 +349,7 @@ $actionStyles = [
 
           <div>
             <label class="block font-bold text-slate-700 mb-1">Event Details Payload</label>
-            <div id="audit-details" class="bg-slate-900 text-slate-200 p-3 rounded-xl font-mono text-[11px] leading-relaxed"></div>
+            <div id="audit-details" class="bg-slate-900 text-slate-200 p-3 rounded-xl font-mono text-[11px] leading-relaxed whitespace-pre-wrap"></div>
           </div>
         </div>
 

@@ -7,21 +7,25 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
-$formulaId = trim((string) ($_POST['formula_id'] ?? ''));
-$formulaName = trim((string) ($_POST['formula_name'] ?? ''));
-$creator = trim((string) ($_POST['creator'] ?? ''));
-$description = trim((string) ($_POST['description'] ?? ''));
-$setupDate = trim((string) ($_POST['setup_date'] ?? ''));
+$formulaId = is_string($_POST['formula_id'] ?? null) ? trim($_POST['formula_id']) : '';
+$formulaName = is_string($_POST['formula_name'] ?? null) ? trim($_POST['formula_name']) : '';
+$creator = is_string($_POST['creator'] ?? null) ? trim($_POST['creator']) : '';
+$description = is_string($_POST['description'] ?? null) ? trim($_POST['description']) : '';
+$setupDate = is_string($_POST['setup_date'] ?? null) ? trim($_POST['setup_date']) : '';
 $activeFlag = (int) ($_POST['active_flag'] ?? 0) === 1 ? 1 : 0;
 $ingredientIds = $_POST['ingredients'] ?? [];
 $quantities = $_POST['quantities'] ?? [];
 
 if ($formulaId === '' || $formulaName === '' || $setupDate === '' || !is_array($ingredientIds) || !is_array($quantities) || count($ingredientIds) !== count($quantities) || count($ingredientIds) === 0) {
-  die('Invalid formula data.');
+  header('Location: ' . publicUrl('products/feedlist.php?error=invalid'));
+  exit;
 }
 
-$conn->begin_transaction();
+$transactionStarted = false;
+$saveError = 'save';
 try {
+  $conn->begin_transaction();
+  $transactionStarted = true;
   $metadataStmt = $conn->prepare('INSERT INTO formula_metadata (formula_id, name, creator, setup_date, description, active_flag) VALUES (?, ?, ?, ?, ?, ?)');
   if (!$metadataStmt) {
     throw new RuntimeException('Unable to prepare formula metadata: ' . $conn->error);
@@ -29,6 +33,7 @@ try {
   $metadataStmt->bind_param('sssssi', $formulaId, $formulaName, $creator, $setupDate, $description, $activeFlag);
   if (!$metadataStmt->execute()) {
     if ($metadataStmt->errno === 1062) {
+      $saveError = 'duplicate';
       throw new RuntimeException('Formula code "' . $formulaId . '" already exists. Use a new code or edit the existing formula.');
     }
     throw new RuntimeException('Unable to save formula metadata: ' . $metadataStmt->error);
@@ -61,11 +66,18 @@ try {
   $ingredientStmt->close();
   $insertStmt->close();
   $conn->commit();
+  $transactionStarted = false;
 } catch (Throwable $exception) {
-  $conn->rollback();
-  die('Formula save failed: ' . htmlspecialchars($exception->getMessage()));
+  if ($transactionStarted) {
+    $conn->rollback();
+  }
+  if ($exception instanceof mysqli_sql_exception && (int) $exception->getCode() === 1062) {
+    $saveError = 'duplicate';
+  }
+  header('Location: ' . publicUrl('products/feedlist.php?error=' . $saveError));
+  exit;
 }
 logAction($conn, $_SESSION['user'] ?? 'unknown', "ADD", $details = "Added new formula: $formulaId - $formulaName");
 
-header('Location: ' . publicUrl('products/feedlist.php'));
+header('Location: ' . publicUrl('products/feedlist.php?success=created'));
 exit;

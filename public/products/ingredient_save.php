@@ -7,24 +7,33 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
-$name = trim((string) ($_POST['name'] ?? ''));
+$name = is_string($_POST['name'] ?? null) ? trim($_POST['name']) : '';
 if ($name === '') {
-  die('Ingredient name is required.');
+  header('Location: ' . publicUrl('products/formulas.php?ingredient_error=invalid'));
+  exit;
 }
 
-$stmt = $conn->prepare('INSERT INTO ingredients (name, active_flag) VALUES (?, 1)');
-if (!$stmt) {
-  die('Unable to prepare ingredient insert: ' . htmlspecialchars($conn->error));
+$stmt = null;
+try {
+  $stmt = $conn->prepare('INSERT INTO ingredients (name, active_flag) VALUES (?, 1)');
+  if (!$stmt) {
+    throw new RuntimeException('Unable to prepare ingredient insert.');
+  }
+  $stmt->bind_param('s', $name);
+  if (!$stmt->execute()) {
+    throw new RuntimeException($stmt->errno === 1062 ? 'duplicate' : 'save');
+  }
+  $ingredientId = $stmt->insert_id;
+} catch (Throwable $error) {
+  $status = $error instanceof mysqli_sql_exception && (int) $error->getCode() === 1062 ? 'duplicate' : ($error->getMessage() === 'duplicate' ? 'duplicate' : 'save');
+  header('Location: ' . publicUrl('products/formulas.php?ingredient_error=' . $status));
+  exit;
+} finally {
+  if ($stmt instanceof mysqli_stmt) {
+    $stmt->close();
+  }
 }
-$stmt->bind_param('s', $name);
-if (!$stmt->execute()) {
-  $message = $stmt->errno === 1062 ? 'An ingredient with that name already exists.' : 'Unable to add ingredient.';
-  $stmt->close();
-  die($message);
-}
-$ingredientId = $stmt->insert_id;
-$stmt->close();
 
 logAction($conn, $_SESSION['user'] ?? 'unknown', 'ADD', 'Added ingredient #' . $ingredientId . ': ' . $name);
-header('Location: ' . publicUrl('products/formulas.php'));
+header('Location: ' . publicUrl('products/formulas.php?ingredient_success=created'));
 exit;

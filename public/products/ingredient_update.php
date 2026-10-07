@@ -11,26 +11,26 @@ $ids = $_POST['ids'] ?? [];
 $names = $_POST['names'] ?? [];
 $activeFlags = $_POST['active_flags'] ?? [];
 if (!is_array($ids) || !is_array($names) || !is_array($activeFlags) || count($ids) !== count($names) || count($ids) !== count($activeFlags)) {
-  die('Invalid ingredient data.');
+  header('Location: ' . publicUrl('products/formulas.php?ingredient_error=invalid'));
+  exit;
 }
 
-$stmt = $conn->prepare('UPDATE ingredients SET name = ?, active_flag = ? WHERE ingredients_id = ?');
-if (!$stmt) {
-  die('Unable to prepare ingredient update: ' . htmlspecialchars($conn->error));
-}
-$currentStmt = $conn->prepare('SELECT name, active_flag FROM ingredients WHERE ingredients_id = ?');
-if (!$currentStmt) {
-  $stmt->close();
-  die('Unable to prepare ingredient lookup: ' . htmlspecialchars($conn->error));
-}
-
-$conn->begin_transaction();
+$stmt = null;
+$currentStmt = null;
 $changes = [];
+$transactionStarted = false;
 try {
+  $stmt = $conn->prepare('UPDATE ingredients SET name = ?, active_flag = ? WHERE ingredients_id = ?');
+  $currentStmt = $conn->prepare('SELECT name, active_flag FROM ingredients WHERE ingredients_id = ?');
+  if (!$stmt || !$currentStmt) {
+    throw new RuntimeException('Unable to prepare ingredient changes.');
+  }
+  $conn->begin_transaction();
+  $transactionStarted = true;
   foreach ($ids as $index => $rawId) {
     $ingredientId = filter_var($rawId, FILTER_VALIDATE_INT);
-    $name = trim((string) $names[$index]);
-    $activeFlag = filter_var($activeFlags[$index], FILTER_VALIDATE_INT);
+    $name = is_string($names[$index] ?? null) ? trim($names[$index]) : '';
+    $activeFlag = filter_var($activeFlags[$index] ?? null, FILTER_VALIDATE_INT);
     if ($ingredientId === false || $ingredientId <= 0 || $name === '' || !in_array($activeFlag, [0, 1], true)) {
       throw new RuntimeException('Invalid ingredient data.');
     }
@@ -54,7 +54,7 @@ try {
       $ingredientChanges[] = 'status ' . $oldStatus . ' -> ' . $newStatus;
     }
     if ($ingredientChanges) {
-      $changes[] = '#' . $ingredientId . ' (' . $currentIngredient['name'] . '): ' . implode(', ', $ingredientChanges);
+      $changes[] = '#' . $ingredientId . ' (' . $currentIngredient['name'] . '): ' . implode("\n  ", $ingredientChanges);
     }
 
     $stmt->bind_param('sii', $name, $activeFlag, $ingredientId);
@@ -63,18 +63,27 @@ try {
     }
   }
   $conn->commit();
+  $transactionStarted = false;
 } catch (Throwable $exception) {
-  $conn->rollback();
-  $currentStmt->close();
-  $stmt->close();
-  die('Ingredient update failed: ' . htmlspecialchars($exception->getMessage()));
+  if ($transactionStarted) {
+    $conn->rollback();
+  }
+  if ($currentStmt instanceof mysqli_stmt) {
+    $currentStmt->close();
+  }
+  if ($stmt instanceof mysqli_stmt) {
+    $stmt->close();
+  }
+  $status = $exception instanceof mysqli_sql_exception && (int) $exception->getCode() === 1062 ? 'duplicate' : ($exception->getMessage() === 'An ingredient with that name already exists.' ? 'duplicate' : 'save');
+  header('Location: ' . publicUrl('products/formulas.php?ingredient_error=' . $status));
+  exit;
 }
 $currentStmt->close();
 $stmt->close();
 
 $description = $changes
-  ? 'Updated ingredient catalog: ' . implode('; ', $changes)
+  ? "Updated ingredient catalog:\n" . implode("\n", $changes)
   : 'Reviewed ingredient catalog: no changes made (' . count($ids) . ' ingredients)';
 logAction($conn, $_SESSION['user'] ?? 'unknown', 'UPDATE', $description);
-header('Location: ' . publicUrl('products/formulas.php'));
+header('Location: ' . publicUrl('products/formulas.php?ingredient_success=updated'));
 exit;

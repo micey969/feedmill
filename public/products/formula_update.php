@@ -7,24 +7,26 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
-$formulaId = trim((string) ($_POST['formula_id'] ?? ''));
-$formulaName = trim((string) ($_POST['formula_name'] ?? ''));
-$creator = trim((string) ($_POST['creator'] ?? ''));
-$description = trim((string) ($_POST['description'] ?? ''));
-$setupDate = trim((string) ($_POST['setup_date'] ?? ''));
+$formulaId = is_string($_POST['formula_id'] ?? null) ? trim($_POST['formula_id']) : '';
+$formulaName = is_string($_POST['formula_name'] ?? null) ? trim($_POST['formula_name']) : '';
+$creator = is_string($_POST['creator'] ?? null) ? trim($_POST['creator']) : '';
+$description = is_string($_POST['description'] ?? null) ? trim($_POST['description']) : '';
+$setupDate = is_string($_POST['setup_date'] ?? null) ? trim($_POST['setup_date']) : '';
 $activeFlag = (int) ($_POST['active_flag'] ?? 0) === 1 ? 1 : 0;
 $ingredientIds = $_POST['ingredients'] ?? [];
 $quantities = $_POST['quantities'] ?? [];
 
 if ($formulaId === '' || $formulaName === '' || $setupDate === '' || !is_array($ingredientIds) || !is_array($quantities) || count($ingredientIds) !== count($quantities) || count($ingredientIds) === 0) {
-  die('Invalid formula data.');
+  header('Location: ' . publicUrl('products/feedlist.php?error=invalid'));
+  exit;
 }
 
+try {
 $currentMetadataStmt = $conn->prepare('SELECT name, creator, setup_date, description, active_flag FROM formula_metadata WHERE formula_id = ?');
 $currentCompositionStmt = $conn->prepare('SELECT c.ingredients_id, c.quantity_kgs, i.name FROM formula_composition c LEFT JOIN ingredients i ON i.ingredients_id = c.ingredients_id WHERE c.formula_id = ?');
 $ingredientLookupStmt = $conn->prepare('SELECT name FROM ingredients WHERE ingredients_id = ?');
 if (!$currentMetadataStmt || !$currentCompositionStmt || !$ingredientLookupStmt) {
-  die('Unable to prepare formula audit lookup: ' . htmlspecialchars($conn->error));
+  throw new RuntimeException('Unable to prepare formula audit lookup.');
 }
 
 $currentMetadataStmt->bind_param('s', $formulaId);
@@ -34,7 +36,8 @@ $currentMetadataStmt->close();
 if (!$currentMetadata) {
   $currentCompositionStmt->close();
   $ingredientLookupStmt->close();
-  die('Formula not found.');
+  header('Location: ' . publicUrl('products/feedlist.php?error=not_found'));
+  exit;
 }
 
 $oldComposition = [];
@@ -54,7 +57,8 @@ foreach ($ingredientIds as $index => $rawIngredientId) {
   $quantity = filter_var($quantities[$index], FILTER_VALIDATE_FLOAT);
   if ($ingredientId === false || $ingredientId <= 0 || $quantity === false || $quantity < 0 || isset($newComposition[$ingredientId])) {
     $ingredientLookupStmt->close();
-    die('Invalid ingredient data.');
+    header('Location: ' . publicUrl('products/feedlist.php?error=invalid'));
+    exit;
   }
 
   $ingredientLookupStmt->bind_param('i', $ingredientId);
@@ -62,7 +66,8 @@ foreach ($ingredientIds as $index => $rawIngredientId) {
   $ingredient = $ingredientLookupStmt->get_result()->fetch_assoc();
   if (!$ingredient) {
     $ingredientLookupStmt->close();
-    die('Ingredient #' . $ingredientId . ' was not found.');
+    header('Location: ' . publicUrl('products/feedlist.php?error=ingredient'));
+    exit;
   }
   $newComposition[$ingredientId] = [
     'name' => $ingredient['name'],
@@ -73,12 +78,18 @@ $ingredientLookupStmt->close();
 
 $removedIngredients = array_diff_key($oldComposition, $newComposition);
 if ($removedIngredients) {
-  $removedNames = array_map(static fn ($ingredient) => $ingredient['name'], $removedIngredients);
-  die('Formula update cannot remove ingredients because the database user does not have DELETE permission. Removed: ' . htmlspecialchars(implode(', ', $removedNames)) . '. Ask the administrator to grant DELETE permission on formula_composition.');
+  header('Location: ' . publicUrl('products/feedlist.php?error=remove_ingredient'));
+  exit;
+}
+} catch (Throwable $exception) {
+  header('Location: ' . publicUrl('products/feedlist.php?error=save'));
+  exit;
 }
 
-$conn->begin_transaction();
+$transactionStarted = false;
 try {
+  $conn->begin_transaction();
+  $transactionStarted = true;
   $metadataStmt = $conn->prepare('UPDATE formula_metadata SET name = ?, creator = ?, setup_date = ?, description = ?, active_flag = ? WHERE formula_id = ?');
   if (!$metadataStmt) {
     throw new RuntimeException('Unable to prepare formula metadata update: ' . $conn->error);
@@ -111,9 +122,13 @@ try {
   $updateStmt->close();
   $insertStmt->close();
   $conn->commit();
+  $transactionStarted = false;
 } catch (Throwable $exception) {
-  $conn->rollback();
-  die('Formula update failed: ' . htmlspecialchars($exception->getMessage()));
+  if ($transactionStarted) {
+    $conn->rollback();
+  }
+  header('Location: ' . publicUrl('products/feedlist.php?error=save'));
+  exit;
 }
 
 $changes = [];
@@ -146,9 +161,9 @@ foreach (array_intersect_key($newComposition, $oldComposition) as $ingredientId 
 }
 
 $auditDetails = $changes
-  ? 'Updated formula ' . $formulaId . ' (' . $formulaName . '): ' . implode('; ', $changes)
+  ? 'Updated formula ' . $formulaId . ' (' . $formulaName . "):\n" . implode("\n", $changes)
   : 'Reviewed formula ' . $formulaId . ' (' . $formulaName . '): no changes made';
 logAction($conn, $_SESSION['user'] ?? 'unknown', 'UPDATE', $auditDetails);
 
-header('Location: ' . publicUrl('products/feedlist.php'));
+header('Location: ' . publicUrl('products/feedlist.php?success=updated'));
 exit;

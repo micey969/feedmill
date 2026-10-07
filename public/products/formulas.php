@@ -3,12 +3,31 @@ require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
 $ingredientOptions = [];
-$ingredientResult = $conn->query('SELECT ingredients_id, name FROM ingredients WHERE active_flag = 1 ORDER BY name ASC');
-if ($ingredientResult) {
+$ingredientErrorMessages = [
+  'invalid' => 'Enter a valid ingredient name or review the submitted ingredient changes.',
+  'duplicate' => 'An ingredient with that name already exists.',
+  'save' => 'Ingredient changes could not be saved. Please try again.',
+];
+$ingredientError = $ingredientErrorMessages[$_GET['ingredient_error'] ?? ''] ?? '';
+$ingredientSuccess = match ($_GET['ingredient_success'] ?? '') {
+  'created' => 'Ingredient added successfully.',
+  'updated' => 'Ingredient changes saved successfully.',
+  default => '',
+};
+$pageError = '';
+try {
+  $ingredientResult = $conn->query('SELECT ingredients_id, name FROM ingredients WHERE active_flag = 1 ORDER BY name ASC');
+  $catalogResult = $conn->query('SELECT ingredients_id, name, active_flag FROM ingredients ORDER BY active_flag DESC, name ASC');
+  if (!$ingredientResult || !$catalogResult) {
+    throw new RuntimeException('Unable to load ingredient catalog.');
+  }
   $ingredientOptions = $ingredientResult->fetch_all(MYSQLI_ASSOC);
+  $ingredientCatalog = $catalogResult->fetch_all(MYSQLI_ASSOC);
+} catch (Throwable $error) {
+  $pageError = 'Ingredient catalog could not be loaded. Please refresh the page or try again later.';
+  $ingredientOptions = [];
+  $ingredientCatalog = [];
 }
-$catalogResult = $conn->query('SELECT ingredients_id, name, active_flag FROM ingredients ORDER BY active_flag DESC, name ASC');
-$ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : [];
 ?>
 
 <!DOCTYPE html>
@@ -49,6 +68,14 @@ $ingredientCatalog = $catalogResult ? $catalogResult->fetch_all(MYSQLI_ASSOC) : 
     </header>
 
     <!-- Workspace Body -->
+    <?php if ($ingredientError !== ''): ?>
+      <div class="mx-6 mt-6 sm:mx-8 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($ingredientError); ?></div>
+    <?php elseif ($ingredientSuccess !== ''): ?>
+      <div class="mx-6 mt-6 sm:mx-8 border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status"><?php echo htmlspecialchars($ingredientSuccess); ?></div>
+    <?php endif; ?>
+    <?php if ($pageError !== ''): ?>
+      <div class="mx-6 mt-6 sm:mx-8 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($pageError); ?></div>
+    <?php endif; ?>
     <form action="formula_save.php" method="POST" class="p-6 sm:p-8 max-w-6xl space-y-6">
       
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

@@ -78,7 +78,7 @@ try {
 }
 
 $description = $changes
-  ? 'Updated transport catalog: ' . implode('; ', $changes)
+  ? "Updated transport catalog:\n" . implode("\n", $changes)
   : 'Reviewed transport catalog: no changes made (' . count($updates) . ' transports)';
 logAction($conn, $_SESSION['user'] ?? 'unknown', 'UPDATE', $description);
 

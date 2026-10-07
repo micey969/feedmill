@@ -347,6 +347,9 @@
   .col-span-7 {
     grid-column: span 7 / span 7;
   }
+  .mx-6 {
+    margin-inline: calc(var(--spacing) * 6);
+  }
   .mx-auto {
     margin-inline: auto;
   }
@@ -364,6 +367,9 @@
   }
   .mt-4 {
     margin-top: calc(var(--spacing) * 4);
+  }
+  .mt-6 {
+    margin-top: calc(var(--spacing) * 6);
   }
   .mb-1 {
     margin-bottom: var(--spacing);
@@ -1568,6 +1574,9 @@
     }
     .sm\:col-span-5 {
       grid-column: span 5 / span 5;
+    }
+    .sm\:mx-8 {
+      margin-inline: calc(var(--spacing) * 8);
     }
     .sm\:w-72 {
       width: calc(var(--spacing) * 72);

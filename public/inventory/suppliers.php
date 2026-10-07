@@ -4,24 +4,52 @@ require_once __DIR__ . '/../../app/middleware/admin_auth.php';
 
 $recordsPerPage = 10;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
-$searchTerm = trim($_GET['search'] ?? '');
+$searchTerm = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
 $searchParam = '%' . $searchTerm . '%';
+$supplierMessages = [
+  'invalid' => 'Check all required supplier fields and try again.',
+  'not_found' => 'The supplier could not be found. Refresh the list and try again.',
+  'save' => 'The supplier could not be saved. Please try again.',
+];
+$supplierError = $supplierMessages[$_GET['error'] ?? ''] ?? '';
+$supplierSuccess = match ($_GET['success'] ?? '') {
+  'created' => 'Supplier added successfully.',
+  'updated' => 'Supplier updated successfully.',
+  default => '',
+};
+$pageError = '';
+$totalRecords = 0;
+$suppliers = [];
+$totalPages = 1;
+$offset = 0;
 
-$countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM suppliers WHERE contact_person LIKE ? OR company_name LIKE ? OR country LIKE ?');
-$countStmt->bind_param('sss', $searchParam, $searchParam, $searchParam);
-$countStmt->execute();
-$totalRecords = (int) $countStmt->get_result()->fetch_assoc()['total'];
-$countStmt->close();
+try {
+  $countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM suppliers WHERE contact_person LIKE ? OR company_name LIKE ? OR country LIKE ?');
+  if (!$countStmt) {
+    throw new RuntimeException('Unable to prepare supplier count query.');
+  }
+  $countStmt->bind_param('sss', $searchParam, $searchParam, $searchParam);
+  $countStmt->execute();
+  $totalRecords = (int) $countStmt->get_result()->fetch_assoc()['total'];
+  $countStmt->close();
 
-$totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
-$currentPage = min($currentPage, $totalPages);
-$offset = ($currentPage - 1) * $recordsPerPage;
+  $totalPages = max(1, (int) ceil($totalRecords / $recordsPerPage));
+  $currentPage = min($currentPage, $totalPages);
+  $offset = ($currentPage - 1) * $recordsPerPage;
 
-$suppliersStmt = $conn->prepare('SELECT supplier_id, contact_person, company_name, country, phone, email FROM suppliers WHERE contact_person LIKE ? OR company_name LIKE ? OR country LIKE ? ORDER BY company_name ASC LIMIT ? OFFSET ?');
-$suppliersStmt->bind_param('sssii', $searchParam, $searchParam, $searchParam, $recordsPerPage, $offset);
-$suppliersStmt->execute();
-$suppliers = $suppliersStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$suppliersStmt->close();
+  $suppliersStmt = $conn->prepare('SELECT supplier_id, contact_person, company_name, country, phone, email FROM suppliers WHERE contact_person LIKE ? OR company_name LIKE ? OR country LIKE ? ORDER BY company_name ASC LIMIT ? OFFSET ?');
+  if (!$suppliersStmt) {
+    throw new RuntimeException('Unable to prepare supplier list query.');
+  }
+  $suppliersStmt->bind_param('sssii', $searchParam, $searchParam, $searchParam, $recordsPerPage, $offset);
+  $suppliersStmt->execute();
+  $suppliers = $suppliersStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+  $suppliersStmt->close();
+} catch (Throwable $error) {
+  $pageError = 'Suppliers could not be loaded. Please refresh the page or try again later.';
+  $totalRecords = 0;
+  $suppliers = [];
+}
 
 $displayStart = $totalRecords > 0 ? $offset + 1 : 0;
 $displayEnd = min($offset + $recordsPerPage, $totalRecords);
@@ -87,6 +115,15 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
     <!-- Workspace Body -->
     <div class="p-6 sm:p-8 max-w-6xl space-y-4">
+
+      <?php if ($supplierError !== ''): ?>
+        <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($supplierError); ?></div>
+      <?php elseif ($supplierSuccess !== ''): ?>
+        <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status"><?php echo htmlspecialchars($supplierSuccess); ?></div>
+      <?php endif; ?>
+      <?php if ($pageError !== ''): ?>
+        <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($pageError); ?></div>
+      <?php endif; ?>
       
       <!-- Helper Banner -->
       <div class="flex items-center justify-between bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-2xl text-xs font-medium">

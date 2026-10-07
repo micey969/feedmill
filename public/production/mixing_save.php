@@ -36,27 +36,36 @@ if ($batchCount > 10 || $productionInput > $maxProductionByBatch[$batchInput] ||
   exit;
 }
 
-$accountStmt = $conn->prepare('SELECT user_id FROM accounts WHERE username = ? AND active_flag = 1 LIMIT 1');
-$formulaStmt = $conn->prepare('SELECT ingredients_id, quantity_kgs FROM v_formulas WHERE formula_id = ? AND formula_active_flag = 1 AND ingredients_id IS NOT NULL AND ingredients_active_flag = 1 ORDER BY ingredients_id');
-$millerStmt = $conn->prepare('SELECT user_id FROM millers WHERE user_id = ? AND active_flag = 1 LIMIT 1');
-if (!$accountStmt || !$formulaStmt || !$millerStmt) {
-  http_response_code(500);
-  exit('Unable to prepare the mixing sheet.');
-}
-
 $username = (string) ($_SESSION['user'] ?? '');
-$accountStmt->bind_param('s', $username);
-$accountStmt->execute();
-$account = $accountStmt->get_result()->fetch_assoc();
-$formulaStmt->bind_param('s', $formulaId);
-$formulaStmt->execute();
-$formulaIngredients = $formulaStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$millerStmt->bind_param('i', $millerId);
-$millerStmt->execute();
-$miller = $millerStmt->get_result()->fetch_assoc();
-$accountStmt->close();
-$formulaStmt->close();
-$millerStmt->close();
+$accountStmt = null;
+$formulaStmt = null;
+$millerStmt = null;
+try {
+  $accountStmt = $conn->prepare('SELECT user_id FROM accounts WHERE username = ? AND active_flag = 1 LIMIT 1');
+  $formulaStmt = $conn->prepare('SELECT ingredients_id, quantity_kgs FROM v_formulas WHERE formula_id = ? AND formula_active_flag = 1 AND ingredients_id IS NOT NULL AND ingredients_active_flag = 1 ORDER BY ingredients_id');
+  $millerStmt = $conn->prepare('SELECT user_id FROM millers WHERE user_id = ? AND active_flag = 1 LIMIT 1');
+  if (!$accountStmt || !$formulaStmt || !$millerStmt) {
+    throw new RuntimeException('Unable to prepare the mixing sheet.');
+  }
+  $accountStmt->bind_param('s', $username);
+  $accountStmt->execute();
+  $account = $accountStmt->get_result()->fetch_assoc();
+  $formulaStmt->bind_param('s', $formulaId);
+  $formulaStmt->execute();
+  $formulaIngredients = $formulaStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+  $millerStmt->bind_param('i', $millerId);
+  $millerStmt->execute();
+  $miller = $millerStmt->get_result()->fetch_assoc();
+} catch (Throwable $error) {
+  header('Location: ' . publicUrl('production/mixing.php?error=save'));
+  exit;
+} finally {
+  foreach ([$accountStmt, $formulaStmt, $millerStmt] as $statement) {
+    if ($statement instanceof mysqli_stmt) {
+      $statement->close();
+    }
+  }
+}
 
 if (!$account || !$miller || !$formulaIngredients) {
   header('Location: ' . publicUrl('production/mixing.php?error=invalid'));
@@ -79,8 +88,8 @@ $accountId = (int) $account['user_id'];
 $insertSheet = $conn->prepare('INSERT INTO mixing_sheet (formula_id, miller_user_id, account_user_id, date_time, note, required_production_tons, calculated_bags_produced, batch_configuration_tons) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 $insertUsage = $conn->prepare('INSERT INTO ingredient_usage (mixing_sheet_id, ingredients_id, calculated_per_batch_used_kgs, calculated_total_used_kgs) VALUES (?, ?, ?, ?)');
 if (!$insertSheet || !$insertUsage) {
-  http_response_code(500);
-  exit('Unable to prepare the mixing sheet save.');
+  header('Location: ' . publicUrl('production/mixing.php?error=save'));
+  exit;
 }
 
 $transactionStarted = false;
@@ -105,8 +114,8 @@ try {
   if ($transactionStarted) {
     $conn->rollback();
   }
-  http_response_code(500);
-  exit('Unable to save the mixing sheet.');
+  header('Location: ' . publicUrl('production/mixing.php?error=save'));
+  exit;
 } finally {
   $insertSheet->close();
   $insertUsage->close();
