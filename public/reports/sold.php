@@ -61,7 +61,6 @@ try {
     $ingredientTotals[$ingredient] = ($ingredientTotals[$ingredient] ?? 0) + $row['total_quantity'];
     $grandTotal += $row['total_quantity'];
   }
-  $salesStmt->close();
 } catch (Throwable $error) {
   $reportError = 'The sales report could not be loaded. Please try again later.';
   $salesByDate = [];
