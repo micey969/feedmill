@@ -1,7 +1,7 @@
 <?php require_once __DIR__ . '/../../helpers/sidebar_assist.php'; ?>
 
 <!-- ================= SIDEBAR NAVIGATION ================= -->
-<aside id="sidebar" class="group/sidebar w-full md:w-72 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 h-screen border-r border-slate-800 transition-all duration-300 relative z-20">
+<aside id="sidebar" class="group/sidebar w-full md:w-72 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 h-screen border-r border-slate-800 transition-all duration-300 relative z-20" style="transition: none;">
   <script>
     if (window.innerWidth >= 768 && localStorage.getItem('feedmill-sidebar-collapsed') === 'true') {
       const sidebar = document.getElementById('sidebar');

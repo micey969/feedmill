@@ -2,6 +2,15 @@
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['log_print'])) {
+  $printedId = (int) ($_POST['sheet_id'] ?? 0);
+  if ($printedId > 0) {
+    logAction($conn, $_SESSION['user'] ?? 'unknown', 'PRINT', 'Printed mixing sheet #' . $printedId);
+  }
+  http_response_code(204);
+  exit;
+}
+
 function mixingEscape($value): string {
   return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
@@ -192,7 +201,7 @@ foreach ($sheetIngredients as $ingredient) {
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
           </a>
         </nav>
-        <button onclick="window.print()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
+        <button onclick="<?php if ($sheetId): ?>fetch(window.location.pathname, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'log_print=1&sheet_id=<?php echo (int) $sheetId; ?>'}); <?php endif; ?>window.print()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
         </button>
       </div>

@@ -77,8 +77,9 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
       <div id="printable-report" class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
         
         <!-- Report Title Block -->
-        <div class="text-center space-y-2">
-          <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Raw Materials Report</h2>
+        <div class="text-center border-b border-slate-200 pb-4">
+          <h2 class="text-xl font-bold text-slate-900">East Caribbean Feeds Limited</h2>
+          <h3 class="text-2xl font-black text-red-600 uppercase mt-1">Raw Materials Report</h3>
           <p class="text-xs font-medium text-slate-500">From <span class="font-semibold text-slate-800">01-Jun-2026</span> to <span class="font-semibold text-slate-800">28-Jun-2026</span></p>
         </div>
 

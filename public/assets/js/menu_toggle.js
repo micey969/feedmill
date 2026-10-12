@@ -23,6 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setSidebarCollapsed(isCollapsed);
   }
 
+  // Re-enable the width transition only after the initial state is painted
+  if (sidebar) {
+    requestAnimationFrame(() => requestAnimationFrame(() => sidebar.style.removeProperty('transition')));
+  }
+
   // 2. Hamburger Toggle Button Handler
   if (toggleBtn && sidebar) {
     toggleBtn.addEventListener('click', (e) => {
@@ -32,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentCollapsed = sidebar.classList.contains('collapsed');
         setSidebarCollapsed(!currentCollapsed);
         closeAllMenus();
+        updateActiveLinks();
       }
     });
   }
@@ -56,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function attachLinkCloseHandlers() {
   document.querySelectorAll('#sidebar-navigation a').forEach(link => {
     link.addEventListener('click', () => {
-      closeAllMenus();
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && sidebar.classList.contains('collapsed')) closeAllMenus();
     });
   });
 }
@@ -149,6 +156,14 @@ function updateSectionHeaderHighlights(currentUrl) {
     const menuBtn = document.querySelector(`button[aria-controls="${menuPrefix}-menu"]`);
 
     if (menuBtn) {
+      const menu = document.getElementById(`${menuPrefix}-menu`);
+      if (isSectionActive && !isCollapsed && menu) {
+        menu.hidden = false;
+        menuBtn.setAttribute('aria-expanded', 'true');
+        const chevron = menuBtn.querySelector('.menu-chevron');
+        if (chevron) chevron.classList.add('rotate-180');
+      }
+
       const iconSpan = menuBtn.querySelector('span:first-child');
 
       if (iconSpan) {

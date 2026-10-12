@@ -1,0 +1,86 @@
+I have 4 PHP reports in this application and want to implement a reusable server-side PDF system using **Dompdf**.
+
+Before making changes, inspect all 4 report files and the existing project structure.
+
+### Goal
+
+I want:
+
+- **1 reusable PDF renderer/service** that handles Dompdf setup, A4 sizing, margins, rendering, downloading, and page numbers.
+- **1 reusable PDF template** for the 3 reports that have a similar table layout.
+- **1 separate PDF template** for the 4th report because it contains grouped rows with **subtotals** and a grand total.
+- Report-specific code should handle database queries and prepare the data.
+- PDF templates should only handle presentation/HTML/CSS.
+- The PDF renderer should contain no report-specific logic.
+
+### Suggested structure
+
+Adapt this to the existing project structure rather than blindly creating these exact folders:
+
+```text
+app/
+├── libraries/
+│   └── Pdf/
+│       └── ReportPdf.php
+├── services/
+│   └── reports/
+│       └── [report services]
+└── views/
+    └── reports/
+        └── pdf/
+            ├── standard-table.php
+            └── grouped-subtotal-table.php
+```
+
+The existing report pages should remain intact. Only modify their PDF/export functionality as needed.
+
+### PDF requirements
+
+Use Dompdf with PDF-specific CSS, not Tailwind.
+
+Support:
+
+- A4 portrait/landscape as needed
+- repeating table headers
+- rows that avoid breaking across pages
+- proper page breaks
+- report title/date range
+- totals/subtotals
+- `Page X of Y`
+- clean printable formatting
+
+For the outlier report, the grouped structure should be preserved, for example:
+
+```text
+Group A
+  rows...
+  Subtotal
+
+Group B
+  rows...
+  Subtotal
+
+Grand Total
+```
+
+Do not force this report into the standard table template.
+
+### Important
+
+Do NOT create four separate PDF implementations with duplicated Dompdf code.
+
+Do NOT put SQL queries inside the PDF templates.
+
+Do NOT put report-specific logic inside `ReportPdf.php`.
+
+Do NOT rewrite unrelated parts of the application.
+
+### Work in this order
+
+1. Inspect all 4 reports and the existing project structure.
+2. Identify which 3 reports use the standard template and which is the subtotal/outlier report.
+3. Show me the proposed file structure and explain which files will be created/modified.
+4. Only after that, implement the reusable PDF system.
+5. Connect each report's existing Export PDF functionality to the new system.
+
+The goal is that adding another normal report later should require only its data/report logic and reuse the existing PDF renderer and `standard-table.php`.

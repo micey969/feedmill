@@ -77,6 +77,36 @@ $ingredientCount = count($ingredients);
 $ranAt = date('F j, Y g:i A');
 $formatDate = static fn(string $date): string => date('d-M-Y', strtotime($date));
 $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
+  logAction($conn, $_SESSION['user'] ?? 'unknown', 'Export', 'Exported items sold report PDF (' . $startDate . ' to ' . $endDate . ')');
+  require_once __DIR__ . '/../../app/libraries/Pdf/ReportPdf.php';
+  $columns = [['label' => 'Date']];
+  foreach ($ingredients as $ingredient) {
+    $columns[] = ['label' => $ingredient, 'align' => 'right'];
+  }
+  $pdfRows = [];
+  foreach ($salesByDate as $saleDate => $sales) {
+    $row = [$formatDate($saleDate)];
+    foreach ($ingredients as $ingredient) {
+      $row[] = number_format($sales[$ingredient] ?? 0, 2);
+    }
+    $pdfRows[] = $row;
+  }
+  $totals = ['Grand Total ' . number_format($grandTotal, 2)];
+  foreach ($ingredients as $ingredient) {
+    $totals[] = number_format($ingredientTotals[$ingredient] ?? 0, 2);
+  }
+  \App\Libraries\Pdf\ReportPdf::download('standard-table.php', [
+    'reportTitle' => 'Items Sold Separately Report',
+    'dateRange' => ['start' => $formatDate($startDate), 'end' => $formatDate($endDate)],
+    'generatedAt' => $ranAt,
+    'columns' => $columns,
+    'rows' => $pdfRows,
+    'totals' => $totals,
+    'emptyMessage' => 'No items sold separately in this date range.',
+  ], 'items-sold-report.pdf', 'landscape');
+}
 ?>
 
 <!DOCTYPE html>
@@ -179,8 +209,8 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
           </button>
         </form>
 
-        <button type="button" onclick="exportPdf()" data-print-log-endpoint="<?php echo htmlspecialchars(publicUrl('reports/print_log.php')); ?>" data-pdf-target="printable-report" data-pdf-filename="items-sold-report.pdf" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Export and print report" aria-label="Export and print report">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        <button type="button" onclick="window.location.href='<?php echo $escape(publicUrl('reports/sold.php') . '?' . http_build_query(['start_date' => $startDate, 'end_date' => $endDate, 'export' => 'pdf'])); ?>'" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Export PDF" aria-label="Export PDF">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 17v3h14v-3"></path></svg>
         </button>
       </div>
     </header>
@@ -195,8 +225,9 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
       <div id="printable-report" class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
         
         <!-- Report Title Block -->
-        <div class="text-center space-y-2">
-          <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Items Sold Separately Report</h2>
+        <div class="text-center border-b border-slate-200 pb-4">
+          <h2 class="text-xl font-bold text-slate-900">East Caribbean Feeds Limited</h2>
+          <h3 class="text-2xl font-black text-red-600 uppercase mt-1">Items Sold Separately Report</h3>
           <p class="text-xs font-medium text-slate-500">
             From <span class="font-semibold text-slate-800"><?php echo $escape($formatDate($startDate)); ?></span>
             to <span class="font-semibold text-slate-800"><?php echo $escape($formatDate($endDate)); ?></span>
@@ -254,16 +285,5 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
 
     </div>
   </main>
-  <div id="pdf-report" style="display:none;"></div>
-
-<script>
-const salesData = <?= json_encode($salesByDate) ?>;
-const ingredients = <?= json_encode($ingredients) ?>;
-const ingredientTotals = <?= json_encode($ingredientTotals) ?>;
-const grandTotal = <?= json_encode($grandTotal) ?>;
-const startDate = <?= json_encode($formatDate($startDate)) ?>;
-const endDate = <?= json_encode($formatDate($endDate)) ?>;
-</script>
-
 </body>
 </html>

@@ -79,6 +79,63 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
 $num = static fn(float $value): string => number_format($value, 2);
 $signed = static fn(float $value): string => ($value > 0 ? '+' : '') . number_format($value, 2);
 $varClass = static fn(float $value): string => $value > 0 ? 'text-emerald-600' : ($value < 0 ? 'text-red-600' : 'text-slate-400');
+
+if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
+  logAction($conn, $_SESSION['user'] ?? 'unknown', 'Export', 'Exported production summary report PDF (' . $startDate . ' to ' . $endDate . ')');
+  require_once __DIR__ . '/../../app/libraries/Pdf/ReportPdf.php';
+  $columns = [
+    ['label' => 'Date'],
+    ['label' => 'Sheet No'],
+    ['label' => 'Target Usage (kg)', 'align' => 'right'],
+    ['label' => 'Actual Usage (kg)', 'align' => 'right'],
+    ['label' => 'Variance (kg)', 'align' => 'right'],
+    ['label' => 'Actual Bags', 'align' => 'right'],
+    ['label' => 'Bag Variance', 'align' => 'right'],
+  ];
+  $groups = [];
+  foreach ($formulas as $formula => $data) {
+    $rows = [];
+    foreach ($data['sheets'] as $sheet) {
+      $rows[] = [
+        $formatDate($sheet['date']),
+        $sheet['sheet'],
+        $num($sheet['target']),
+        $num($sheet['actual']),
+        $signed($sheet['variance']),
+        $num($sheet['bags']),
+        $signed($sheet['bag_variance']),
+      ];
+    }
+    $groups[] = [
+      'label' => (string) $formula,
+      'rows' => $rows,
+      'subtotal' => [
+        'Subtotal', '',
+        $num($data['totals']['target']),
+        $num($data['totals']['actual']),
+        $signed($data['totals']['variance']),
+        $num($data['totals']['bags']),
+        $signed($data['totals']['bag_variance']),
+      ],
+    ];
+  }
+  \App\Libraries\Pdf\ReportPdf::download('grouped-subtotal-table.php', [
+    'reportTitle' => 'Production Summary Report',
+    'dateRange' => ['start' => $formatDate($startDate), 'end' => $formatDate($endDate)],
+    'generatedAt' => $ranAt,
+    'columns' => $columns,
+    'groups' => $groups,
+    'grandTotal' => [
+      'Grand Total', '',
+      $num($grand['target']),
+      $num($grand['actual']),
+      $signed($grand['variance']),
+      $num($grand['bags']),
+      $signed($grand['bag_variance']),
+    ],
+    'emptyMessage' => 'No production records in this date range.',
+  ], 'production-summary-report.pdf', 'landscape');
+}
 ?>
 
 <!DOCTYPE html>
@@ -158,9 +215,9 @@ $varClass = static fn(float $value): string => $value > 0 ? 'text-emerald-600' :
           </button>
         </form>
 
-        <button type="button" onclick="window.print()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print report" aria-label="Print report">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-        </button>
+        <a href="<?php echo $escape(publicUrl('reports/summary.php') . '?' . http_build_query(['start_date' => $startDate, 'end_date' => $endDate, 'export' => 'pdf'])); ?>" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Export PDF" aria-label="Export PDF">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 17v3h14v-3"></path></svg>
+        </a>
       </div>
     </header>
 
@@ -174,8 +231,9 @@ $varClass = static fn(float $value): string => $value > 0 ? 'text-emerald-600' :
       <div id="printable-report" class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
 
         <!-- Report Title Block -->
-        <div class="text-center space-y-2">
-          <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Production Summary Report</h2>
+        <div class="text-center border-b border-slate-200 pb-4">
+          <h2 class="text-xl font-bold text-slate-900">East Caribbean Feeds Limited</h2>
+          <h3 class="text-2xl font-black text-red-600 uppercase mt-1">Production Summary Report</h3>
           <p class="text-xs font-medium text-slate-500">
             From <span class="font-semibold text-slate-800"><?php echo $escape($formatDate($startDate)); ?></span>
             to <span class="font-semibold text-slate-800"><?php echo $escape($formatDate($endDate)); ?></span>
@@ -204,7 +262,7 @@ $varClass = static fn(float $value): string => $value > 0 ? 'text-emerald-600' :
               <?php else: ?>
                 <?php foreach ($formulas as $formula => $data): ?>
                   <tr class="bg-slate-50 border-y border-slate-200">
-                    <td colspan="7" class="py-3 px-6 font-black text-red-600 tracking-wide text-sm">FORMULA: <?php echo $escape((string) $formula); ?></td>
+                    <td colspan="7" class="py-3 px-6 font-black text-red-600 tracking-wide text-sm"><?php echo $escape((string) $formula); ?></td>
                   </tr>
 
                   <?php foreach ($data['sheets'] as $sheet): ?>
