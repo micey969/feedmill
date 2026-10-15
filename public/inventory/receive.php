@@ -180,7 +180,7 @@ $millers = $conn->query("SELECT user_id, full_name FROM millers WHERE active_fla
                 </label>
                 <div class="relative w-44">
                   <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Received Quantity</label>
-                  <input type="number" min="0" max="999999.99" step="0.01" value="<?php echo $escape($line['ordered_quantity_kgs']); ?>" name="received_quantities[<?php echo (int) $line['ingredients_id']; ?>]" class="receive-line-quantity w-full bg-white border border-slate-300 rounded-lg pl-2 pr-12 py-2 text-right font-mono text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
+                  <input type="number" min="1" max="999999.99" step="0.01" value="<?php echo $escape($line['ordered_quantity_kgs']); ?>" name="received_quantities[<?php echo (int) $line['ingredients_id']; ?>]" class="receive-line-quantity w-full bg-white border border-slate-300 rounded-lg pl-2 pr-12 py-2 text-right font-mono text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
                   <span class="absolute right-2 bottom-2 text-[10px] font-bold text-slate-400">KGS</span>
                 </div>
               </div>

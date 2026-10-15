@@ -33,7 +33,7 @@ $usageStmt = null;
 $calculatedQuantities = [];
 $isFinalized = true;
 try {
-  $usageStmt = $conn->prepare('SELECT ingredient_usage_id, calculated_total_used_kgs, actual_total_used_kgs, actual_bags_produced FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
+  $usageStmt = $conn->prepare('SELECT ingredients_id, calculated_total_used_kgs, actual_total_used_kgs, actual_bags_produced FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredients_id');
   if (!$usageStmt) {
     throw new RuntimeException('Unable to load the mixing sheet ingredients.');
   }
@@ -41,7 +41,7 @@ try {
   $usageStmt->execute();
   $usageResult = $usageStmt->get_result();
   while ($row = $usageResult->fetch_assoc()) {
-    $calculatedQuantities[(int) $row['ingredient_usage_id']] = (float) $row['calculated_total_used_kgs'];
+    $calculatedQuantities[(int) $row['ingredients_id']] = (float) $row['calculated_total_used_kgs'];
     if ($row['actual_total_used_kgs'] === null || (float) $row['actual_total_used_kgs'] <= 0 || $row['actual_bags_produced'] === null || (float) $row['actual_bags_produced'] <= 0) {
       $isFinalized = false;
     }

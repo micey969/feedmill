@@ -12,28 +12,6 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
   require_once __DIR__ . '/../../app/views/includes/head.php'; 
 ?>
 
-<style>
-  @media print {
-    body * {
-      visibility: hidden;
-    }
-    #printable-report, #printable-report * {
-      visibility: visible;
-    }
-    #printable-report {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      border: none !important;
-      box-shadow: none !important;
-    }
-    aside, header, .no-print {
-      display: none !important;
-    }
-  }
-</style>
-
 <body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
 
   <!-- ================= SIDEBAR NAVIGATION ================= -->
@@ -53,7 +31,7 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
         <h1 class="text-lg font-bold text-slate-900">Raw Material Report</h1>
       </div>
 
-      <!-- Date Range Controls & Print Trigger -->
+      <!-- Date Range Controls -->
       <div class="flex flex-wrap items-center gap-3">
         <form action="raw_materials_report.php" method="GET" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-xs">
           <span class="text-slate-500 font-medium pl-2">Range:</span>
@@ -64,17 +42,13 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
             Go
           </button>
         </form>
-
-        <button onclick="window.print()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print Report">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-        </button>
       </div>
     </header>
 
     <!-- Workspace Body -->
     <div class="p-6 sm:p-8 max-w-5xl space-y-6">
       <!-- REPORT SHEET CARD -->
-      <div id="printable-report" class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
+      <div class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
         
         <!-- Report Title Block -->
         <div class="text-center border-b border-slate-200 pb-4">

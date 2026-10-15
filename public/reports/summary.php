@@ -147,43 +147,6 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
   require_once __DIR__ . '/../../app/views/includes/head.php'; 
 ?>
 
-<style>
-  @media print {
-    @page {
-      size: A4 portrait;
-      margin: 15mm 12mm 20mm 12mm;
-    }
-    body * {
-      visibility: hidden;
-    }
-    #printable-report, #printable-report * {
-      visibility: visible;
-    }
-    #printable-report {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      border: none !important;
-      box-shadow: none !important;
-      padding: 0 !important;
-    }
-    .report-table-wrapper {
-      overflow: visible !important;
-    }
-    aside, header, .no-print {
-      display: none !important;
-    }
-    tr {
-      break-inside: avoid;
-      page-break-inside: avoid;
-    }
-    thead {
-      display: table-header-group;
-    }
-  }
-</style>
-
 <body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
 
   <!-- ================= SIDEBAR NAVIGATION ================= -->
@@ -203,7 +166,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
         <h1 class="text-lg font-bold text-slate-900">Production Summary Report</h1>
       </div>
 
-      <!-- Date Range Controls & Print Trigger -->
+      <!-- Date Range Controls & PDF Export -->
       <div class="flex flex-wrap items-center gap-3">
         <form action="<?php echo htmlspecialchars(publicUrl('reports/summary.php')); ?>" method="GET" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-xs">
           <span class="text-slate-500 font-medium pl-2">Range:</span>
@@ -224,11 +187,11 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
     <!-- Workspace Body -->
     <div class="p-6 sm:p-8 max-w-6xl">
       <?php if ($reportError !== ''): ?>
-        <div class="no-print mb-4 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo $escape($reportError); ?></div>
+        <div class="mb-4 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo $escape($reportError); ?></div>
       <?php endif; ?>
 
       <!-- REPORT SHEET CARD -->
-      <div id="printable-report" class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
+      <div class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
 
         <!-- Report Title Block -->
         <div class="text-center border-b border-slate-200 pb-4">
@@ -241,7 +204,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
         </div>
 
         <!-- Data Table Grid -->
-        <div class="report-table-wrapper overflow-x-auto rounded-2xl border border-slate-200">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200">
           <table class="w-full text-left text-xs border-collapse">
             <thead>
               <tr class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">

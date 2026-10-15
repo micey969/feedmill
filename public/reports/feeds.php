@@ -89,28 +89,6 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
   require_once __DIR__ . '/../../app/views/includes/head.php'; 
 ?>
 
-<style>
-  @media print {
-    body * {
-      visibility: hidden;
-    }
-    #printable-report, #printable-report * {
-      visibility: visible;
-    }
-    #printable-report {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      border: none !important;
-      box-shadow: none !important;
-    }
-    aside, header, .no-print {
-      display: none !important;
-    }
-  }
-</style>
-
 <body class="bg-slate-100 h-screen text-slate-800 font-sans antialiased flex flex-col md:flex-row overflow-hidden">
 
   <!-- ================= SIDEBAR NAVIGATION ================= -->
@@ -121,7 +99,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
     <div class="h-1.5 shrink-0 bg-red-600 w-full sticky top-0 z-10"></div>
 
     <!-- Page Header Bar & Date Range Filter -->
-    <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs no-print">
+    <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs">
       <div>
         <nav class="flex items-center gap-2 text-xs text-slate-400 font-medium">
           <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600 transition">Main Hub</a>
@@ -131,7 +109,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
         <h1 class="text-lg font-bold text-slate-900">Feed Production Report</h1>
       </div>
 
-      <!-- Date Range Controls & Print Trigger -->
+      <!-- Date Range Controls & PDF Export -->
       <div class="flex flex-wrap items-center gap-3">
         <form action="<?php echo htmlspecialchars(publicUrl('reports/feeds.php')); ?>" method="GET" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-xs">
           <span class="text-slate-500 font-medium pl-2">Range:</span>
@@ -153,11 +131,11 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
    <!-- Report View Workspace -->
     <div class="p-6 sm:p-8 max-w-5xl">
       <?php if ($reportError !== ''): ?>
-        <div class="no-print mb-4 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo $escape($reportError); ?></div>
+        <div class="mb-4 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo $escape($reportError); ?></div>
       <?php endif; ?>
 
       <!-- REPORT SHEET CARD -->
-      <div id="printable-report" class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
+      <div class="bg-white rounded-3xl border border-slate-300 shadow-md p-8 sm:p-12 space-y-8">
         
         <!-- Report Title Block -->
         <div class="text-center border-b border-slate-200 pb-4">
@@ -207,7 +185,6 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
         <!-- Report Footer Meta -->
         <div class="pt-6 border-t border-slate-100 flex items-center justify-between text-[11px] font-medium text-slate-400">
           <span><?php echo $escape($ranAt); ?></span>
-          <span>Page 1 of 1</span>
         </div>
 
       </div>

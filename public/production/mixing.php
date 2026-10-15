@@ -111,7 +111,7 @@ if (!$isNewEntry && $sheetId !== null) {
     $sheetStmt->close();
   }
   if ($sheet) {
-    $usageStmt = $conn->prepare('SELECT ingredient_usage_id, ingredients, calculated_per_batch_used_kgs, calculated_total_used_kgs FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredient_usage_id');
+    $usageStmt = $conn->prepare('SELECT ingredients_id, ingredients, calculated_per_batch_used_kgs, calculated_total_used_kgs FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredients_id');
     if ($usageStmt) {
       $usageStmt->bind_param('i', $sheetId);
       $usageStmt->execute();
