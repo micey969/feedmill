@@ -11,6 +11,7 @@ $alignment = static fn(string $align): string => in_array($align, ['left', 'cent
     .company-name { margin: 0 0 3px; color: #111827; font-size: 12pt; font-weight: bold; text-align: center; }
     h1 { margin: 0 0 5px; color: #b91c1c; font-size: 17pt; font-weight: 900; text-align: center; text-transform: uppercase; }
     .date-range { margin: 0 0 22px; color: #4b5563; text-align: center; }
+    .report-note { margin: -14px 0 20px; color: #6b7280; font-size: 8pt; text-align: center; }
     table { width: 100%; border-collapse: collapse; }
     thead { display: table-header-group; }
     tfoot { display: table-row-group; }
@@ -26,6 +27,9 @@ $alignment = static fn(string $align): string => in_array($align, ['left', 'cent
   <h2 class="company-name">East Caribbean Feeds Limited</h2>
   <h1><?php echo $escape($reportTitle); ?></h1>
   <p class="date-range">From <?php echo $escape($dateRange['start']); ?> to <?php echo $escape($dateRange['end']); ?></p>
+  <?php if (isset($reportNote) && $reportNote !== ''): ?>
+    <p class="report-note"><?php echo $escape($reportNote); ?></p>
+  <?php endif; ?>
   <table>
     <thead>
       <tr>
