@@ -19,6 +19,7 @@ $redirect = static function (string $status) use ($mixingSheetId): never {
 };
 $actualBagsInput = $_POST['actual_bags'] ?? '';
 $submittedQuantities = $_POST['actual_qty'] ?? null;
+$lastModified = is_string($_POST['last_modified'] ?? null) ? $_POST['last_modified'] : '';
 
 if ($mixingSheetId === false || $mixingSheetId <= 0 || !is_string($actualBagsInput) || !preg_match('/^\d+(?:\.\d{1,2})?$/D', $actualBagsInput) || !is_array($submittedQuantities)) {
   $redirect('invalid');
@@ -76,7 +77,7 @@ if (count($actualQuantities) !== count($calculatedQuantities)) {
   $redirect('invalid');
 }
 
-$sheetStmt = $conn->prepare('SELECT calculated_bags_produced FROM mixing_sheet WHERE mixing_sheet_id = ? LIMIT 1');
+$sheetStmt = $conn->prepare('SELECT calculated_bags_produced, last_modified FROM mixing_sheet WHERE mixing_sheet_id = ? LIMIT 1 FOR UPDATE');
 $updateSheetStmt = $conn->prepare('UPDATE mixing_sheet SET actual_bags_produced = ?, variance_bags_produced = ? WHERE mixing_sheet_id = ?');
 $updateUsageStmt = $conn->prepare('UPDATE ingredient_usage SET actual_total_used_kgs = ?, total_variance_kgs = ? WHERE mixing_sheet_id = ? AND ingredients_id = ?');
 if (!$sheetStmt || !$updateSheetStmt || !$updateUsageStmt) {
@@ -84,7 +85,10 @@ if (!$sheetStmt || !$updateSheetStmt || !$updateUsageStmt) {
 }
 
 $transactionStarted = false;
+$conflict = false;
 try {
+  $conn->begin_transaction();
+  $transactionStarted = true;
   $sheetStmt->bind_param('i', $mixingSheetId);
   $sheetStmt->execute();
   $sheetResult = $sheetStmt->get_result();
@@ -92,10 +96,12 @@ try {
   if (!$sheet) {
     throw new RuntimeException('Mixing sheet not found.');
   }
+  if ((string) $sheet['last_modified'] !== $lastModified) {
+    $conflict = true;
+    throw new RuntimeException('Mixing sheet was modified by another user.');
+  }
 
   $bagVariance = round($actualBags - (float) $sheet['calculated_bags_produced'], 2);
-  $conn->begin_transaction();
-  $transactionStarted = true;
 
   $updateSheetStmt->bind_param('ddi', $actualBags, $bagVariance, $mixingSheetId);
   if (!$updateSheetStmt->execute()) {
@@ -117,7 +123,7 @@ try {
   if ($transactionStarted) {
     $conn->rollback();
   }
-  $redirect('save');
+  $redirect($conflict ? 'conflict' : 'save');
 } finally {
   $sheetStmt->close();
   $updateSheetStmt->close();

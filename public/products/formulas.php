@@ -6,6 +6,7 @@ $ingredientOptions = [];
 $ingredientErrorMessages = [
   'invalid' => 'Enter a valid ingredient name or review the submitted ingredient changes.',
   'duplicate' => 'An ingredient with that name already exists.',
+  'conflict' => 'The ingredient list was modified by another user while you were editing. Refresh the page and re-apply your changes.',
   'save' => 'Ingredient changes could not be saved. Please try again.',
 ];
 $ingredientError = $ingredientErrorMessages[$_GET['ingredient_error'] ?? ''] ?? '';
@@ -17,7 +18,7 @@ $ingredientSuccess = match ($_GET['ingredient_success'] ?? '') {
 $pageError = '';
 try {
   $ingredientResult = $conn->query('SELECT ingredients_id, name FROM ingredients WHERE active_flag = 1 ORDER BY name ASC');
-  $catalogResult = $conn->query('SELECT ingredients_id, name, active_flag FROM ingredients ORDER BY active_flag DESC, name ASC');
+  $catalogResult = $conn->query('SELECT ingredients_id, name, active_flag, last_modified FROM ingredients ORDER BY active_flag DESC, name ASC');
   if (!$ingredientResult || !$catalogResult) {
     throw new RuntimeException('Unable to load ingredient catalog.');
   }
@@ -252,6 +253,7 @@ try {
                       <td class="py-2 px-4 font-mono text-slate-500"><?php echo (int) $ingredient['ingredients_id']; ?></td>
                       <td class="py-2 px-4">
                         <input type="hidden" name="ids[]" value="<?php echo (int) $ingredient['ingredients_id']; ?>">
+                        <input type="hidden" name="last_modified[]" value="<?php echo htmlspecialchars((string) $ingredient['last_modified']); ?>">
                         <input type="text" name="names[]" value="<?php echo htmlspecialchars($ingredient['name']); ?>" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-600">
                       </td>
                       <td class="py-2 px-4">

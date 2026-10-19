@@ -10,7 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $ids = $_POST['ids'] ?? [];
 $names = $_POST['names'] ?? [];
 $activeFlags = $_POST['active_flags'] ?? [];
-if (!is_array($ids) || !is_array($names) || !is_array($activeFlags) || count($ids) !== count($names) || count($ids) !== count($activeFlags)) {
+$versions = $_POST['last_modified'] ?? [];
+if (!is_array($ids) || !is_array($names) || !is_array($activeFlags) || !is_array($versions) || count($ids) !== count($names) || count($ids) !== count($activeFlags) || count($ids) !== count($versions)) {
   header('Location: ' . publicUrl('products/formulas.php?ingredient_error=invalid'));
   exit;
 }
@@ -21,7 +22,7 @@ $changes = [];
 $transactionStarted = false;
 try {
   $stmt = $conn->prepare('UPDATE ingredients SET name = ?, active_flag = ? WHERE ingredients_id = ?');
-  $currentStmt = $conn->prepare('SELECT name, active_flag FROM ingredients WHERE ingredients_id = ?');
+  $currentStmt = $conn->prepare('SELECT name, active_flag, last_modified FROM ingredients WHERE ingredients_id = ? FOR UPDATE');
   if (!$stmt || !$currentStmt) {
     throw new RuntimeException('Unable to prepare ingredient changes.');
   }
@@ -42,6 +43,9 @@ try {
     $currentIngredient = $currentStmt->get_result()->fetch_assoc();
     if (!$currentIngredient) {
       throw new RuntimeException('Ingredient #' . $ingredientId . ' was not found.');
+    }
+    if ((string) $currentIngredient['last_modified'] !== (is_string($versions[$index] ?? null) ? $versions[$index] : '')) {
+      throw new RuntimeException('conflict');
     }
 
     $ingredientChanges = [];
@@ -74,7 +78,7 @@ try {
   if ($stmt instanceof mysqli_stmt) {
     $stmt->close();
   }
-  $status = $exception instanceof mysqli_sql_exception && (int) $exception->getCode() === 1062 ? 'duplicate' : ($exception->getMessage() === 'An ingredient with that name already exists.' ? 'duplicate' : 'save');
+  $status = $exception->getMessage() === 'conflict' ? 'conflict' : ($exception instanceof mysqli_sql_exception && (int) $exception->getCode() === 1062 ? 'duplicate' : ($exception->getMessage() === 'An ingredient with that name already exists.' ? 'duplicate' : 'save'));
   header('Location: ' . publicUrl('products/formulas.php?ingredient_error=' . $status));
   exit;
 }

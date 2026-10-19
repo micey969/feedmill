@@ -15,6 +15,7 @@ $setupDate = is_string($_POST['setup_date'] ?? null) ? trim($_POST['setup_date']
 $activeFlag = (int) ($_POST['active_flag'] ?? 0) === 1 ? 1 : 0;
 $ingredientIds = $_POST['ingredients'] ?? [];
 $quantities = $_POST['quantities'] ?? [];
+$lastModified = is_string($_POST['last_modified'] ?? null) ? $_POST['last_modified'] : '';
 
 if ($formulaId === '' || $formulaName === '' || $setupDate === '' || !is_array($ingredientIds) || !is_array($quantities) || count($ingredientIds) !== count($quantities) || count($ingredientIds) === 0) {
   header('Location: ' . publicUrl('products/feedlist.php?error=invalid'));
@@ -90,6 +91,20 @@ $transactionStarted = false;
 try {
   $conn->begin_transaction();
   $transactionStarted = true;
+  $lockStmt = $conn->prepare('SELECT last_modified FROM formula_metadata WHERE formula_id = ? FOR UPDATE');
+  if (!$lockStmt) {
+    throw new RuntimeException('Unable to lock formula: ' . $conn->error);
+  }
+  $lockStmt->bind_param('s', $formulaId);
+  $lockStmt->execute();
+  $lockedFormula = $lockStmt->get_result()->fetch_assoc();
+  $lockStmt->close();
+  if (!$lockedFormula || (string) $lockedFormula['last_modified'] !== $lastModified) {
+    $conn->rollback();
+    $transactionStarted = false;
+    header('Location: ' . publicUrl('products/feedlist.php?error=' . ($lockedFormula ? 'conflict' : 'not_found')));
+    exit;
+  }
   $metadataStmt = $conn->prepare('UPDATE formula_metadata SET name = ?, creator = ?, setup_date = ?, description = ?, active_flag = ? WHERE formula_id = ?');
   if (!$metadataStmt) {
     throw new RuntimeException('Unable to prepare formula metadata update: ' . $conn->error);
@@ -121,6 +136,10 @@ try {
   }
   $updateStmt->close();
   $insertStmt->close();
+  $touchStmt = $conn->prepare('UPDATE formula_metadata SET last_modified = CURRENT_TIMESTAMP WHERE formula_id = ?');
+  $touchStmt->bind_param('s', $formulaId);
+  $touchStmt->execute();
+  $touchStmt->close();
   $conn->commit();
   $transactionStarted = false;
 } catch (Throwable $exception) {

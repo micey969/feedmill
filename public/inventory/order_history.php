@@ -41,8 +41,12 @@ $orders = $ordersStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $ordersStmt->close();
 
 $orderDetails = [];
+$orderVersions = [];
 if ($orders) {
   $orderIds = implode(',', array_map(static fn ($order): int => (int) $order['order_id'], $orders));
+  foreach ($conn->query("SELECT order_id, last_modified FROM orders WHERE order_id IN ($orderIds)")->fetch_all(MYSQLI_ASSOC) as $version) {
+    $orderVersions[(int) $version['order_id']] = $version['last_modified'];
+  }
   $detailsResult = $conn->query(
     "SELECT order_id, ingredients_id, name, ordered_quantity_kgs, received_quantity_kgs, received_flag
      FROM v_order_ingredients WHERE order_id IN ($orderIds) ORDER BY order_id, name"
@@ -127,7 +131,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
       <?php if (isset($_GET['edited'])): ?>
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl text-xs font-semibold">Order updated successfully.</div>
       <?php elseif (isset($_GET['edit_error'])): ?>
-        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-2xl text-xs font-semibold">The order could not be updated. Check the entered values and try again.</div>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-2xl text-xs font-semibold"><?php echo $_GET['edit_error'] === 'conflict' ? 'This order was modified by another user while you were editing. Refresh the page and re-apply your changes.' : 'The order could not be updated. Check the entered values and try again.'; ?></div>
       <?php endif; ?>
       <div class="flex items-center justify-between bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-2xl text-xs font-medium">
         <div class="flex items-center gap-2">
@@ -300,6 +304,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
           <form action="<?php echo htmlspecialchars(publicUrl('inventory/orders_update.php')); ?>" method="POST" class="flex-1 min-h-0 flex flex-col">
             <div class="p-6 pb-0 space-y-6 shrink-0">
               <input type="hidden" name="order_id" value="<?php echo $orderId; ?>">
+              <input type="hidden" name="last_modified" value="<?php echo $escape($orderVersions[$orderId] ?? ''); ?>">
 
               <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
                 <h2 class="text-xs font-bold uppercase tracking-wider text-red-600">Order Schedule</h2>

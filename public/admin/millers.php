@@ -12,6 +12,7 @@ $searchTerm = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
 $millerMessages = [
   'invalid' => 'Enter a full name and select a valid job position.',
   'not_found' => 'The miller record could not be found. Refresh the list and try again.',
+  'conflict' => 'This miller record was modified by another user while you were editing. Refresh the list and re-apply your changes.',
   'save' => 'The miller record could not be saved. Please try again.',
 ];
 $millerError = $millerMessages[$_GET['error'] ?? ''] ?? '';
@@ -215,7 +216,7 @@ $jobColors = [
                       </td>
                       <td class="py-3.5 px-6 text-center"><input type="checkbox" disabled class="w-4 h-4 text-red-600 rounded border-slate-300 cursor-pointer" <?php echo (int) $miller ['active_flag'] === 1 ? 'checked' : ''; ?>></td>
                       <td class="py-3.5 px-6 text-right">
-                        <button type="button" onclick="openMillerModal(<?php echo (int) $miller['user_id']; ?>, <?php echo htmlspecialchars(json_encode($miller['full_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($miller['job_title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo (int) $miller['active_flag']; ?>)" class="text-blue-600 hover:text-red-600 font-bold text-xs transition">
+                        <button type="button" onclick="openMillerModal(<?php echo (int) $miller['user_id']; ?>, <?php echo htmlspecialchars(json_encode($miller['full_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($miller['job_title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo (int) $miller['active_flag']; ?>, <?php echo htmlspecialchars(json_encode((string) $miller['last_modified']), ENT_QUOTES, 'UTF-8'); ?>)" class="text-blue-600 hover:text-red-600 font-bold text-xs transition">
                           Edit
                         </button>                      
                       </td>
@@ -286,6 +287,7 @@ $jobColors = [
 
         <form action="millers_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           <input type="hidden" name="user_id" id="edit-miller-user-id">
+          <input type="hidden" name="last_modified" id="edit-miller-last-modified">
           
           <div class="space-y-4">
             <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Information</h3>

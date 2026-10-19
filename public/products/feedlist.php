@@ -52,9 +52,20 @@ $formulas = $list->get_result()->fetch_all(MYSQLI_ASSOC);
 $list->close();
 
 $ingredientsByFormula = [];
+$versionsByFormula = [];
 if ($formulas) {
   $formulaIds = array_column($formulas, 'formula_id');
   $placeholders = implode(',', array_fill(0, count($formulaIds), '?'));
+  $versionStmt = $conn->prepare("SELECT formula_id, last_modified FROM formula_metadata WHERE formula_id IN ($placeholders)");
+  if (!$versionStmt) {
+    throw new RuntimeException('Unable to prepare formula version query.');
+  }
+  $versionStmt->bind_param(str_repeat('s', count($formulaIds)), ...$formulaIds);
+  $versionStmt->execute();
+  foreach ($versionStmt->get_result()->fetch_all(MYSQLI_ASSOC) as $version) {
+    $versionsByFormula[$version['formula_id']] = $version['last_modified'];
+  }
+  $versionStmt->close();
   $items = $conn->prepare("SELECT formula_id, ingredients_id, ingredients, quantity_kgs FROM `$view` WHERE formula_id IN ($placeholders) ORDER BY formula_id, ingredients_id");
   if (!$items) {
     throw new RuntimeException('Unable to prepare formula ingredient query.');
@@ -74,6 +85,7 @@ if (!$ingredientResult) {
 $ingredientOptions = $ingredientResult->fetch_all(MYSQLI_ASSOC);
 foreach ($formulas as &$formula) {
   $formula['ingredients'] = $ingredientsByFormula[$formula['formula_id']] ?? [];
+  $formula['last_modified'] = $versionsByFormula[$formula['formula_id']] ?? '';
 }
 unset($formula);
 
@@ -94,6 +106,7 @@ $formulaErrorMessages = [
   'invalid' => 'Check the formula details and ingredient quantities, then try again.',
   'duplicate' => 'That formula code already exists. Use a different code or edit the existing formula.',
   'not_found' => 'The formula could not be found. Refresh the list and try again.',
+  'conflict' => 'This formula was modified by another user while you were editing. Refresh the list and re-apply your changes.',
   'ingredient' => 'One or more selected ingredients could not be found.',
   'remove_ingredient' => 'The formula could not remove an ingredient. Contact an administrator to review database permissions.',
   'save' => 'The formula could not be saved. Please try again.',
@@ -276,6 +289,7 @@ function feedListUrl(int $page, string $search, string $status): string {
       
       <form action="formula_update.php" method="POST" class="flex-1 min-h-0 p-6 sm:p-8 space-y-6 text-xs overflow-y-auto lg:overflow-hidden flex flex-col">
         <input type="hidden" name="formula_id" id="edit-formula-id">
+        <input type="hidden" name="last_modified" id="edit-formula-last-modified">
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:flex-1 lg:min-h-0">
           <div id="edit-formula-details-card" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
@@ -374,7 +388,7 @@ const editFormulaDetailsCard = document.getElementById('edit-formula-details-car
 const editFormulaIngredientsCard = document.getElementById('edit-formula-ingredients-card');
 const editFormulaDesktopLayout = window.matchMedia('(min-width: 1024px)');
 function syncEditIngredientsCardHeight() { if (editFormulaDesktopLayout.matches) { editFormulaIngredientsCard.style.maxHeight = `${editFormulaDetailsCard.getBoundingClientRect().height}px`; } else { editFormulaIngredientsCard.style.removeProperty('max-height'); } }
-function openFormulaModal(formula) { document.getElementById('edit-formula-id').value = formula.formula_id; document.getElementById('edit-formula-code').value = formula.formula_id; document.getElementById('edit-formula-name').value = formula.formula_name || ''; document.getElementById('edit-formula-description').value = formula.description || ''; document.getElementById('edit-formula-creator').value = formula.creator || ''; document.getElementById('edit-formula-date').value = formula.setup_date || ''; document.getElementById('edit-formula-status').value = formula.formula_active_flag; document.getElementById('edit-ingredients-list').innerHTML = ''; (formula.ingredients || []).forEach(addIngredientRow); if (!formula.ingredients?.length) addIngredientRow(); updateTotalWeight(); formulaModal.classList.remove('hidden'); syncEditIngredientsCardHeight(); }
+function openFormulaModal(formula) { document.getElementById('edit-formula-id').value = formula.formula_id; document.getElementById('edit-formula-last-modified').value = formula.last_modified || ''; document.getElementById('edit-formula-code').value = formula.formula_id; document.getElementById('edit-formula-name').value = formula.formula_name || ''; document.getElementById('edit-formula-description').value = formula.description || ''; document.getElementById('edit-formula-creator').value = formula.creator || ''; document.getElementById('edit-formula-date').value = formula.setup_date || ''; document.getElementById('edit-formula-status').value = formula.formula_active_flag; document.getElementById('edit-ingredients-list').innerHTML = ''; (formula.ingredients || []).forEach(addIngredientRow); if (!formula.ingredients?.length) addIngredientRow(); updateTotalWeight(); formulaModal.classList.remove('hidden'); syncEditIngredientsCardHeight(); }
 function closeFormulaModal() { formulaModal.classList.add('hidden'); }
 function addIngredientRow(item = {}) { const row = document.createElement('tr'); const options = ingredientOptions.map(option => `<option value="${option.ingredients_id}" ${String(option.ingredients_id) === String(item.ingredients_id || '') ? 'selected' : ''}>${option.name}</option>`).join(''); row.innerHTML = `<td class="py-2 px-3"><select name="ingredients[]" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-red-600">${options}</select></td><td class="py-2 px-3"><input type="number" min="0" step="0.01" name="quantities[]" value="${item.quantity_kgs || ''}" required class="ingredient-quantity w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600"></td><td class="py-2 px-3 text-center"><button type="button" onclick="this.closest('tr').remove();updateTotalWeight()" aria-label="Remove ingredient" class="text-slate-400 hover:text-red-600 transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>`; document.getElementById('edit-ingredients-list').appendChild(row); row.querySelector('input').addEventListener('input', updateTotalWeight); }
 function updateTotalWeight() { let total = 0; document.querySelectorAll('.ingredient-quantity').forEach(input => total += Number(input.value) || 0); document.getElementById('edit-total-weight').textContent = `${total.toFixed(2)} Kg`; }

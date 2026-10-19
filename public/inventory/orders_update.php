@@ -2,8 +2,8 @@
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
-$redirect = static function (bool $saved): never {
-  $query = $saved ? ['edited' => '1'] : ['edit_error' => '1'];
+$redirect = static function (bool $saved, string $reason = '1'): never {
+  $query = $saved ? ['edited' => '1'] : ['edit_error' => $reason];
   header('Location: ' . publicUrl('inventory/order_history.php') . '?' . http_build_query($query));
   exit;
 };
@@ -20,6 +20,7 @@ $orderTime = trim($_POST['order_time'] ?? '');
 $expectedArrival = trim($_POST['expected_arrival'] ?? '');
 $ingredientIds = $_POST['ingredients_id'] ?? [];
 $quantities = $_POST['ordered_quantity_kgs'] ?? [];
+$lastModified = is_string($_POST['last_modified'] ?? null) ? $_POST['last_modified'] : '';
 
 $validDate = static function (string $value, string $format): bool {
   $date = DateTime::createFromFormat($format, $value);
@@ -55,6 +56,7 @@ if ($invalid) {
 }
 
 $transactionStarted = false;
+$conflict = false;
 $changes = [];
 
 try {
@@ -62,7 +64,7 @@ try {
   $transactionStarted = true;
 
   $orderStmt = $conn->prepare(
-    'SELECT supplier_id, ordered_by_user_id, ordered_date_time, expected_arrival FROM orders WHERE order_id = ? FOR UPDATE'
+    'SELECT supplier_id, ordered_by_user_id, ordered_date_time, expected_arrival, last_modified FROM orders WHERE order_id = ? FOR UPDATE'
   );
   $orderStmt->bind_param('i', $orderId);
   $orderStmt->execute();
@@ -70,6 +72,10 @@ try {
   $orderStmt->close();
   if (!$currentOrder) {
     throw new RuntimeException('The selected order was not found.');
+  }
+  if ((string) $currentOrder['last_modified'] !== $lastModified) {
+    $conflict = true;
+    throw new RuntimeException('The order was modified by another user.');
   }
 
   $receivedCheck = $conn->prepare(
@@ -116,7 +122,7 @@ try {
   }
 
   $updateOrderStmt = $conn->prepare(
-    'UPDATE orders SET supplier_id = ?, ordered_by_user_id = ?, ordered_date_time = ?, expected_arrival = ? WHERE order_id = ?'
+    'UPDATE orders SET supplier_id = ?, ordered_by_user_id = ?, ordered_date_time = ?, expected_arrival = ?, last_modified = CURRENT_TIMESTAMP WHERE order_id = ?'
   );
   $updateOrderStmt->bind_param('iissi', $supplierId, $millerId, $orderDateTime, $expectedDateTime, $orderId);
   $updateOrderStmt->execute();
@@ -174,7 +180,7 @@ try {
   if ($transactionStarted) {
     $conn->rollback();
   }
-  $redirect(false);
+  $redirect(false, $conflict ? 'conflict' : '1');
 }
 
 $description = $changes

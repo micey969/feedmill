@@ -18,8 +18,9 @@ function openAuditModal(timestamp, ip, actor, action, details) {
   document.getElementById('audit-details-modal').classList.remove('hidden');
 }
 
-function openMillerModal(userId, fullName, jobTitle, activeFlag) {
+function openMillerModal(userId, fullName, jobTitle, activeFlag, lastModified) {
   document.getElementById('edit-miller-user-id').value = userId;
+  document.getElementById('edit-miller-last-modified').value = lastModified;
   document.getElementById('edit-miller-full-name').value = fullName;
   document.getElementById('edit-miller-job-title').value = jobTitle;
   document.getElementById('edit-miller-status').value = activeFlag;
@@ -28,6 +29,7 @@ function openMillerModal(userId, fullName, jobTitle, activeFlag) {
 
 function openSupplierModal(supplier) {
   document.getElementById('edit-supplier-id').value = supplier.supplier_id;
+  document.getElementById('edit-supplier-last-modified').value = supplier.last_modified;
   document.getElementById('edit-supplier-company-name').value = supplier.company_name;
   document.getElementById('edit-supplier-contact-person').value = supplier.contact_person;
   document.getElementById('edit-supplier-country').value = supplier.country;
@@ -38,3 +40,13 @@ function openSupplierModal(supplier) {
 
 
 
+
+// Drop one-time status params so a refresh doesn't replay the message.
+(function () {
+  const url = new URL(window.location.href);
+  const flashParams = ['error', 'success', 'saved', 'edited', 'edit_error', 'conflict', 'transport_saved', 'transport_error', 'ingredient_error', 'ingredient_success'];
+  if (flashParams.some((name) => url.searchParams.has(name))) {
+    flashParams.forEach((name) => url.searchParams.delete(name));
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
+})();

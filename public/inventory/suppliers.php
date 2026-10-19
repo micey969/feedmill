@@ -9,6 +9,7 @@ $searchParam = '%' . $searchTerm . '%';
 $supplierMessages = [
   'invalid' => 'Check all required supplier fields and try again.',
   'not_found' => 'The supplier could not be found. Refresh the list and try again.',
+  'conflict' => 'This supplier was modified by another user while you were editing. Refresh the list and re-apply your changes.',
   'save' => 'The supplier could not be saved. Please try again.',
 ];
 $supplierError = $supplierMessages[$_GET['error'] ?? ''] ?? '';
@@ -37,7 +38,7 @@ try {
   $currentPage = min($currentPage, $totalPages);
   $offset = ($currentPage - 1) * $recordsPerPage;
 
-  $suppliersStmt = $conn->prepare('SELECT supplier_id, contact_person, company_name, country, phone, email FROM suppliers WHERE contact_person LIKE ? OR company_name LIKE ? OR country LIKE ? ORDER BY company_name ASC LIMIT ? OFFSET ?');
+  $suppliersStmt = $conn->prepare('SELECT supplier_id, contact_person, company_name, country, phone, email, last_modified FROM suppliers WHERE contact_person LIKE ? OR company_name LIKE ? OR country LIKE ? ORDER BY company_name ASC LIMIT ? OFFSET ?');
   if (!$suppliersStmt) {
     throw new RuntimeException('Unable to prepare supplier list query.');
   }
@@ -294,6 +295,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
         </div>
         <form action="suppliers_update.php" method="POST" class="p-6 overflow-y-auto space-y-6 text-xs">
           <input type="hidden" name="supplier_id" id="edit-supplier-id">
+          <input type="hidden" name="last_modified" id="edit-supplier-last-modified">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block font-bold text-slate-700 mb-1">Contact Person *</label>

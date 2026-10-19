@@ -43,7 +43,7 @@ if ($selectedOrder) {
   $receiptStmt->close();
 }
 
-$transports = $conn->query('SELECT transport_id, transport_name FROM transport ORDER BY transport_name')->fetch_all(MYSQLI_ASSOC);
+$transports = $conn->query('SELECT transport_id, transport_name, last_modified FROM transport ORDER BY transport_name')->fetch_all(MYSQLI_ASSOC);
 $millers = $conn->query("SELECT user_id, full_name FROM millers WHERE active_flag = b'1' ORDER BY full_name")->fetch_all(MYSQLI_ASSOC);
 ?>
 
@@ -80,12 +80,14 @@ $millers = $conn->query("SELECT user_id, full_name FROM millers WHERE active_fla
     <div class="p-6 sm:p-8 max-w-5xl space-y-6">
       <?php if (isset($_GET['success'])): ?>
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs font-semibold">Receipt saved.</div>
+      <?php elseif (isset($_GET['conflict'])): ?>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold">This order was already received or modified by another user. Refresh the page to see the latest status.</div>
       <?php elseif (isset($_GET['error'])): ?>
         <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold">The receipt could not be saved. Check the selected order, transport, and quantities.</div>
       <?php elseif (isset($_GET['transport_saved'])): ?>
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs font-semibold">Transport list saved.</div>
       <?php elseif (isset($_GET['transport_error'])): ?>
-        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold">Transport changes could not be saved. Check for duplicate names.</div>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold"><?php echo ($_GET['transport_error'] ?? '') === 'conflict' ? 'The transport list was modified by another user while you were editing. Refresh the page and re-apply your changes.' : 'Transport changes could not be saved. Check for duplicate names.'; ?></div>
       <?php endif; ?>
 
       <?php if (!$pendingOrders): ?>
@@ -235,7 +237,7 @@ $millers = $conn->query("SELECT user_id, full_name FROM millers WHERE active_fla
                   <?php endif; ?>
                   <?php foreach ($transports as $transport): ?>
                     <tr class="transport-catalog-row">
-                      <td class="py-2 px-4 font-mono text-slate-500"><input type="hidden" name="transport_ids[]" value="<?php echo $escape($transport['transport_id']); ?>"><?php echo $escape($transport['transport_id']); ?></td>
+                      <td class="py-2 px-4 font-mono text-slate-500"><input type="hidden" name="transport_ids[]" value="<?php echo $escape($transport['transport_id']); ?>"><input type="hidden" name="transport_last_modified[]" value="<?php echo $escape($transport['last_modified']); ?>"><?php echo $escape($transport['transport_id']); ?></td>
                       <td class="py-2 px-4"><input type="text" name="transport_names[]" value="<?php echo $escape($transport['transport_name']); ?>" maxlength="100" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-600"></td>
                     </tr>
                   <?php endforeach; ?>

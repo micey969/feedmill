@@ -6,6 +6,7 @@ $userId = filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT);
 $fullName = is_string($_POST['full_name'] ?? null) ? trim($_POST['full_name']) : '';
 $jobTitle = is_string($_POST['job_title'] ?? null) ? trim($_POST['job_title']) : '';
 $status = $_POST['status'] ?? '';
+$lastModified = is_string($_POST['last_modified'] ?? null) ? $_POST['last_modified'] : '';
 
 if (!$userId || $fullName === '' || !in_array($jobTitle, ['Mill Operator', 'Assistant Senior Miller', 'Shift Supervisor', 'Assistant Mill Supervisor'], true) || !in_array($status, ['0', '1'], true)) {
     header('Location: ' . publicUrl('admin/millers.php?error=invalid'));
@@ -19,7 +20,8 @@ $activeFlag = (int) $status;
 $currentStmt = null;
 $stmt = null;
 try {
-    $currentStmt = $conn->prepare('SELECT full_name, job_title, active_flag FROM millers WHERE user_id = ?');
+    $conn->begin_transaction();
+    $currentStmt = $conn->prepare('SELECT full_name, job_title, active_flag, last_modified FROM millers WHERE user_id = ? FOR UPDATE');
     if (!$currentStmt) {
         throw new RuntimeException('Unable to load miller record.');
     }
@@ -30,7 +32,14 @@ try {
     $currentStmt = null;
 
     if (!$currentMiller) {
+        $conn->rollback();
         header('Location: ' . publicUrl('admin/millers.php?error=not_found'));
+        exit;
+    }
+
+    if ((string) $currentMiller['last_modified'] !== $lastModified) {
+        $conn->rollback();
+        header('Location: ' . publicUrl('admin/millers.php?error=conflict'));
         exit;
     }
 
@@ -42,7 +51,9 @@ try {
     if (!$stmt->execute()) {
         throw new RuntimeException('Unable to update miller record.');
     }
+    $conn->commit();
 } catch (Throwable $error) {
+    $conn->rollback();
     header('Location: ' . publicUrl('admin/millers.php?error=save'));
     exit;
 } finally {

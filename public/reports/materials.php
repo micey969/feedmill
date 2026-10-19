@@ -171,7 +171,6 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
   \App\Libraries\Pdf\ReportPdf::download('standard-table.php', [
     'reportTitle' => 'Raw Materials Report',
     'dateRange' => ['start' => $formatDate($startDate), 'end' => $formatDate($endDate)],
-    'reportNote' => 'Opening stock as of ' . $openingDateLabel . '; physical stock as of ' . $physicalDateLabel . '.',
     'generatedAt' => $ranAt,
     'columns' => $columns,
     'rows' => $pdfRows,

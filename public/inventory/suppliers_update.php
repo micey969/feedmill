@@ -8,6 +8,7 @@ $contactPerson = is_string($_POST['contact_person'] ?? null) ? trim($_POST['cont
 $country = is_string($_POST['country'] ?? null) ? trim($_POST['country']) : '';
 $phone = is_string($_POST['phone'] ?? null) ? trim($_POST['phone']) : '';
 $email = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : '';
+$lastModified = is_string($_POST['last_modified'] ?? null) ? $_POST['last_modified'] : '';
 
 if (!$supplierId || $companyName === '' || $contactPerson === '' || $country === '' || $phone === '' || $email === '') {
     header('Location: ' . publicUrl('inventory/suppliers.php?error=invalid'));
@@ -21,7 +22,8 @@ $country = ucwords(strtolower($country));
 $currentStmt = null;
 $stmt = null;
 try {
-    $currentStmt = $conn->prepare('SELECT company_name, contact_person, country, phone, email FROM suppliers WHERE supplier_id = ?');
+    $conn->begin_transaction();
+    $currentStmt = $conn->prepare('SELECT company_name, contact_person, country, phone, email, last_modified FROM suppliers WHERE supplier_id = ? FOR UPDATE');
     if (!$currentStmt) {
         throw new RuntimeException('Unable to load supplier.');
     }
@@ -32,7 +34,14 @@ try {
     $currentStmt = null;
 
     if (!$currentSupplier) {
+        $conn->rollback();
         header('Location: ' . publicUrl('inventory/suppliers.php?error=not_found'));
+        exit;
+    }
+
+    if ((string) $currentSupplier['last_modified'] !== $lastModified) {
+        $conn->rollback();
+        header('Location: ' . publicUrl('inventory/suppliers.php?error=conflict'));
         exit;
     }
 
@@ -44,7 +53,9 @@ try {
     if (!$stmt->execute()) {
         throw new RuntimeException('Unable to update supplier.');
     }
+    $conn->commit();
 } catch (Throwable $error) {
+    $conn->rollback();
     header('Location: ' . publicUrl('inventory/suppliers.php?error=save'));
     exit;
 } finally {

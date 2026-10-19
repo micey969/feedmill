@@ -60,6 +60,11 @@ if ($sheetCount > 0) {
   $usageStmt->bind_param('i', $sheetId);
   $usageStmt->execute();
   $usageResult = $usageStmt->get_result();
+  $versionStmt = $conn->prepare('SELECT last_modified FROM mixing_sheet WHERE mixing_sheet_id = ?');
+  $versionStmt->bind_param('i', $sheetId);
+  $versionStmt->execute();
+  $sheetLastModified = (string) ($versionStmt->get_result()->fetch_column() ?: '');
+  $versionStmt->close();
   while ($row = $usageResult->fetch_assoc()) {
     if ($sheet === null) {
       $sheet = $row;
@@ -155,6 +160,7 @@ function varianceQuantityNumber($value): string {
       <?php if (isset($_GET['error'])): ?>
         <?php $varianceError = match ($_GET['error']) {
           'finalized' => 'This mixing sheet variance has already been finalized and cannot be edited.',
+          'conflict' => 'This mixing sheet was modified by another user while you were editing. Reload the sheet and re-enter your values.',
           'invalid' => 'The submitted variance is invalid. Check the bag and ingredient quantities, then try again.',
           default => 'The variance could not be saved. Please try again.',
         }; ?>
@@ -173,6 +179,7 @@ function varianceQuantityNumber($value): string {
       <?php else: ?>
         <form action="<?php echo htmlspecialchars(publicUrl('production/variance_save.php'), ENT_QUOTES, 'UTF-8'); ?>" method="POST" class="space-y-6">
           <input type="hidden" name="mixing_sheet_id" value="<?php echo (int) $sheetId; ?>">
+          <input type="hidden" name="last_modified" value="<?php echo htmlspecialchars($sheetLastModified); ?>">
 
           <section class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>

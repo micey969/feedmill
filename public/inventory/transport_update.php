@@ -10,8 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $orderId = filter_var($_POST['order_id'] ?? null, FILTER_VALIDATE_INT);
 $transportIds = $_POST['transport_ids'] ?? [];
 $transportNames = $_POST['transport_names'] ?? [];
-$redirect = static function (bool $saved) use ($orderId): never {
-  $query = [$saved ? 'transport_saved' : 'transport_error' => '1'];
+$transportVersions = $_POST['transport_last_modified'] ?? [];
+$redirect = static function (bool $saved, string $reason = '1') use ($orderId): never {
+  $query = [$saved ? 'transport_saved' : 'transport_error' => $reason];
   if (is_int($orderId) && $orderId > 0) {
     $query['order_id'] = $orderId;
   }
@@ -19,11 +20,12 @@ $redirect = static function (bool $saved) use ($orderId): never {
   exit;
 };
 
-if (!is_array($transportIds) || !is_array($transportNames) || count($transportIds) !== count($transportNames)) {
+if (!is_array($transportIds) || !is_array($transportNames) || !is_array($transportVersions) || count($transportIds) !== count($transportNames) || count($transportIds) !== count($transportVersions)) {
   $redirect(false);
 }
 
 $updates = [];
+$versions = [];
 $uniqueNames = [];
 foreach ($transportIds as $index => $rawId) {
   $transportId = trim((string) $rawId);
@@ -35,12 +37,14 @@ foreach ($transportIds as $index => $rawId) {
   }
   $uniqueNames[$normalizedName] = true;
   $updates[$transportId] = $transportName;
+  $versions[$transportId] = is_string($transportVersions[$index] ?? null) ? $transportVersions[$index] : '';
 }
 
 $conn->begin_transaction();
 $changes = [];
+$conflict = false;
 try {
-  $currentStmt = $conn->prepare('SELECT transport_name FROM transport WHERE transport_id = ? FOR UPDATE');
+  $currentStmt = $conn->prepare('SELECT transport_name, last_modified FROM transport WHERE transport_id = ? FOR UPDATE');
   $stmt = $conn->prepare('UPDATE transport SET transport_name = ? WHERE transport_id = ?');
   if (!$currentStmt || !$stmt) {
     throw new RuntimeException('Unable to prepare transport changes.');
@@ -56,6 +60,10 @@ try {
     }
     if ($currentTransport['transport_name'] !== $transportName) {
       $changes[] = $transportId . ': name "' . $currentTransport['transport_name'] . '" -> "' . $transportName . '"';
+    }
+    if ((string) $currentTransport['last_modified'] !== $versions[$transportId]) {
+      $conflict = true;
+      throw new RuntimeException('Transport ' . $transportId . ' was modified by another user.');
     }
 
     $stmt->bind_param('ss', $transportName, $transportId);
@@ -74,7 +82,7 @@ try {
   if (isset($stmt) && $stmt instanceof mysqli_stmt) {
     $stmt->close();
   }
-  $redirect(false);
+  $redirect(false, $conflict ? 'conflict' : '1');
 }
 
 $description = $changes

@@ -47,6 +47,7 @@ foreach ($ingredientIds as $rawIngredientId) {
 }
 
 $transactionStarted = false;
+$conflict = false;
 try {
   $conn->begin_transaction();
   $transactionStarted = true;
@@ -65,11 +66,13 @@ try {
     $pendingById[(int) $pendingLine['ingredients_id']] = $pendingLine;
   }
   if (!$pendingById) {
+    $conflict = true;
     throw new RuntimeException('This order has no pending ingredient lines.');
   }
 
   foreach ($selectedLines as $ingredientId => $quantity) {
     if (!isset($pendingById[$ingredientId])) {
+      $conflict = true;
       throw new RuntimeException('An ingredient line is no longer pending.');
     }
   }
@@ -112,8 +115,7 @@ try {
 
   $orderStmt = $conn->prepare(
     "UPDATE orders
-     SET invoice_number = COALESCE(NULLIF(?, ''), invoice_number), received_transport_id = ?
-     WHERE order_id = ?"
+     SET invoice_number = COALESCE(NULLIF(?, ''), invoice_number), received_transport_id = ?, last_modified = CURRENT_TIMESTAMP     WHERE order_id = ?"
   );
   $orderStmt->bind_param('ssi', $invoiceNumber, $transportId, $orderId);
   $orderStmt->execute();
@@ -147,6 +149,7 @@ try {
     $lineStmt->bind_param('idsii', $millerId, $quantity, $receivedDateTime, $orderId, $ingredientId);
     $lineStmt->execute();
     if ($lineStmt->affected_rows !== 1) {
+      $conflict = true;
       throw new RuntimeException('An ingredient line could not be marked received.');
     }
   }
@@ -158,7 +161,7 @@ try {
   if ($transactionStarted) {
     $conn->rollback();
   }
-  $redirect('error');
+  $redirect($conflict ? 'conflict' : 'error');
 }
 
 $description = 'Received ingredients for order #' . $orderId . ":\n" . implode("\n", $changes);
