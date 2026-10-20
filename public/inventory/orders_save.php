@@ -20,6 +20,7 @@ $invalid = !is_int($supplierId) || $supplierId < 1 || $supplierId > 32767
   || !$validDate($orderDate, 'Y-m-d')
   || !$validDate($orderTime, 'H:i')
   || !$validDate($expectedArrival, 'Y-m-d')
+  || $expectedArrival <= $orderDate
   || !is_array($ingredientIds) || !is_array($quantities)
   || count($ingredientIds) === 0 || count($ingredientIds) !== count($quantities);
 
@@ -29,7 +30,7 @@ if (!$invalid) {
     $ingredientId = filter_var($rawIngredientId, FILTER_VALIDATE_INT);
     $rawQuantity = $quantities[$index] ?? '';
     if (!is_int($ingredientId) || $ingredientId < 1 || $ingredientId > 32767
-      || !is_numeric($rawQuantity) || (float) $rawQuantity <= 0 || (float) $rawQuantity > 999999.99
+      || !is_numeric($rawQuantity) || (float) $rawQuantity <= 0 || (float) $rawQuantity > 9999999.99
       || isset($lines[$ingredientId])) {
       $invalid = true;
       break;

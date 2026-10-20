@@ -63,7 +63,8 @@ if ($sheetCount > 0) {
   $versionStmt = $conn->prepare('SELECT last_modified FROM mixing_sheet WHERE mixing_sheet_id = ?');
   $versionStmt->bind_param('i', $sheetId);
   $versionStmt->execute();
-  $sheetLastModified = (string) ($versionStmt->get_result()->fetch_column() ?: '');
+  $versionRow = $versionStmt->get_result()->fetch_row();
+  $sheetLastModified = (string) ($versionRow[0] ?? '');
   $versionStmt->close();
   while ($row = $usageResult->fetch_assoc()) {
     if ($sheet === null) {
@@ -232,7 +233,7 @@ function varianceQuantityNumber($value): string {
                       <td class="py-3 px-5 font-bold text-slate-900"><?php echo htmlspecialchars($ingredient['ingredients'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td class="py-3 px-5 text-right font-mono font-semibold"><?php echo varianceQuantityNumber($ingredient['calculated_total_used_kgs']); ?></td>
                       <td class="py-3 px-5">
-                        <input type="number" min="0" max="8388607" step="1" required name="actual_qty[<?php echo (int) $ingredient['ingredients_id']; ?>]" value="<?php echo htmlspecialchars((string) ($ingredient['actual_total_used_kgs'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" data-calculated="<?php echo number_format((float) $ingredient['calculated_total_used_kgs'], 2, '.', ''); ?>" <?php echo $isReadOnly ? 'readonly disabled' : ''; ?> class="actual-quantity w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600 disabled:opacity-60 disabled:cursor-not-allowed">
+                        <input type="number" min="0" max="99999" step="1" required name="actual_qty[<?php echo (int) $ingredient['ingredients_id']; ?>]" value="<?php echo htmlspecialchars((string) ($ingredient['actual_total_used_kgs'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" data-calculated="<?php echo number_format((float) $ingredient['calculated_total_used_kgs'], 2, '.', ''); ?>" <?php echo $isReadOnly ? 'readonly disabled' : ''; ?> class="actual-quantity w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600 disabled:opacity-60 disabled:cursor-not-allowed">
                       </td>
                       <td class="py-3 px-5 text-right font-mono font-semibold ingredient-variance"><?php echo varianceQuantityNumber((int) ($ingredient['actual_total_used_kgs'] ?? 0) - (float) $ingredient['calculated_total_used_kgs']); ?></td>
                     </tr>

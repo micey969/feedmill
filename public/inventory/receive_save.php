@@ -40,7 +40,7 @@ foreach ($ingredientIds as $rawIngredientId) {
   if (!is_int($ingredientId) || $ingredientId < 1 || $ingredientId > 32767
     || array_key_exists($ingredientId, $selectedLines)
     || !is_numeric($rawQuantity) || !is_finite((float) $rawQuantity)
-    || (float) $rawQuantity <= 0 || (float) $rawQuantity > 999999.99) {
+    || (float) $rawQuantity <= 0 || (float) $rawQuantity > 9999999.99) {
     $redirect('error');
   }
   $selectedLines[$ingredientId] = (float) $rawQuantity;

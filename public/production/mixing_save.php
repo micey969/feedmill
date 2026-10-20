@@ -76,7 +76,7 @@ $usageRows = [];
 foreach ($formulaIngredients as $ingredient) {
   $perBatch = (float) $ingredient['quantity_kgs'] * $batchTonnes;
   $total = $perBatch * $batchCount;
-  if ($perBatch > 8388607 || $total > 8388607) {
+  if ($perBatch > 9999.99 || $total > 99999.99) {
     header('Location: ' . publicUrl('production/mixing.php?error=invalid'));
     exit;
   }

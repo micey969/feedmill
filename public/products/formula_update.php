@@ -56,7 +56,7 @@ $newComposition = [];
 foreach ($ingredientIds as $index => $rawIngredientId) {
   $ingredientId = filter_var($rawIngredientId, FILTER_VALIDATE_INT);
   $quantity = filter_var($quantities[$index], FILTER_VALIDATE_FLOAT);
-  if ($ingredientId === false || $ingredientId <= 0 || $quantity === false || $quantity < 0 || isset($newComposition[$ingredientId])) {
+  if ($ingredientId === false || $ingredientId <= 0 || $quantity === false || !is_finite((float) $quantity) || $quantity < 0 || $quantity > 9999.99 || isset($newComposition[$ingredientId])) {
     $ingredientLookupStmt->close();
     header('Location: ' . publicUrl('products/feedlist.php?error=invalid'));
     exit;

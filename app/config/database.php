@@ -18,15 +18,30 @@ foreach ($lines as $line) {
   }
 }
 
-$conn = new mysqli(
+$conn = new mysqli();
+
+mysqli_ssl_set(
+  $conn,
+  null,
+  null,
+  null,
+  null,
+  null
+);
+
+mysqli_real_connect(
+  $conn,
   getenv('DB_HOST'),
   getenv('DB_USER'),
   getenv('DB_PASS'),
-  getenv('DB_NAME')
+  getenv('DB_NAME'),
+  null,
+  null,
+  MYSQLI_CLIENT_SSL
 );
 
-if ($conn->connect_error) {
-  die('Connection failed: ' . $conn->connect_error);
+if (mysqli_connect_errno()) {
+    die('Connection failed: ' . mysqli_connect_error());
 }
 
 $conn->set_charset('utf8mb4');

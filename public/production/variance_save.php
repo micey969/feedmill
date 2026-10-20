@@ -17,7 +17,7 @@ $redirect = static function (string $status) use ($mixingSheetId): never {
   header('Location: ' . publicUrl('production/variance.php') . '?' . http_build_query($query));
   exit;
 };
-$actualBagsInput = $_POST['actual_bags'] ?? '';
+$actualBagsInput = trim((string) ($_POST['actual_bags'] ?? ''));
 $submittedQuantities = $_POST['actual_qty'] ?? null;
 $lastModified = is_string($_POST['last_modified'] ?? null) ? $_POST['last_modified'] : '';
 
@@ -60,14 +60,17 @@ if ($calculatedQuantities !== [] && $isFinalized) {
 }
 
 if ($calculatedQuantities === [] || count($submittedQuantities) !== count($calculatedQuantities)) {
+  error_log('variance_save: ingredient count mismatch, submitted=' . count($submittedQuantities) . ' expected=' . count($calculatedQuantities));
   $redirect('invalid');
 }
 
 $actualQuantities = [];
 foreach ($submittedQuantities as $ingredientId => $quantityInput) {
   $ingredientId = filter_var($ingredientId, FILTER_VALIDATE_INT);
-  $quantity = is_scalar($quantityInput) ? filter_var($quantityInput, FILTER_VALIDATE_INT) : false;
-  if ($ingredientId === false || !array_key_exists($ingredientId, $calculatedQuantities) || $quantity === false || $quantity < 0 || $quantity > 8388607) {
+  $quantityInput = is_scalar($quantityInput) ? trim((string) $quantityInput) : '';
+  $quantity = is_numeric($quantityInput) ? (int) round((float) $quantityInput) : false;
+  if ($ingredientId === false || !array_key_exists($ingredientId, $calculatedQuantities) || $quantity === false || $quantity < 0 || $quantity > 99999) {
+    error_log('variance_save: invalid ingredient ' . var_export($ingredientId, true) . ' qty ' . var_export($quantityInput, true));
     $redirect('invalid');
   }
   $actualQuantities[$ingredientId] = $quantity;

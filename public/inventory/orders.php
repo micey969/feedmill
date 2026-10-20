@@ -118,7 +118,7 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
               <div class="col-span-4">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Quantity Ordered</label>
                 <div class="relative">
-                  <input type="number" min="0.01" max="999999.99" step="0.01" required name="ordered_quantity_kgs[]" class="w-full bg-white border border-slate-300 rounded-lg pl-2 pr-10 py-2 text-xs font-mono font-bold text-right text-slate-900">
+                  <input type="number" min="0.01" max="9999999.99" step="0.01" required name="ordered_quantity_kgs[]" class="w-full bg-white border border-slate-300 rounded-lg pl-2 pr-10 py-2 text-xs font-mono font-bold text-right text-slate-900">
                   <span class="absolute right-2 top-2 text-[10px] font-bold text-slate-400">KGS</span>
                 </div>
               </div>
@@ -138,6 +138,21 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
     </div> 
   </main>
   <script>
+    const orderForm = document.querySelector('form[action="orders_save.php"]');
+    const orderDateInput = orderForm.elements.order_date;
+    const expectedArrivalInput = orderForm.elements.expected_arrival;
+    const validateExpectedArrival = () => {
+      expectedArrivalInput.min = orderDateInput.value;
+      expectedArrivalInput.setCustomValidity(
+        orderDateInput.value && expectedArrivalInput.value && expectedArrivalInput.value <= orderDateInput.value
+          ? 'Expected arrival date must be after the order date.'
+          : ''
+      );
+    };
+    orderDateInput.addEventListener('input', validateExpectedArrival);
+    expectedArrivalInput.addEventListener('input', validateExpectedArrival);
+    validateExpectedArrival();
+
     const ingredientRows = document.getElementById('ingredient-rows');
     const ingredientRowTemplate = document.getElementById('ingredient-row-template');
     document.getElementById('add-ingredient-row').addEventListener('click', () => {

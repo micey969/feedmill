@@ -48,7 +48,7 @@ if ($orders) {
     $orderVersions[(int) $version['order_id']] = $version['last_modified'];
   }
   $detailsResult = $conn->query(
-    "SELECT order_id, ingredients_id, name, ordered_quantity_kgs, received_quantity_kgs, received_flag
+    "SELECT order_id, ingredients_id, name, ordered_quantity_kgs, received_quantity_kgs, received_date_time, received_flag
      FROM v_order_ingredients WHERE order_id IN ($orderIds) ORDER BY order_id, name"
   );
   foreach ($detailsResult->fetch_all(MYSQLI_ASSOC) as $detail) {
@@ -166,7 +166,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                     <td class="py-3.5 px-6 font-mono font-bold text-slate-900">#<?php echo $escape($order['order_id']); ?></td>
                     <td class="py-3.5 px-6 font-semibold text-slate-800"><?php echo $escape($order['ordered_date_time']); ?></td>
                     <td class="py-3.5 px-6 text-slate-600"><?php echo $escape($order['company_name']); ?></td>
-                    <td class="py-3.5 px-6 font-mono text-slate-600"><?php echo $escape($order['invoice_number'] ?: 'Ã¢â‚¬â€'); ?></td>
+                    <td class="py-3.5 px-6 font-mono text-slate-600"><?php echo $escape($order['invoice_number'] ?: ''); ?></td>
                     <td class="py-3.5 px-6 text-right font-mono font-bold text-slate-900"><?php echo number_format((float) $order['total_quantity'], 2); ?> kg</td>
                     <td class="py-3.5 px-6 text-center">
                       <?php if ($order['receipt_status'] === 'Pending'): ?>
@@ -257,13 +257,25 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
               <h3 class="block font-bold text-slate-700 mb-1">Ingredients &amp; Quantities</h3>
               <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table class="w-full text-left">
-                  <thead class="bg-slate-50 text-slate-500 uppercase text-[10px]"><tr><th class="px-3 py-2">Ingredient</th><th class="px-3 py-2 text-right">Ordered (kg)</th><th class="px-3 py-2 text-right">Received (kg)</th></tr></thead>
+                  <thead class="bg-slate-50 text-slate-500 uppercase text-[10px]">
+                    <tr>
+                      <th class="px-3 py-2">Ingredient</th>
+                      <th class="px-3 py-2 text-right">Ordered (kg)</th>
+                      <th class="px-3 py-2 text-right">Received (kg)</th>
+                      <th class="px-3 py-2 text-right">Received Date</th>
+                    </tr>
+                  </thead>
                   <tbody class="divide-y divide-slate-100">
                     <?php foreach ($orderDetails[$orderId] ?? [] as $detail): ?>
-                      <tr><td class="px-3 py-2 font-semibold text-slate-800"><?php echo $escape($detail['name']); ?></td><td class="px-3 py-2 text-right font-mono"><?php echo number_format((float) $detail['ordered_quantity_kgs'], 2); ?></td><td class="px-3 py-2 text-right font-mono"><?php echo number_format((float) $detail['received_quantity_kgs'], 2); ?></td></tr>
+                      <tr>
+                        <td class="px-3 py-2 font-semibold text-slate-800"><?php echo $escape($detail['name']); ?></td>
+                        <td class="px-3 py-2 text-right font-mono"><?php echo number_format((float) $detail['ordered_quantity_kgs'], 2); ?></td>
+                        <td class="px-3 py-2 text-right font-mono"><?php echo number_format((float) $detail['received_quantity_kgs'], 2); ?></td>
+                        <td class="px-3 py-2 text-right font-mono"><?php echo $escape($detail['received_date_time'] ?? 'Not received'); ?></td>
+                      </tr>
                     <?php endforeach; ?>
                     <?php if (empty($orderDetails[$orderId])): ?>
-                      <tr><td colspan="3" class="px-3 py-3 text-center text-slate-500">No ingredient lines recorded.</td></tr>
+                      <tr><td colspan="4" class="px-3 py-3 text-center text-slate-500">No ingredient lines recorded.</td></tr>
                     <?php endif; ?>
                   </tbody>
                 </table>
@@ -370,7 +382,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                       <div class="col-span-4">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Quantity Ordered</label>
                         <div class="relative">
-                          <input type="number" min="0.01" max="999999.99" step="0.01" required value="<?php echo $escape(number_format((float) $detail['ordered_quantity_kgs'], 2, '.', '')); ?>" name="ordered_quantity_kgs[]" class="w-full bg-white border border-slate-300 rounded-lg pl-2 pr-10 py-2 text-xs font-mono font-bold text-right text-slate-900">
+                          <input type="number" min="0.01" max="9999999.99" step="0.01" required value="<?php echo $escape(number_format((float) $detail['ordered_quantity_kgs'], 2, '.', '')); ?>" name="ordered_quantity_kgs[]" class="w-full bg-white border border-slate-300 rounded-lg pl-2 pr-10 py-2 text-xs font-mono font-bold text-right text-slate-900">
                           <span class="absolute right-2 top-2 text-[10px] font-bold text-slate-400">KGS</span>
                         </div>
                       </div>
@@ -396,7 +408,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                     <div class="col-span-4">
                       <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Quantity Ordered</label>
                       <div class="relative">
-                        <input type="number" min="0.01" max="999999.99" step="0.01" required name="ordered_quantity_kgs[]" class="w-full bg-white border border-slate-300 rounded-lg pl-2 pr-10 py-2 text-xs font-mono font-bold text-right text-slate-900">
+                        <input type="number" min="0.01" max="9999999.99" step="0.01" required name="ordered_quantity_kgs[]" class="w-full bg-white border border-slate-300 rounded-lg pl-2 pr-10 py-2 text-xs font-mono font-bold text-right text-slate-900">
                         <span class="absolute right-2 top-2 text-[10px] font-bold text-slate-400">KGS</span>
                       </div>
                     </div>
@@ -414,10 +426,22 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                 <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Already Received (locked)</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-32 overflow-y-auto">
                   <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px]"><tr><th class="px-3 py-2">Ingredient</th><th class="px-3 py-2 text-right">Ordered (kg)</th><th class="px-3 py-2 text-right">Received (kg)</th></tr></thead>
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px]">
+                      <tr>
+                        <th class="px-3 py-2">Ingredient</th>
+                        <th class="px-3 py-2 text-right">Ordered (kg)</th>
+                        <th class="px-3 py-2 text-right">Received (kg)</th>
+                        <th class="px-3 py-2 text-right">Received Date</th>
+                      </tr>
+                    </thead>
                     <tbody class="divide-y divide-slate-100">
                       <?php foreach ($receivedLines as $detail): ?>
-                        <tr><td class="px-3 py-2 font-semibold text-slate-800"><?php echo $escape($detail['name']); ?></td><td class="px-3 py-2 text-right font-mono"><?php echo number_format((float) $detail['ordered_quantity_kgs'], 2); ?></td><td class="px-3 py-2 text-right font-mono"><?php echo number_format((float) $detail['received_quantity_kgs'], 2); ?></td></tr>
+                        <tr>
+                          <td class="px-3 py-2 font-semibold text-slate-800"><?php echo $escape($detail['name']); ?></td>
+                          <td class="px-3 py-2 text-right font-mono"><?php echo number_format((float) $detail['ordered_quantity_kgs'], 2); ?></td>
+                          <td class="px-3 py-2 text-right font-mono"><?php echo number_format((float) $detail['received_quantity_kgs'], 2); ?></td>
+                          <td class="px-3 py-2 text-right font-mono"><?php echo $escape($detail['received_date_time']); ?></td>
+                        </tr>
                       <?php endforeach; ?>
                     </tbody>
                   </table>
@@ -436,6 +460,22 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
   </main>
   <script>
+    document.querySelectorAll('form[action*="orders_update.php"]').forEach((form) => {
+      const orderDateInput = form.elements.order_date;
+      const expectedArrivalInput = form.elements.expected_arrival;
+      const validateExpectedArrival = () => {
+        expectedArrivalInput.min = orderDateInput.value;
+        expectedArrivalInput.setCustomValidity(
+          orderDateInput.value && expectedArrivalInput.value && expectedArrivalInput.value <= orderDateInput.value
+            ? 'Expected arrival date must be after the order date.'
+            : ''
+        );
+      };
+      orderDateInput.addEventListener('input', validateExpectedArrival);
+      expectedArrivalInput.addEventListener('input', validateExpectedArrival);
+      validateExpectedArrival();
+    });
+
     document.querySelectorAll('.ingredient-rows').forEach((container) => {
       const template = container.nextElementSibling;
       const addButton = container.closest('form').querySelector('.add-ingredient-row');

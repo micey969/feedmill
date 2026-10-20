@@ -48,7 +48,7 @@ try {
   foreach ($ingredientIds as $index => $ingredientId) {
     $ingredientId = filter_var($ingredientId, FILTER_VALIDATE_INT);
     $quantity = filter_var($quantities[$index], FILTER_VALIDATE_FLOAT);
-    if ($ingredientId === false || $ingredientId <= 0 || $quantity === false || $quantity < 0) {
+    if ($ingredientId === false || $ingredientId <= 0 || $quantity === false || !is_finite((float) $quantity) || $quantity < 0 || $quantity > 9999.99) {
       throw new RuntimeException('Invalid ingredient data.');
     }
 

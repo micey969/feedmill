@@ -128,7 +128,7 @@ try {
             <label class="flex items-center justify-between cursor-pointer p-3 bg-slate-50 rounded-xl border border-slate-200">
               <div>
                 <span class="text-xs font-bold text-slate-800 block">Activating Formula</span>
-                <span class="text-[10px] text-slate-500">Set as active production baseline</span>
+                <span class="text-[10px] text-slate-500">Set as active product</span>
               </div>
               <input type="hidden" name="active_flag" value="0">
               <input type="checkbox" name="active_flag" value="1" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-600">
@@ -172,7 +172,7 @@ try {
                     </select>
                   </td>
                   <td class="py-2 px-3">
-                    <input type="number" step="0.1" name="quantities[]" value="" class="qty-input w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
+                    <input type="number" min="0" max="9999.99" step="0.01" name="quantities[]" value="" class="qty-input w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600">
                   </td>
                   <td class="py-2 px-3 text-center">
                     <button type="button" class="remove-row-btn text-slate-400 hover:text-red-600 transition p-1">
@@ -207,7 +207,6 @@ try {
     <div id="material-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
       <div class="bg-white w-full max-w-2xl max-h-[78vh] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
         
-        <!-- Modal Header -->
         <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div>
             <h2 class="text-base font-bold text-slate-900">Ingredient Catalog</h2>

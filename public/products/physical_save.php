@@ -33,9 +33,9 @@ try {
     if ($quantity === '') {
       $quantity = '0';
     }
-    if (!is_scalar($quantity) || !preg_match('/^\d+$/', (string) $quantity) || (int) $quantity > 32767) {
+    if (!is_scalar($quantity) || !preg_match('/^\d+$/', (string) $quantity) || (int) $quantity > 9999999) {
       $failureStatus = 'invalid';
-      throw new RuntimeException('Every quantity must be a whole number from 0 to 32767.');
+      throw new RuntimeException('Every quantity must be a whole number from 0 to 9999999.');
     }
 
     $ingredientName = trim($ingredientName);

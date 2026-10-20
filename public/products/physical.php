@@ -168,7 +168,7 @@ $pageUrl = publicUrl('products/physical.php');
                 <?php foreach ($columnIngredients as $ingredient): ?>
                   <div class="flex items-center justify-between gap-3 print-row">
                     <label for="ingredient-<?php echo (int) $columnIndex . '-' . htmlspecialchars((string) crc32($ingredient['name'])); ?>" class="font-bold text-slate-800 truncate"><?php echo htmlspecialchars($ingredient['name']); ?></label>
-                    <input id="ingredient-<?php echo (int) $columnIndex . '-' . htmlspecialchars((string) crc32($ingredient['name'])); ?>" type="number" name="quantities[<?php echo htmlspecialchars($ingredient['name']); ?>]" min="0" step="1" value="<?php echo htmlspecialchars((string) $ingredient['quantity']); ?>" <?php echo $isNewEntry ? '' : 'readonly'; ?> class="w-32 text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600">
+                    <input id="ingredient-<?php echo (int) $columnIndex . '-' . htmlspecialchars((string) crc32($ingredient['name'])); ?>" type="number" name="quantities[<?php echo htmlspecialchars($ingredient['name']); ?>]" min="0" max="9999999" step="1" value="<?php echo htmlspecialchars((string) $ingredient['quantity']); ?>" <?php echo $isNewEntry ? '' : 'readonly'; ?> class="w-32 text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600">
                   </div>
                 <?php endforeach; ?>
               </div>
