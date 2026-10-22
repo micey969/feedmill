@@ -6,6 +6,8 @@ $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $stockPageError = '';
 $stockError = match ($_GET['error'] ?? '') {
   'invalid' => 'Check the stock date and ingredient quantities, then try again.',
+  'future' => 'Stock entries cannot be dated in the future.',
+  'duplicate' => 'A physical stock count has already been saved for that date.',
   'save' => 'The physical stock count could not be saved. Please try again.',
   default => '',
 };
@@ -148,7 +150,7 @@ $pageUrl = publicUrl('products/physical.php');
           <div class="flex items-center gap-6">
             <div>
               <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Stock Take Date</label>
-              <input type="date" name="stock_date" value="<?php echo htmlspecialchars($formDate); ?>" <?php echo $isNewEntry ? '' : 'readonly'; ?> required class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              <input type="date" name="stock_date" max="<?php echo date('Y-m-d'); ?>" value="<?php echo htmlspecialchars($formDate); ?>" <?php echo $isNewEntry ? '' : 'readonly'; ?> required class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
             </div>
           </div>
 

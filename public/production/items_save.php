@@ -8,7 +8,7 @@ $quantity = filter_var($_POST['quantity_kgs'] ?? null, FILTER_VALIDATE_INT);
 $saleOption = $_POST['sale_option'] ?? 'local';
 
 $date = DateTime::createFromFormat('!Y-m-d', $entryDate);
-if (!$date || $date->format('Y-m-d') !== $entryDate || $ingredientId === false || $ingredientId <= 0 || $quantity === false || $quantity < 0 || $quantity > 99999 || !in_array($saleOption, ['local', 'overseas'], true)) {
+if (!$date || $date->format('Y-m-d') !== $entryDate || $entryDate > date('Y-m-d') || $ingredientId === false || $ingredientId <= 0 || $quantity === false || $quantity < 0 || $quantity > 99999 || !in_array($saleOption, ['local', 'overseas'], true)) {
   header('Location: ' . publicUrl('production/items.php?error=invalid'));
   exit;
 }

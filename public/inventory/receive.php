@@ -133,7 +133,7 @@ $millers = $conn->query("SELECT user_id, full_name FROM millers WHERE active_fla
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
             <label class="block text-slate-700 font-bold mb-1">Arrival Date</label>
-            <input type="date" value="<?php echo date('Y-m-d'); ?>" name="arrival_date" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
+            <input type="date" value="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d'); ?>" name="arrival_date" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none">
           </div>
           <div>
             <label class="block text-slate-700 font-bold mb-1">Arrival Time</label>

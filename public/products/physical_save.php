@@ -11,6 +11,11 @@ if (!$date || $date->format('Y-m-d') !== $stockDate || !is_array($quantities)) {
   exit;
 }
 
+if ($stockDate > date('Y-m-d')) {
+  header('Location: ' . publicUrl('products/physical.php?error=future'));
+  exit;
+}
+
 $stockDateTime = $stockDate . ' 00:00:00';
 $ingredientStmt = null;
 $insertStmt = null;
@@ -25,6 +30,19 @@ try {
   }
   $conn->begin_transaction();
   $transactionStarted = true;
+
+  $dupStmt = $conn->prepare('SELECT 1 FROM ingredients_closing_stock WHERE DATE(date_time) = ? LIMIT 1 FOR UPDATE');
+  if (!$dupStmt) {
+    throw new RuntimeException('Unable to check existing stock entries.');
+  }
+  $dupStmt->bind_param('s', $stockDate);
+  $dupStmt->execute();
+  $exists = $dupStmt->get_result()->num_rows > 0;
+  $dupStmt->close();
+  if ($exists) {
+    $failureStatus = 'duplicate';
+    throw new RuntimeException('A stock entry already exists for this date.');
+  }
 
   foreach ($quantities as $ingredientName => $quantity) {
     if (!is_string($ingredientName)) {

@@ -275,7 +275,7 @@ foreach ($sheetIngredients as $ingredient) {
                 <div>
                   <label for="sheet-date" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Date</label>
                   <div class="relative w-full rounded-lg focus-within:ring-2 focus-within:ring-red-600">
-                   <input id="sheet-date" type="date" name="sheet_date" value="<?php echo date('Y-m-d'); ?>" required class="date-screen-control w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600">
+                   <input id="sheet-date" type="date" name="sheet_date" value="<?php echo date('Y-m-d'); ?>" readonly tabindex="-1" class="date-screen-control w-full bg-slate-100 cursor-not-allowed pointer-events-none border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600">
                     <span id="sheet-date-print" class="date-print-label text-xs font-semibold text-slate-800"><?php echo mixingEscape(mixingDateLabel(date('Y-m-d'))); ?></span>
                   </div>
                 </div>

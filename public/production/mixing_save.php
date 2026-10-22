@@ -11,7 +11,7 @@ $formulaId = trim((string) ($_POST['formula_id'] ?? ''));
 $batchInput = (string) ($_POST['batch_tonnes'] ?? '');
 $productionInput = filter_var($_POST['required_production_tons'] ?? null, FILTER_VALIDATE_INT);
 $millerId = filter_var($_POST['miller_user_id'] ?? null, FILTER_VALIDATE_INT);
-$sheetDate = trim((string) ($_POST['sheet_date'] ?? ''));
+$sheetDate = date('Y-m-d');
 $note = trim((string) ($_POST['note'] ?? ''));
 $batchSizes = ['0.5' => 0.5, '1' => 1.0, '2' => 2.0];
 $maxProductionByBatch = ['0.5' => 5, '1' => 10, '2' => 20];

@@ -28,7 +28,7 @@ if (!is_int($orderId) || $orderId < 1 || $orderId > 8388607
   || !is_int($millerId) || $millerId < 1 || $millerId > 32767
   || $transportId === '' || strlen($transportId) > 50
   || strlen($invoiceNumber) > 50
-  || !$validDate($arrivalDate, 'Y-m-d') || !$validDate($arrivalTime, 'H:i')
+  || !$validDate($arrivalDate, 'Y-m-d') || $arrivalDate > date('Y-m-d') || !$validDate($arrivalTime, 'H:i')
   || !is_array($ingredientIds) || !is_array($quantities) || !$ingredientIds) {
   $redirect('error');
 }

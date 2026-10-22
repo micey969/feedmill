@@ -104,8 +104,8 @@ try {
 
           <!-- Creator -->
           <div class="space-y-1">
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Creator</label>
-            <input type="text" name="creator" placeholder="Enter creator name"
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Creator *</label>
+            <input type="text" name="creator" placeholder="Enter creator name" required
               class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
           </div>
 
