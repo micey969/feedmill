@@ -1,15 +1,27 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
-$sheetCountResult = $conn->query('SELECT COUNT(DISTINCT mixing_sheet_id) AS sheet_count FROM v_ingredient_usage');
-$sheetCount = $sheetCountResult ? (int) $sheetCountResult->fetch_assoc()['sheet_count'] : 0;
-$firstSheetId = null;
-$lastSheetId = null;
-$sheetId = null;
-$sheetPosition = 0;
-$previousSheetId = null;
-$nextSheetId = null;
+$sheetIds = [];
+$sheetIdsResult = $conn->query('SELECT DISTINCT mixing_sheet_id FROM v_ingredient_usage ORDER BY mixing_sheet_id DESC');
+if ($sheetIdsResult) {
+  while ($row = $sheetIdsResult->fetch_assoc()) {
+    $sheetIds[] = (int) $row['mixing_sheet_id'];
+  }
+}
+$sheetCount = count($sheetIds);
+$currentPage = 1;
+$requestedSheetId = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
+if (isset($_GET['page'])) {
+  $currentPage = max(1, (int) $_GET['page']);
+} elseif ($requestedSheetId) {
+  $requestedPosition = array_search($requestedSheetId, $sheetIds, true);
+  if ($requestedPosition !== false) {
+    $currentPage = $requestedPosition + 1;
+  }
+}
+$currentPage = max(1, min($currentPage, max(1, $sheetCount)));
+$sheetId = $sheetIds[$currentPage - 1] ?? null;
 $sheet = null;
 $ingredients = [];
 $calculatedIngredientTotal = 0.0;
@@ -17,45 +29,6 @@ $actualIngredientTotal = 0.0;
 $ingredientVarianceTotal = 0.0;
 
 if ($sheetCount > 0) {
-  $boundsResult = $conn->query('SELECT MIN(mixing_sheet_id) AS first_id, MAX(mixing_sheet_id) AS last_id FROM v_ingredient_usage');
-  $bounds = $boundsResult->fetch_assoc();
-  $firstSheetId = (int) $bounds['first_id'];
-  $lastSheetId = (int) $bounds['last_id'];
-
-  $requestedSheetId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-  $sheetId = $requestedSheetId && $requestedSheetId > 0 ? $requestedSheetId : $lastSheetId;
-  $existsStmt = $conn->prepare('SELECT 1 FROM v_ingredient_usage WHERE mixing_sheet_id = ? LIMIT 1');
-  $existsStmt->bind_param('i', $sheetId);
-  $existsStmt->execute();
-  if (!$existsStmt->get_result()->fetch_row()) {
-    $sheetId = $lastSheetId;
-  }
-  $existsStmt->close();
-
-  $positionStmt = $conn->prepare('SELECT COUNT(DISTINCT mixing_sheet_id) FROM v_ingredient_usage WHERE mixing_sheet_id <= ?');
-  $positionStmt->bind_param('i', $sheetId);
-  $positionStmt->execute();
-  $positionStmt->bind_result($sheetPosition);
-  $positionStmt->fetch();
-  $positionStmt->close();
-  $sheetPosition = (int) $sheetPosition;
-
-  $previousStmt = $conn->prepare('SELECT MAX(mixing_sheet_id) FROM v_ingredient_usage WHERE mixing_sheet_id < ?');
-  $previousStmt->bind_param('i', $sheetId);
-  $previousStmt->execute();
-  $previousStmt->bind_result($previousSheetId);
-  $previousStmt->fetch();
-  $previousStmt->close();
-  $previousSheetId = $previousSheetId === null ? null : (int) $previousSheetId;
-
-  $nextStmt = $conn->prepare('SELECT MIN(mixing_sheet_id) FROM v_ingredient_usage WHERE mixing_sheet_id > ?');
-  $nextStmt->bind_param('i', $sheetId);
-  $nextStmt->execute();
-  $nextStmt->bind_result($nextSheetId);
-  $nextStmt->fetch();
-  $nextStmt->close();
-  $nextSheetId = $nextSheetId === null ? null : (int) $nextSheetId;
-
   $usageStmt = $conn->prepare('SELECT mixing_sheet_id, formula_id, ingredients_id, ingredients, date_time, required_production_tons, calculated_bags_produced, actual_bags_produced, variance_bags_produced, calculated_total_used_kgs, actual_total_used_kgs, total_variance_kgs FROM v_ingredient_usage WHERE mixing_sheet_id = ? ORDER BY ingredients_id');
   $usageStmt->bind_param('i', $sheetId);
   $usageStmt->execute();
@@ -127,30 +100,26 @@ function varianceQuantityNumber($value): string {
 
       <div class="flex items-center gap-3 no-print">
         <nav aria-label="Mixing sheet variance pagination" class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-medium">
-          <?php foreach ([['Last Record', $sheetId === $lastSheetId ? null : $lastSheetId, 'M11 19l-7-7 7-7m8 14l-7-7 7-7'], ['Next Record', $nextSheetId, 'M15 19l-7-7 7-7']] as [$label, $targetId, $path]): ?>
-            <?php if ($targetId !== null): ?>
-              <a href="<?php echo variancePageUrl($targetId); ?>" title="<?php echo $label; ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo $path; ?>"></path></svg>
-              </a>
-            <?php else: ?>
-              <span title="<?php echo $label; ?>" class="px-2 py-1 text-slate-400">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo $path; ?>"></path></svg>
-              </span>
-            <?php endif; ?>
-          <?php endforeach; ?>
-          <span class="px-3 font-semibold text-slate-700"><?php echo $sheetCount > 0 ? $sheetPosition . ' of ' . $sheetCount : '0 of 0'; ?></span>
-          <?php foreach ([['Previous Record', $previousSheetId, 'M9 5l7 7-7 7'], ['First Record', $sheetId === $firstSheetId ? null : $firstSheetId, 'M13 5l7 7-7 7M5 5l7 7-7 7']] as [$label, $targetId, $path]): ?>
-            <?php if ($targetId !== null): ?>
-              <a href="<?php echo variancePageUrl($targetId); ?>" title="<?php echo $label; ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo $path; ?>"></path></svg>
-              </a>
-            <?php else: ?>
-              <span title="<?php echo $label; ?>" class="px-2 py-1 text-slate-400">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo $path; ?>"></path></svg>
-              </span>
-            <?php endif; ?>
-          <?php endforeach; ?>
-        </nav>
+          <?php
+            $varianceNav = [
+              ['Last Record', 1, $currentPage === 1, 'M11 19l-7-7 7-7m8 14l-7-7 7-7'],
+              ['Next Record', max(1, $currentPage - 1), $currentPage === 1, 'M15 19l-7-7 7-7'],
+            ];
+            $varianceNavAfter = [
+              ['Previous Record', min($sheetCount, $currentPage + 1), $currentPage >= $sheetCount, 'M9 5l7 7-7 7'],
+              ['First Record', $sheetCount, $currentPage >= $sheetCount, 'M13 5l7 7-7 7M5 5l7 7-7 7'],
+            ];
+            $renderVarianceNav = function (array $items) {
+              foreach ($items as [$label, $page, $disabled, $path]) {
+                $href = htmlspecialchars(publicUrl('production/variance.php?page=' . $page), ENT_QUOTES, 'UTF-8');
+                echo '<a href="' . $href . '" class="px-2 py-1 ' . ($disabled ? 'text-slate-300 pointer-events-none' : 'text-slate-600 hover:text-slate-900 hover:bg-white') . ' rounded-lg transition" title="' . $label . '" aria-label="' . $label . '">'
+                  . '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="' . $path . '"></path></svg></a>';
+              }
+            };
+            $renderVarianceNav($varianceNav);
+          ?>
+          <span class="px-3 font-semibold text-slate-700" aria-live="polite"><?php echo $sheetId !== null ? 'Sheet #' . (int) $sheetId : 'No Records'; ?></span>
+          <?php $renderVarianceNav($varianceNavAfter); ?>
       </div>
     </header>
 
