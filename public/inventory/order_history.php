@@ -422,7 +422,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             </div>
 
             <?php if ($receivedLines): ?>
-              <div class="px-6 pt-4 border-t border-slate-100 shrink-0">
+              <div class="px-6 pt-4 pb-4 border-t border-slate-100 shrink-0">
                 <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Already Received (locked)</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-32 overflow-y-auto">
                   <table class="w-full text-left text-xs">

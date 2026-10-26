@@ -16,10 +16,21 @@ if (!is_string($companyNameInput) || trim($companyNameInput) === '' || !is_strin
 // Captialize the first letter of each word
 $companyName = ucwords(strtolower(trim($companyNameInput)));
 $contactPerson = ucwords(strtolower(trim($contactPersonInput)));
-$country = ucwords(strtolower(trim($countryInput)));
+$country = trim($countryInput);
 
 $stmt = null;
 try {
+    $countryStmt = $conn->prepare('SELECT country_name FROM countries WHERE country_name = ?');
+    $countryStmt->bind_param('s', $country);
+    $countryStmt->execute();
+    $countryRow = $countryStmt->get_result()->fetch_assoc();
+    $countryStmt->close();
+    if (!$countryRow) {
+        header('Location: ' . publicUrl('inventory/suppliers.php?error=invalid'));
+        exit;
+    }
+    $country = $countryRow['country_name'];
+
     $stmt = $conn->prepare('INSERT INTO suppliers (company_name, contact_person, country, phone, email) VALUES (?, ?, ?, ?, ?)');
     if (!$stmt) {
         throw new RuntimeException('Unable to prepare supplier creation.');

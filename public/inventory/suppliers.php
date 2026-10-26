@@ -23,8 +23,11 @@ $totalRecords = 0;
 $suppliers = [];
 $totalPages = 1;
 $offset = 0;
+$countries = [];
 
 try {
+  $countries = $conn->query('SELECT country_name FROM countries ORDER BY country_name ASC')->fetch_all(MYSQLI_ASSOC);
+
   $countStmt = $conn->prepare('SELECT COUNT(*) AS total FROM suppliers WHERE contact_person LIKE ? OR company_name LIKE ? OR country LIKE ?');
   if (!$countStmt) {
     throw new RuntimeException('Unable to prepare supplier count query.');
@@ -254,7 +257,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
               <!-- Phone -->
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Phone Number *</label>
-                <input type="tel" name="phone" required placeholder="(246) 000-0000" pattern="^\(\d{3}\)\s\d{3}-\d{4}$"class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="tel" name="phone" required placeholder="(000) 000-0000" pattern="^\(\d{3}\)\s\d{3}-\d{4}$"class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <!-- Email -->
@@ -263,10 +266,15 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                 <input type="email" name="email" required placeholder="contact@supplier.com" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
-              <!-- Website -->
+              <!-- Country -->
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Country *</label>
-                <input type="text" name="country" required placeholder="Barbados" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <select name="country" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <option value="" disabled selected>Select country</option>
+                  <?php foreach ($countries as $country): ?>
+                    <option value="<?php echo htmlspecialchars($country['country_name']); ?>"><?php echo htmlspecialchars($country['country_name']); ?></option>
+                  <?php endforeach; ?>
+                </select>
               </div>
             </div>
           </div>
@@ -320,8 +328,13 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
               <input type="tel" name="phone" id="edit-supplier-phone" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
             </div>
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Country</label>
-              <input type="text" name="country" id="edit-supplier-country" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
+              <label class="block font-bold text-slate-700 mb-1">Country *</label>
+              <select name="country" id="edit-supplier-country" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
+                <option value="" disabled>Select country</option>
+                <?php foreach ($countries as $country): ?>
+                  <option value="<?php echo htmlspecialchars($country['country_name']); ?>"><?php echo htmlspecialchars($country['country_name']); ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
           </div>
           <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">

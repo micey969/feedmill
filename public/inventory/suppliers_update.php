@@ -17,11 +17,21 @@ if (!$supplierId || $companyName === '' || $contactPerson === '' || $country ===
 
 $companyName = ucwords(strtolower($companyName));
 $contactPerson = ucwords(strtolower($contactPerson));
-$country = ucwords(strtolower($country));
 
 $currentStmt = null;
 $stmt = null;
 try {
+    $countryStmt = $conn->prepare('SELECT country_name FROM countries WHERE country_name = ?');
+    $countryStmt->bind_param('s', $country);
+    $countryStmt->execute();
+    $countryRow = $countryStmt->get_result()->fetch_assoc();
+    $countryStmt->close();
+    if (!$countryRow) {
+        header('Location: ' . publicUrl('inventory/suppliers.php?error=invalid'));
+        exit;
+    }
+    $country = $countryRow['country_name'];
+
     $conn->begin_transaction();
     $currentStmt = $conn->prepare('SELECT company_name, contact_person, country, phone, email, last_modified FROM suppliers WHERE supplier_id = ? FOR UPDATE');
     if (!$currentStmt) {
