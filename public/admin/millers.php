@@ -11,7 +11,9 @@ $offset = ($currentPage - 1) * $recordsPerPage;
 $searchTerm = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
 $millerMessages = [
   'invalid' => 'Enter a full name and select a valid job position.',
+  'invalid_name' => 'Miller names can contain letters and spaces only. Numbers are not allowed.',
   'not_found' => 'The miller record could not be found. Refresh the list and try again.',
+  'duplicate' => 'This miller already exists. Choose a different name or edit the existing miller.',
   'conflict' => 'This miller record was modified by another user while you were editing. Refresh the list and re-apply your changes.',
   'save' => 'The miller record could not be saved. Please try again.',
 ];
@@ -152,7 +154,7 @@ $jobColors = [
           <!-- Full Name -->
           <div class="sm:col-span-5 space-y-1">
             <label class="text-xs font-semibold text-slate-600">Full Name</label>
-            <input type="text" name="full_name" placeholder="e.g. Brionne Campbell" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+            <input type="text" name="full_name" placeholder="e.g. Brionne Campbell" pattern="^[a-zA-Z\s]+$" title="Use letters and spaces only. Numbers are not allowed." required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
           </div>
 
           <!-- Position -->
@@ -295,7 +297,7 @@ $jobColors = [
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Full Name *</label>
-                <input type="text" name="full_name" id="edit-miller-full-name" required placeholder="e.g. Jane Doe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="full_name" id="edit-miller-full-name" required placeholder="e.g. Jane Doe" pattern="^[a-zA-Z\s]+$" title="Use letters and spaces only. Numbers are not allowed." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <div>

@@ -8,6 +8,7 @@ $searchTerm = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
 $searchParam = '%' . $searchTerm . '%';
 $accountMessages = [
   'invalid' => 'Check the required account fields and try again.',
+  'invalid_name' => 'Account holder names can contain letters and spaces only. Numbers are not allowed.',
   'duplicate' => 'That username is already in use. Choose a different username.',
   'not_found' => 'The account could not be found. Refresh the list and try again.',
   'save' => 'The account could not be saved. Please try again.',
@@ -241,17 +242,17 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Full Name *</label>
-                <input type="text" name="full_name" required placeholder="e.g. Jane Doe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="full_name" required placeholder="e.g. Jane Doe" pattern="^[a-zA-Z\s]+$" title="Use letters and spaces only. Numbers are not allowed." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Username *</label>
-                <input type="text" name="username" required placeholder="e.g. jdoe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="username" required placeholder="e.g. jdoe" pattern="^[a-zA-Z0-9_]+$" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Job Title *</label>
-                <input type="text" name="job_title" required placeholder="e.g. Production Supervisor" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="job_title" required placeholder="e.g. Production Supervisor" pattern="^[a-zA-Z\s]+$" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <div>
@@ -328,17 +329,17 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Full Name *</label>
-                <input type="text" name="full_name" id="edit-user-full-name" required placeholder="e.g. Jane Doe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="full_name" id="edit-user-full-name" required placeholder="e.g. Jane Doe" pattern="^[a-zA-Z\s]+$" title="Use letters and spaces only. Numbers are not allowed." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Username *</label>
-                <input type="text" name="username" id="edit-user-username" required placeholder="e.g. jdoe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="username" id="edit-user-username" required placeholder="e.g. jdoe" pattern="^[a-zA-Z0-9_]+$" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Job Title *</label>
-                <input type="text" name="job_title" id="edit-user-job-title" required placeholder="e.g. Production Supervisor" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="job_title" id="edit-user-job-title" required placeholder="e.g. Production Supervisor" pattern="^[a-zA-Z\s]+$" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
 
               <div>

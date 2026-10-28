@@ -12,6 +12,10 @@ if (!$userId || $fullName === '' || !in_array($jobTitle, ['Mill Operator', 'Assi
     header('Location: ' . publicUrl('admin/millers.php?error=invalid'));
     exit;
 }
+if (preg_match('/^[a-zA-Z\s]+$/', $fullName) !== 1) {
+    header('Location: ' . publicUrl('admin/millers.php?error=invalid_name'));
+    exit;
+}
 
 $fullName = ucwords(strtolower($fullName));
 $jobTitle = ucwords(strtolower($jobTitle));

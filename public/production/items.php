@@ -131,7 +131,7 @@ if ($ingredientResult) {
           <div>
             <label class="block text-slate-700 font-bold mb-1">Total Quantity</label>
             <div class="relative">
-              <input type="number" min="0" max="99999" step="1" name="quantity_kgs" required <?php echo $readOnly ? 'value="' . (int) $sale['quantity_kgs'] . '" disabled' : ''; ?> class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-3 pr-12 py-2.5 font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+              <input type="number" min="0" max="99999.99" step="0.01" name="quantity_kgs" required <?php echo $readOnly ? 'value="' . (float) $sale['quantity_kgs'] . '" disabled' : ''; ?> class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-3 pr-12 py-2.5 font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               <span class="absolute right-3 top-3 text-[10px] font-bold text-slate-400">KGS</span>
             </div>
           </div>

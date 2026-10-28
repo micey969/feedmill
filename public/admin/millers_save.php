@@ -9,6 +9,10 @@ if (!is_string($fullNameInput) || trim($fullNameInput) === '' || !is_string($job
     header('Location: ' . publicUrl('admin/millers.php?error=invalid'));
     exit;
 }
+if (preg_match('/^[a-zA-Z\s]+$/', trim($fullNameInput)) !== 1) {
+    header('Location: ' . publicUrl('admin/millers.php?error=invalid_name'));
+    exit;
+}
 
 // Captialize the first letter of each word in the full name and position
 $FullName = ucwords(strtolower(trim($fullNameInput)));

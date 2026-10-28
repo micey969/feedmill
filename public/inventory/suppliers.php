@@ -8,8 +8,10 @@ $searchTerm = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
 $searchParam = '%' . $searchTerm . '%';
 $supplierMessages = [
   'invalid' => 'Check all required supplier fields and try again.',
+  'invalid_contact' => 'Contact person names can contain letters and spaces only. Numbers are not allowed.',
   'not_found' => 'The supplier could not be found. Refresh the list and try again.',
   'conflict' => 'This supplier was modified by another user while you were editing. Refresh the list and re-apply your changes.',
+  'duplicate' => 'This supplier already exists. Choose a different company name, or edit the existing supplier.',
   'save' => 'The supplier could not be saved. Please try again.',
 ];
 $supplierError = $supplierMessages[$_GET['error'] ?? ''] ?? '';
@@ -242,7 +244,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Contact Person *</label>
-                <input type="text" name="contact_person" required placeholder="e.g. John Doe" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <input type="text" name="contact_person" required placeholder="e.g. John Doe" pattern="^[a-zA-Z\s]+$" title="Use letters and spaces only. Numbers are not allowed." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
               </div>
             </div>
           </div>
@@ -256,8 +258,9 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- Phone -->
               <div>
-                <label class="block font-bold text-slate-700 mb-1">Phone Number *</label>
-                <input type="tel" name="phone" required placeholder="(000) 000-0000" pattern="^\(\d{3}\)\s\d{3}-\d{4}$"class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <label class="block font-bold text-slate-700 mb-1">Phone *</label>
+                <input type="tel" name="phone" required placeholder="(000) 000-0000" pattern="^\(\d{3}\)\s\d{3}-\d{4}$" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <span class="mt-1 text-[10px] text-slate-500">Format: (000) 000-0000</span>
               </div>
 
               <!-- Email -->
@@ -307,7 +310,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block font-bold text-slate-700 mb-1">Contact Person *</label>
-              <input type="text" name="contact_person" id="edit-supplier-contact-person" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
+              <input type="text" name="contact_person" id="edit-supplier-contact-person" pattern="^[a-zA-Z\s]+$" title="Use letters and spaces only. Numbers are not allowed." required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
             </div>
 
             <div>
@@ -321,11 +324,12 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block font-bold text-slate-700 mb-1">Email *</label>
-              <input type="email" name="email" id="edit-supplier-email" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
+              <input type="email" name="email" id="edit-supplier-email" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">Phone *</label>
-              <input type="tel" name="phone" id="edit-supplier-phone" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
+              <input type="tel" name="phone" id="edit-supplier-phone" pattern="^\(\d{3}\)\s\d{3}-\d{4}$" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-medium">
+              <span class="mt-1 text-[10px] text-slate-500">Format: (000) 000-0000</span>
             </div>
             <div>
               <label class="block font-bold text-slate-700 mb-1">Country *</label>

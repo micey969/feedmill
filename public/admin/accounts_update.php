@@ -15,6 +15,10 @@ if (!$userId || $fullName === '' || $jobTitle === '' || $username === '' || !in_
     header('Location: ' . publicUrl('admin/accounts.php?error=invalid'));
     exit;
 }
+if (preg_match('/^[a-zA-Z\s]+$/', $fullName) !== 1) {
+    header('Location: ' . publicUrl('admin/accounts.php?error=invalid_name'));
+    exit;
+}
 
 $currentStmt = null;
 $stmt = null;

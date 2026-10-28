@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
 $ingredientOptions = [];
 $ingredientErrorMessages = [
   'invalid' => 'Enter a valid ingredient name or review the submitted ingredient changes.',
-  'duplicate' => 'An ingredient with that name already exists.',
+  'duplicate' => 'An ingredient with that name already exists. Choose a different name or edit the existing ingredient.',
   'conflict' => 'The ingredient list was modified by another user while you were editing. Refresh the page and re-apply your changes.',
   'save' => 'Ingredient changes could not be saved. Please try again.',
 ];

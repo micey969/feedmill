@@ -9,8 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $orderId = filter_var($_POST['order_id'] ?? null, FILTER_VALIDATE_INT);
 $transportName = trim($_POST['transport_name'] ?? '');
-$returnToReceive = static function (bool $saved, string $transportId = '') use ($orderId): never {
-  $query = [$saved ? 'transport_saved' : 'transport_error' => '1'];
+$returnToReceive = static function (bool $saved, string $transportId = '', string $error = 'save') use ($orderId): never {
+  $query = [$saved ? 'transport_saved' : 'transport_error' => $saved ? '1' : $error];
   if (is_int($orderId) && $orderId > 0) {
     $query['order_id'] = $orderId;
   }
@@ -22,7 +22,7 @@ $returnToReceive = static function (bool $saved, string $transportId = '') use (
 };
 
 if ($transportName === '' || strlen($transportName) > 100) {
-  $returnToReceive(false);
+  $returnToReceive(false, '', 'invalid');
 }
 
 $slug = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $transportName), '-'));
@@ -34,10 +34,15 @@ if (!$stmt) {
 
 try {
   $stmt->bind_param('ss', $transportId, $transportName);
-  $stmt->execute();
+  if (!$stmt->execute()) {
+    throw new RuntimeException($stmt->errno === 1062 ? 'duplicate' : 'save');
+  }
 } catch (Throwable $error) {
   $stmt->close();
-  $returnToReceive(false);
+  $status = $error instanceof mysqli_sql_exception && (int) $error->getCode() === 1062
+    ? 'duplicate'
+    : ($error->getMessage() === 'duplicate' ? 'duplicate' : 'save');
+  $returnToReceive(false, '', $status);
 }
 $stmt->close();
 

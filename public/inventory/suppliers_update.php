@@ -14,6 +14,10 @@ if (!$supplierId || $companyName === '' || $contactPerson === '' || $country ===
     header('Location: ' . publicUrl('inventory/suppliers.php?error=invalid'));
     exit;
 }
+if (preg_match('/^[a-zA-Z\s]+$/', $contactPerson) !== 1) {
+    header('Location: ' . publicUrl('inventory/suppliers.php?error=invalid_contact'));
+    exit;
+}
 
 $companyName = ucwords(strtolower($companyName));
 $contactPerson = ucwords(strtolower($contactPerson));

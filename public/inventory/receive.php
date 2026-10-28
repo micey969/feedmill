@@ -45,6 +45,13 @@ if ($selectedOrder) {
 
 $transports = $conn->query('SELECT transport_id, transport_name, last_modified FROM transport ORDER BY transport_name')->fetch_all(MYSQLI_ASSOC);
 $millers = $conn->query("SELECT user_id, full_name FROM millers WHERE active_flag = b'1' ORDER BY full_name")->fetch_all(MYSQLI_ASSOC);
+$transportErrorMessages = [
+  'invalid' => 'Enter a valid transport name or review the submitted transport changes.',
+  'duplicate' => 'A transport with that name already exists. Choose a different name or edit the existing transport.',
+  'conflict' => 'The transport list was modified by another user while you were editing. Refresh the page and re-apply your changes.',
+  'save' => 'Transport changes could not be saved. Please try again.',
+];
+$transportError = $transportErrorMessages[$_GET['transport_error'] ?? ''] ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -86,8 +93,8 @@ $millers = $conn->query("SELECT user_id, full_name FROM millers WHERE active_fla
         <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold">The receipt could not be saved. Check the selected order, transport, and quantities.</div>
       <?php elseif (isset($_GET['transport_saved'])): ?>
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs font-semibold">Transport list saved.</div>
-      <?php elseif (isset($_GET['transport_error'])): ?>
-        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold"><?php echo ($_GET['transport_error'] ?? '') === 'conflict' ? 'The transport list was modified by another user while you were editing. Refresh the page and re-apply your changes.' : 'Transport changes could not be saved. Check for duplicate names.'; ?></div>
+      <?php elseif ($transportError !== ''): ?>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-semibold" role="alert"><?php echo $escape($transportError); ?></div>
       <?php endif; ?>
 
       <?php if (!$pendingOrders): ?>

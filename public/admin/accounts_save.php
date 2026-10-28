@@ -14,6 +14,10 @@ if ($fullName === '' || $username === '' || $password === '' || $jobTitle === ''
     header('Location: ' . publicUrl('admin/accounts.php?error=invalid'));
     exit;
 }
+if (preg_match('/^[a-zA-Z\s]+$/', $fullName) !== 1) {
+    header('Location: ' . publicUrl('admin/accounts.php?error=invalid_name'));
+    exit;
+}
 
 $activeFlag = $accountStatus === 'Active' ? 1 : 0;
 $password = md5($password);

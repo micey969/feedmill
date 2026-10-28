@@ -31,9 +31,11 @@ foreach ($transportIds as $index => $rawId) {
   $transportId = trim((string) $rawId);
   $transportName = trim((string) ($transportNames[$index] ?? ''));
   $normalizedName = strtolower($transportName);
-  if ($transportId === '' || strlen($transportId) > 50 || $transportName === '' || strlen($transportName) > 100
-    || isset($uniqueNames[$normalizedName])) {
-    $redirect(false);
+  if ($transportId === '' || strlen($transportId) > 50 || $transportName === '' || strlen($transportName) > 100) {
+    $redirect(false, 'invalid');
+  }
+  if (isset($uniqueNames[$normalizedName])) {
+    $redirect(false, 'duplicate');
   }
   $uniqueNames[$normalizedName] = true;
   $updates[$transportId] = $transportName;
@@ -68,7 +70,7 @@ try {
 
     $stmt->bind_param('ss', $transportName, $transportId);
     if (!$stmt->execute()) {
-      throw new RuntimeException('Unable to save transport changes.');
+      throw new RuntimeException($stmt->errno === 1062 ? 'duplicate' : 'save');
     }
   }
   $currentStmt->close();
@@ -82,7 +84,12 @@ try {
   if (isset($stmt) && $stmt instanceof mysqli_stmt) {
     $stmt->close();
   }
-  $redirect(false, $conflict ? 'conflict' : '1');
+  $status = $conflict
+    ? 'conflict'
+    : ($error instanceof mysqli_sql_exception && (int) $error->getCode() === 1062
+      ? 'duplicate'
+      : ($error->getMessage() === 'duplicate' ? 'duplicate' : 'save'));
+  $redirect(false, $status);
 }
 
 $description = $changes
