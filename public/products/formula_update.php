@@ -22,6 +22,12 @@ if ($formulaId === '' || $formulaName === '' || $setupDate === '' || !is_array($
   exit;
 }
 
+$normalizedIngredientIds = array_map('intval', $ingredientIds);
+if (count($normalizedIngredientIds) !== count(array_unique($normalizedIngredientIds))) {
+  header('Location: ' . publicUrl('products/feedlist.php?error=duplicate_ingredient'));
+  exit;
+}
+
 try {
 $currentMetadataStmt = $conn->prepare('SELECT name, creator, setup_date, description, active_flag FROM formula_metadata WHERE formula_id = ?');
 $currentCompositionStmt = $conn->prepare('SELECT c.ingredients_id, c.quantity_kgs, i.name FROM formula_composition c LEFT JOIN ingredients i ON i.ingredients_id = c.ingredients_id WHERE c.formula_id = ?');

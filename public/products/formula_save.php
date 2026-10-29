@@ -21,6 +21,12 @@ if ($formulaId === '' || $formulaName === '' || $setupDate === '' || !is_array($
   exit;
 }
 
+$normalizedIngredientIds = array_map('intval', $ingredientIds);
+if (count($normalizedIngredientIds) !== count(array_unique($normalizedIngredientIds))) {
+  header('Location: ' . publicUrl('products/feedlist.php?error=duplicate_ingredient'));
+  exit;
+}
+
 $transactionStarted = false;
 $saveError = 'save';
 try {

@@ -99,7 +99,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
     <div class="h-1.5 shrink-0 bg-red-600 w-full sticky top-0 z-10"></div>
 
     <!-- Page Header Bar & Date Range Filter -->
-    <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs">
+    <header data-report-page-header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs">
       <div>
         <nav class="flex items-center gap-2 text-xs text-slate-400 font-medium">
           <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600 transition">Main Hub</a>
@@ -145,14 +145,14 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
         </div>
 
         <!-- Data Table Grid -->
-        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+        <div class="rounded-2xl border border-slate-200">
           <table class="w-full text-left text-xs border-collapse">
             <thead>
               <tr class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
-                <th class="py-3.5 px-6">Feed Type</th>
-                <th class="py-3.5 px-6 text-right"> Actual Kgs</th>
-                <th class="py-3.5 px-6 text-right">Actual Tons</th>
-                <th class="py-3.5 px-6 text-right">%</th>
+                <th class="sticky z-20 bg-slate-100 py-3.5 px-6" style="top: var(--report-table-sticky-top)">Feed Type</th>
+                <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)"> Actual Kgs</th>
+                <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">Actual Tons</th>
+                <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">%</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-medium text-slate-800">
@@ -192,5 +192,6 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
     </div>
   </main>
 
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/report_table_headers.js')); ?>"></script>
 </body>
 </html>

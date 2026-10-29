@@ -105,6 +105,7 @@ $end = min($offset + $limit, $total);
 $formulaErrorMessages = [
   'invalid' => 'Check the formula details and ingredient quantities, then try again.',
   'duplicate' => 'That formula code already exists. Use a different code or edit the existing formula.',
+  'duplicate_ingredient' => 'An ingredient was added more than once. Combine the quantities into a single row or remove the repeated ingredient.',
   'not_found' => 'The formula could not be found. Refresh the list and try again.',
   'conflict' => 'This formula was modified by another user while you were editing. Refresh the list and re-apply your changes.',
   'ingredient' => 'One or more selected ingredients could not be found.',

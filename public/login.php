@@ -34,7 +34,7 @@ require_once __DIR__ . '/../app/views/auth/login.php';
       <!-- Center Login Form Area -->
       <div class="my-auto py-8 space-y-6">
         <div>
-          <h2 class="text-2xl font-black text-slate-900 tracking-tight">WELCOME BACK</h2>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">WELCOME</h2>
           <p class="text-xs text-slate-500 font-medium mt-1">Please enter your credentials to access system management.</p>
         </div>
 
@@ -99,7 +99,7 @@ require_once __DIR__ . '/../app/views/auth/login.php';
       <div class="absolute bottom-12 left-12 right-12 text-white max-w-xl space-y-4">
         <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-xs font-semibold">
           <span class="w-2 h-2 rounded-full bg-red-500"></span>
-          <span>Feedmill Production Portal</span>
+          <span>Feedmill Production Management Portal</span>
         </div>
         <h3 class="text-3xl font-black tracking-tight leading-tight">Precision Milling, Inventory Management, and Yield Tracking.</h3>
         <p class="text-xs text-slate-300 font-medium leading-relaxed">

@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteBase /feedmill/
+
+# Redirect .php URLs to extensionless URLs
+RewriteCond %{REQUEST_METHOD} GET
+RewriteCond %{THE_REQUEST} \s/+feedmill/(.+)\.php[\s?]
+RewriteRule ^(.+)\.php$ /feedmill/$1 [R=301,L]
+
+# Serve PHP files from folders
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L]
