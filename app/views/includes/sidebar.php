@@ -157,4 +157,4 @@
   </div>
 </aside>
 
-<script src="<?php echo htmlspecialchars(publicUrl('assets/js/menu_toggle.js')); ?>"></script>
+<script src="<?php echo htmlspecialchars(publicUrl('assets/js/menu_toggle.js') . '?v=' . (int) @filemtime(__DIR__ . '/../../../public/assets/js/menu_toggle.js')); ?>"></script>

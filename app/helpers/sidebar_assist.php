@@ -7,7 +7,7 @@
     $baseClass = 'block px-3 py-2 rounded-lg transition';
     return $page === $currentPage
       ? $baseClass . ' bg-red-600 text-white'
-      : $baseClass . ' hover:bg-slate-800 hover:text-white text-slate-400';
+      : $baseClass . ' hover:bg-slate-800 hover:text-white font-semibold text-slate-400';
   }
 
   //Make the sidebar icon active if the current page matches any of the link's pages
@@ -18,11 +18,11 @@
       : $baseClass;
   }
 
-  $productionPages = ['production/mixing.php', 'production/variance.php', 'production/items.php'];
-  $productPages = ['products/formulas.php', 'products/feedlist.php', 'products/physical.php'];
-  $inventoryPages = ['inventory/suppliers.php', 'inventory/order_history.php', 'inventory/orders.php', 'inventory/receive.php'];
-  $reportPages = ['reports/materials.php', 'reports/sold.php', 'reports/feeds.php', 'reports/summary.php'];
-  $administrationPages = ['admin/millers.php', 'admin/accounts.php', 'admin/audit.php'];
+  $productionPages = ['production/mixing', 'production/variance', 'production/items'];
+  $productPages = ['products/formulas', 'products/feedlist', 'products/physical'];
+  $inventoryPages = ['inventory/suppliers', 'inventory/order_history', 'inventory/orders', 'inventory/receive'];
+  $reportPages = ['reports/materials', 'reports/sold', 'reports/feeds', 'reports/summary'];
+  $administrationPages = ['admin/millers', 'admin/accounts', 'admin/audit'];
   
   $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
   $isUser = ($_SESSION['role'] ?? '') === 'user';

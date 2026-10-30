@@ -120,18 +120,20 @@ function toggleMenu(button, menuId) {
 
 // Accurate Active Link Highlighting using DOM pathname resolution
 function updateActiveLinks() {
-  const currentPath = window.location.pathname;
+  // Links may include /public while the browser URL may not (and has no .php), so compare folder/page only
+  const pageKey = (path) => path.replace(/\.php$/, '').split('/').filter(Boolean).slice(-2).join('/');
+  const currentPath = pageKey(window.location.pathname);
   const navLinks = document.querySelectorAll('#sidebar-navigation a[href]');
 
   navLinks.forEach(link => {
-    const isCurrent = link.pathname === currentPath;
+    const isCurrent = pageKey(link.pathname) === currentPath;
 
     if (isCurrent) {
-      link.classList.add('bg-red-600', 'text-white');
-      link.classList.remove('hover:bg-slate-800', 'hover:text-white', 'text-slate-400');
+      link.classList.add('bg-red-600', 'text-white', 'font-bold');
+      link.classList.remove('hover:bg-slate-800', 'hover:text-white', 'text-slate-400', 'font-semibold');
     } else {
-      link.classList.remove('bg-red-600', 'text-white');
-      link.classList.add('hover:bg-slate-800', 'hover:text-white', 'text-slate-400');
+      link.classList.remove('bg-red-600', 'text-white', 'font-bold');
+      link.classList.add('hover:bg-slate-800', 'hover:text-white', 'text-slate-400', 'font-semibold');
     }
   });
 
@@ -144,19 +146,20 @@ function updateSectionHeaderHighlights(currentUrl) {
   const isCollapsed = sidebar && sidebar.classList.contains('collapsed');
 
   const sections = {
-    'production': ['production/mixing.php', 'production/variance.php', 'production/items.php'],
-    'product': ['products/formulas.php', 'products/feedlist.php', 'products/physical.php'],
-    'inventory': ['inventory/suppliers.php', 'inventory/order_history.php', 'inventory/orders.php', 'inventory/receive.php'],
-    'reports': ['reports/materials.php', 'reports/sold.php', 'reports/feeds.php', 'reports/summary.php'],
-    'administration': ['admin/millers.php', 'admin/accounts.php', 'admin/audit.php']
+    'production': ['production/mixing', 'production/variance', 'production/items'],
+    'product': ['products/formulas', 'products/feedlist', 'products/physical'],
+    'inventory': ['inventory/suppliers', 'inventory/order_history', 'inventory/orders', 'inventory/receive'],
+    'reports': ['reports/materials', 'reports/sold', 'reports/feeds', 'reports/summary'],
+    'administration': ['admin/millers', 'admin/accounts', 'admin/audit']
   };
-
   Object.entries(sections).forEach(([menuPrefix, pages]) => {
-    const isSectionActive = pages.some(page => currentUrl.endsWith(page));
+    
+    const isSectionActive = pages.includes(currentUrl);
     const menuBtn = document.querySelector(`button[aria-controls="${menuPrefix}-menu"]`);
 
     if (menuBtn) {
       const menu = document.getElementById(`${menuPrefix}-menu`);
+
       if (isSectionActive && !isCollapsed && menu) {
         menu.hidden = false;
         menuBtn.setAttribute('aria-expanded', 'true');
