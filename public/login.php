@@ -20,12 +20,12 @@ require_once __DIR__ . '/../app/views/auth/login.php';
       <!-- Top Brand Header -->
       <div class="space-y-2">
         <div class="flex items-center gap-3">
-          <div class="bg-red-600 px-3 py-1 rounded-lg inline-block">
-            <span class="text-2xl font-black text-white font-serif tracking-tighter">ECGC</span>
+          <div class="border border-red-300 px-3 py-1 rounded-lg inline-block">
+            <img src="<?php echo htmlspecialchars(publicUrl('assets/images/logo.png')); ?>" alt="ECGC Logo" class="w-24 h-20">
           </div>
           <div>
-            <h1 class="text-xs font-bold text-slate-900 uppercase tracking-wider">East Caribbean Feeds</h1>
-            <p class="text-[10px] font-semibold text-slate-400">Feedmill Production System</p>
+            <h1 class="text-lg font-bold text-slate-900 uppercase tracking-wider">East Caribbean Feeds</h1>
+            <p class="text-[11px] font-semibold text-slate-400">Feedmill Production System</p>
           </div>
         </div>
         <div class="h-1 bg-gradient-to-r from-red-600 to-red-400 w-16 rounded-full mt-4"></div>
@@ -34,7 +34,7 @@ require_once __DIR__ . '/../app/views/auth/login.php';
       <!-- Center Login Form Area -->
       <div class="my-auto py-8 space-y-6">
         <div>
-          <h2 class="text-2xl font-black text-slate-900 tracking-tight">WELCOME</h2>
+          <h2 class="text-3xl font-black text-slate-900 tracking-tight">WELCOME</h2>
           <p class="text-xs text-slate-500 font-medium mt-1">Please enter your credentials to access system management.</p>
         </div>
 
