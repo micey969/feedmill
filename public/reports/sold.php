@@ -97,7 +97,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
   foreach ($ingredients as $ingredient) {
     $totals[] = number_format($ingredientTotals[$ingredient] ?? 0, 2);
   }
-  \App\Libraries\Pdf\ReportPdf::download('standard-table.php', [
+  \App\Libraries\Pdf\ReportPdf::display('standard-table.php', [
     'reportTitle' => 'Items Sold Separately Report',
     'dateRange' => ['start' => $formatDate($startDate), 'end' => $formatDate($endDate)],
     'generatedAt' => $ranAt,
@@ -105,7 +105,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
     'rows' => $pdfRows,
     'totals' => $totals,
     'emptyMessage' => 'No items sold separately in this date range.',
-  ], 'items-sold-report.pdf', 'landscape');
+  ], 'items-sold-report.pdf', 'portrait');
 }
 ?>
 
@@ -148,9 +148,9 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
           </button>
         </form>
 
-        <button type="button" onclick="window.location.href='<?php echo $escape(publicUrl('reports/sold.php') . '?' . http_build_query(['start_date' => $startDate, 'end_date' => $endDate, 'export' => 'pdf'])); ?>'" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Export PDF" aria-label="Export PDF">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 17v3h14v-3"></path></svg>
-        </button>
+        <a href="<?php echo $escape(publicUrl('reports/sold.php') . '?' . http_build_query(['start_date' => $startDate, 'end_date' => $endDate, 'export' => 'pdf'])); ?>" target="_blank" rel="noopener" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition" title="Print report" aria-label="Print report">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        </a>
       </div>
     </header>
 
@@ -223,6 +223,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
 
     </div>
   </main>
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/report_date_range.js')); ?>"></script>
   <script src="<?php echo htmlspecialchars(publicUrl('assets/js/report_table_headers.js')); ?>"></script>
 </body>
 </html>

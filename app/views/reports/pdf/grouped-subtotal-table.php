@@ -8,15 +8,15 @@ $alignment = static fn(string $align): string => in_array($align, ['left', 'cent
   <meta charset="UTF-8">
   <style>
     body { color: #1f2937; font-family: DejaVu Sans, sans-serif; font-size: 8pt; }
-    .company-name { margin: 0 0 3px; color: #111827; font-size: 12pt; font-weight: bold; text-align: center; }
-    h1 { margin: 0 0 5px; color: #b91c1c; font-size: 16pt; font-weight: 900; text-align: center; text-transform: uppercase; }
-    .date-range { margin: 0 0 20px; color: #4b5563; text-align: center; }
+    .company-name { margin: 0 0 3px; color: #111827; font-size: 10pt; font-weight: bold; text-align: center; }
+    h1 { margin: 0 0 3px; color: #b91c1c; font-size: 14pt; font-weight: 900; text-align: center; text-transform: uppercase; }
+    .date-range { margin: 0 0 16px; color: #4b5563; text-align: center; }
     table { width: 100%; border-collapse: collapse; }
     thead { display: table-header-group; }
-    th { padding: 7px 5px; border-bottom: 1px solid #9ca3af; background: #f3f4f6; color: #374151; font-size: 7pt; text-align: left; }
-    td { padding: 6px 5px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    th { padding: 5px 3px; border-bottom: 1px solid #9ca3af; background: #f3f4f6; color: #374151; font-size: 7pt; text-align: left; }
+    td { padding: 4px 3px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
     tr { page-break-inside: avoid; }
-    .group-heading td { padding-top: 9px; background: #f3f4f6; color: #b91c1c; font-weight: bold; }
+    .group-heading td { padding-top: 7px; background: #f3f4f6; color: #b91c1c; font-weight: bold; }
     .subtotal td { border-top: 1px solid #fca5a5; background: #fef2f2; font-weight: bold; }
     .grand-total td { border-top: 2px solid #6b7280; background: #f9fafb; font-weight: bold; }
     .empty { padding: 18px 5px; color: #6b7280; text-align: center; }

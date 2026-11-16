@@ -7,16 +7,16 @@ $alignment = static fn(string $align): string => in_array($align, ['left', 'cent
 <head>
   <meta charset="UTF-8">
   <style>
-    body { color: #1f2937; font-family: DejaVu Sans, sans-serif; font-size: 9pt; }
-    .company-name { margin: 0 0 3px; color: #111827; font-size: 12pt; font-weight: bold; text-align: center; }
-    h1 { margin: 0 0 5px; color: #b91c1c; font-size: 17pt; font-weight: 900; text-align: center; text-transform: uppercase; }
-    .date-range { margin: 0 0 22px; color: #4b5563; text-align: center; }
-    .report-note { margin: -14px 0 20px; color: #6b7280; font-size: 8pt; text-align: center; }
+    body { color: #1f2937; font-family: DejaVu Sans, sans-serif; font-size: 8pt; }
+    .company-name { margin: 0 0 3px; color: #111827; font-size: 10pt; font-weight: bold; text-align: center; }
+    h1 { margin: 0 0 3px; color: #b91c1c; font-size: 14pt; font-weight: 900; text-align: center; text-transform: uppercase; }
+    .date-range { margin: 0 0 16px; color: #4b5563; text-align: center; }
+    .report-note { margin: -14px 0 20px; color: #6b7280; font-size: 6pt; text-align: center; }
     table { width: 100%; border-collapse: collapse; }
     thead { display: table-header-group; }
     tfoot { display: table-row-group; }
-    th { padding: 8px 7px; border-bottom: 1px solid #9ca3af; background: #f3f4f6; color: #374151; font-size: 8pt; text-align: left; }
-    td { padding: 7px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    th { padding: 6px 5px; border-bottom: 1px solid #9ca3af; background: #f3f4f6; color: #374151; font-size: 8pt; text-align: left; }
+    td { padding: 5px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
     tr { page-break-inside: avoid; }
     .empty { padding: 18px 7px; color: #6b7280; text-align: center; }
     tfoot td { border-top: 2px solid #6b7280; border-bottom: 0; background: #f9fafb; font-weight: bold; }

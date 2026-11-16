@@ -48,7 +48,7 @@ function mixingDateLabel(string $value): string {
 
 function mixingBatchBoxes(int $count): void {
   for ($batch = 0; $batch < $count; $batch++) {
-    echo '<span class="h-5 w-5 border border-slate-400 rounded-sm inline-block"></span>';
+    echo '<span class="h-5 w-5 border border-slate-400 inline-block"></span>';
   }
 }
 
@@ -201,7 +201,7 @@ foreach ($sheetIngredients as $ingredient) {
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
           </a>
         </nav>
-        <button onclick="<?php if ($sheetId): ?>fetch(window.location.pathname, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'log_print=1&sheet_id=<?php echo (int) $sheetId; ?>'}); <?php endif; ?>window.print()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
+        <button type="button" onclick="const form = document.getElementById('mixing-form'); if (form && !form.reportValidity()) return; <?php if ($sheetId): ?>fetch(window.location.pathname, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'log_print=1&sheet_id=<?php echo (int) $sheetId; ?>'}); <?php endif; ?>window.print()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
         </button>
       </div>
@@ -264,7 +264,7 @@ foreach ($sheetIngredients as $ingredient) {
                   <div class="flex items-center gap-4 text-xs font-semibold">
                     <?php foreach (['0.5' => '1/2 TON', '1' => '1 TON', '2' => '2 TON'] as $value => $label): ?>
                       <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="batch_tonnes" value="<?php echo $value; ?>" class="text-red-600 focus:ring-red-600" <?php echo $value === '2' ? 'checked' : ''; ?>>
+                        <input type="radio" name="batch_tonnes" value="<?php echo $value; ?>" required class="text-red-600 focus:ring-red-600" <?php echo $value === '2' ? 'checked' : ''; ?>>
                         <span><?php echo $label; ?></span>
                       </label>
                     <?php endforeach; ?>
@@ -552,7 +552,7 @@ foreach ($sheetIngredients as $ingredient) {
         batchBoxes.className = 'inline-flex gap-1 justify-center';
         for (let batch = 0; batch < batchCount; batch += 1) {
           const box = document.createElement('span');
-          box.className = 'w-5 h-5 border border-slate-400 rounded-sm inline-block';
+          box.className = 'w-5 h-5 border border-slate-400 inline-block';
           batchBoxes.appendChild(box);
         }
         [perBatch.toFixed(2), ingredient.name, runningScale.toFixed(2), '', (perBatch * batchCount).toFixed(2)].forEach((value, index) => {

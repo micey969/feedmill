@@ -8,12 +8,12 @@ use RuntimeException;
 
 final class ReportPdf
 {
-    public static function download(string $templateName, array $data, string $filename, string $orientation = 'portrait'): void
+    public static function display(string $templateName, array $data, string $filename, string $orientation = 'portrait'): void
     {
         $pdf = self::render($templateName, $data, $orientation);
         $safeFilename = preg_replace('/[^A-Za-z0-9._-]/', '-', basename($filename));
         header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
+        header('Content-Disposition: inline; filename="' . $safeFilename . '"');
         header('Cache-Control: private, max-age=0, must-revalidate');
         echo $pdf;
         exit;
