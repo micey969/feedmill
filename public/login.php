@@ -21,11 +21,11 @@ require_once __DIR__ . '/../app/views/auth/login.php';
       <div class="space-y-2">
         <div class="flex items-center gap-3">
           <div class="border border-red-300 px-3 py-1 rounded-lg inline-block">
-            <img src="<?php echo htmlspecialchars(publicUrl('assets/images/logo.png')); ?>" alt="ECGC Logo" class="w-24 h-20">
+            <img src="<?php echo htmlspecialchars(publicUrl('assets/images/logo.png')); ?>" alt="ECGC Logo" class="w-24">
           </div>
           <div>
-            <h1 class="text-lg font-bold text-slate-900 uppercase tracking-wider">East Caribbean Feeds</h1>
-            <p class="text-[11px] font-semibold text-slate-400">Feedmill Production System</p>
+            <h1 class="text-lg font-bold text-slate-900 uppercase tracking-wider">East Caribbean Feeds Limited</h1>
+            <p class="text-[11px] font-semibold text-slate-400">Feedmill Production Management System</p>
           </div>
         </div>
         <div class="h-1 bg-gradient-to-r from-red-600 to-red-400 w-16 rounded-full mt-4"></div>

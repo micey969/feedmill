@@ -68,7 +68,7 @@ Use this checklist to verify the main user workflows in the Feedmill Production 
 - [ ] Search Order History by order ID, supplier, ingredient, and invoice number. Expected: matching order(s) appear and clearing the search restores the list.
 - [ ] Edit a pending order's details or line quantities. Expected: saved changes appear in Order History; a conflict is reported if another user changed the order.
 - [ ] Open a completed order. Expected: it is view-only and shows supplier, dates, invoice, transport, ordered/received quantities, receiving date, and miller details.
-- [ ] Navigate Order History pages when enough records exist. Expected: page controls, counts, and search are consistent.
+- [ ] Filter Order History by Pending and Completed, including a partially received order, and combine each filter with a search. Expected: results and counts match the selected status and search; switching tabs or clearing search retains the other filter, and pagination retains both.
 
 ## Receiving and Transport
 
@@ -118,7 +118,7 @@ Use this checklist to verify the main user workflows in the Feedmill Production 
 
 - [ ] For each report, apply a valid date range containing known test records. Expected: only records within the inclusive start/end dates are included.
 - [ ] Feed Production Report: compare each formula's actual kilograms and tons with saved actual production usage. Expected: percentages and grand totals are arithmetically correct; grand-total percentage is 100% when records exist.
-- [ ] Raw Materials Report: compare a test ingredient's figures. Expected: opening stock + receipts - production usage - separately sold quantity = computed balance; variance = physical stock - computed balance. Totals agree with the displayed ingredient rows.
+- [ ] Raw Materials Report: compare a test ingredient's figures, including one with separately sold quantity. Expected: Usage contains production usage only; Items Sold (Kg) shows separately sold quantity before Computed Balance. Opening stock + receipts - usage - items sold = computed balance; variance = physical stock - computed balance. On-screen and PDF totals agree with the ingredient rows.
 - [ ] Items Sold Separately Report: compare dates and ingredient quantities with saved local and overseas sale records. Expected: quantities are grouped by date and ingredient and grand totals agree.
 - [ ] Production Summary Report: compare sheet details, formula subtotals, and grand totals with mixing and variance records. Expected: target usage, actual usage, usage variance, actual bags, and bag variance are correctly grouped and summed.
 - [ ] Use a date range with no matching records. Expected: an explicit empty-state message appears and totals are zero.

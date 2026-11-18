@@ -24,7 +24,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
 $varianceClass = static fn(float $value): string => $value > 0 ? 'text-emerald-700' : ($value < 0 ? 'text-red-700' : 'text-slate-500');
 $ingredients = [];
 $materials = [];
-$grand = ['opening' => 0.0, 'receipts' => 0.0, 'usage' => 0.0, 'computed' => 0.0, 'physical' => 0.0, 'variance' => 0.0];
+$grand = ['opening' => 0.0, 'receipts' => 0.0, 'usage' => 0.0, 'sold' => 0.0, 'computed' => 0.0, 'physical' => 0.0, 'variance' => 0.0];
 $openingDate = null;
 $physicalDate = null;
 
@@ -112,8 +112,9 @@ try {
     $ingredientId = (int) $ingredient['ingredients_id'];
     $opening = $openingStock[$ingredientId] ?? 0.0;
     $received = $receipts[$ingredientId] ?? 0.0;
-    $usage = ($productionUsage[$ingredientId] ?? 0.0) + ($soldUsage[$ingredientId] ?? 0.0);
-    $computed = $opening + $received - $usage;
+    $usage = $productionUsage[$ingredientId] ?? 0.0;
+    $sold = $soldUsage[$ingredientId] ?? 0.0;
+    $computed = $opening + $received - $usage - $sold;
     $physical = $physicalStock[$ingredientId] ?? 0.0;
     $variance = $physical - $computed;
 
@@ -122,6 +123,7 @@ try {
       'opening' => $opening,
       'receipts' => $received,
       'usage' => $usage,
+      'sold' => $sold,
       'computed' => $computed,
       'physical' => $physical,
       'variance' => $variance,
@@ -148,6 +150,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
     ['label' => 'Opening (Kg)', 'align' => 'right'],
     ['label' => 'Receipts (Kg)', 'align' => 'right'],
     ['label' => 'Usage (Kg)', 'align' => 'right'],
+    ['label' => 'Items Sold (Kg)', 'align' => 'right'],
     ['label' => 'Computed Balance', 'align' => 'right'],
     ['label' => 'Physical Stock (Kg)', 'align' => 'right'],
     ['label' => 'Variance (Kg)', 'align' => 'right'],
@@ -159,13 +162,14 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
       number_format($material['opening'], 2),
       number_format($material['receipts'], 2),
       number_format($material['usage'], 2),
+      number_format($material['sold'], 2),
       number_format($material['computed'], 2),
       number_format($material['physical'], 2),
       number_format($material['variance'], 2),
     ];
   }
   $pdfTotals = ['Grand Total'];
-  foreach (['opening', 'receipts', 'usage', 'computed', 'physical', 'variance'] as $key) {
+  foreach (['opening', 'receipts', 'usage', 'sold', 'computed', 'physical', 'variance'] as $key) {
     $pdfTotals[] = number_format($grand[$key], 2);
   }
   \App\Libraries\Pdf\ReportPdf::display('standard-table.php', [
@@ -195,7 +199,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
   <?php require_once __DIR__ . '/../../app/views/includes/sidebar.php'; ?>
 
   <!-- ================= MAIN WORKSPACE ================= -->
-  <main id="main-content" class="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
+  <main id="main-content" class="flex-1 flex flex-col min-w-0 overflow-auto h-screen">
     <div class="h-1.5 shrink-0 bg-red-600 w-full sticky top-0 z-10"></div>
 
     <header data-report-page-header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs">
@@ -226,7 +230,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
     </header>
 
     <!-- Workspace Body -->
-    <div class="p-6 sm:p-8 max-w-6xl space-y-6">
+    <div class="w-max min-w-full p-6 sm:p-8 space-y-6">
       <?php if ($reportError !== ''): ?>
         <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo $escape($reportError); ?></div>
       <?php endif; ?>
@@ -250,6 +254,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
                 <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">Opening (Kg)</th>
                 <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">Receipts (Kg)</th>
                 <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">Usage (Kg)</th>
+                <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">Items Sold (Kg)</th>
                 <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">Computed Balance</th>
                 <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">Physical Stock (Kg)</th>
                 <th class="sticky z-20 bg-slate-100 py-3.5 px-6 text-right" style="top: var(--report-table-sticky-top)">Variance (kg)</th>
@@ -257,7 +262,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
             </thead>
             <tbody class="divide-y divide-slate-100 font-medium text-slate-800">
               <?php if (!$materials): ?>
-                <tr><td colspan="7" class="py-8 px-6 text-center text-slate-500">No active ingredients were found.</td></tr>
+                <tr><td colspan="8" class="py-8 px-6 text-center text-slate-500">No active ingredients were found.</td></tr>
               <?php else: ?>
                 <?php foreach ($materials as $material): ?>
                   <tr class="hover:bg-slate-50/50 transition">
@@ -265,6 +270,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
                     <td class="py-3.5 px-6 text-right font-mono"><?php echo number_format($material['opening'], 2); ?></td>
                     <td class="py-3.5 px-6 text-right font-mono"><?php echo number_format($material['receipts'], 2); ?></td>
                     <td class="py-3.5 px-6 text-right font-mono"><?php echo number_format($material['usage'], 2); ?></td>
+                    <td class="py-3.5 px-6 text-right font-mono"><?php echo number_format($material['sold'], 2); ?></td>
                     <td class="py-3.5 px-6 text-right font-mono"><?php echo number_format($material['computed'], 2); ?></td>
                     <td class="py-3.5 px-6 text-right font-mono"><?php echo number_format($material['physical'], 2); ?></td>
                     <td class="py-3.5 px-6 text-right font-mono font-semibold <?php echo $varianceClass($material['variance']); ?>"><?php echo number_format($material['variance'], 2); ?></td>
@@ -279,6 +285,7 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
                 <td class="py-4 px-6 text-right font-mono text-sm"><?php echo number_format($grand['opening'], 2); ?></td>
                 <td class="py-4 px-6 text-right font-mono text-sm"><?php echo number_format($grand['receipts'], 2); ?></td>
                 <td class="py-4 px-6 text-right font-mono text-sm"><?php echo number_format($grand['usage'], 2); ?></td>
+                <td class="py-4 px-6 text-right font-mono text-sm"><?php echo number_format($grand['sold'], 2); ?></td>
                 <td class="py-4 px-6 text-right font-mono text-sm"><?php echo number_format($grand['computed'], 2); ?></td>
                 <td class="py-4 px-6 text-right font-mono text-sm"><?php echo number_format($grand['physical'], 2); ?></td>
                 <td class="py-4 px-6 text-right font-mono text-sm <?php echo $varianceClass($grand['variance']); ?>"><?php echo number_format($grand['variance'], 2); ?></td>

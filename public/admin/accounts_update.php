@@ -20,6 +20,10 @@ if (preg_match('/^[a-zA-Z\s]+$/', $fullName) !== 1) {
     exit;
 }
 
+$fullName = ucwords(strtolower($fullName));
+$username = strtolower($username);
+$jobTitle = ucwords(strtolower($jobTitle));
+
 $currentStmt = null;
 $stmt = null;
 try {

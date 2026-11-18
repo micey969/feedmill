@@ -19,6 +19,9 @@ if (preg_match('/^[a-zA-Z\s]+$/', $fullName) !== 1) {
     exit;
 }
 
+$fullName = ucwords(strtolower($fullName));
+$username = strtolower($username);
+$jobTitle = ucwords(strtolower($jobTitle));
 $activeFlag = $accountStatus === 'Active' ? 1 : 0;
 $password = md5($password);
 

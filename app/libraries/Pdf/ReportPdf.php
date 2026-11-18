@@ -54,7 +54,7 @@ final class ReportPdf
 
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml(
-            '<style>@page { size: A4 ' . $orientation . '; margin: 15mm 12mm 20mm 12mm; }</style>' . $html,
+            '<style>@page { size: A4 ' . $orientation . '; margin: 12mm 10mm 17mm 10mm; }</style>' . $html,
             'UTF-8'
         );
         $dompdf->setPaper('A4', $orientation);

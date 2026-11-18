@@ -5,14 +5,24 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
 $recordsPerPage = 10;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $searchTerm = trim($_GET['search'] ?? '');
+$status = $_GET['status'] ?? 'all';
+$status = in_array($status, ['all', 'pending', 'completed'], true) ? $status : 'all';
 $searchParam = '%' . $searchTerm . '%';
 $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 
+$pendingCondition = "EXISTS (SELECT 1 FROM v_order_ingredients oi WHERE oi.order_id = o.order_id AND COALESCE(oi.received_flag, b'0') <> b'1')";
+$where = "(CAST(o.order_id AS CHAR) LIKE ? OR o.company_name LIKE ?
+  OR COALESCE(o.invoice_number, '') LIKE ?
+  OR EXISTS (SELECT 1 FROM v_order_ingredients oi WHERE oi.order_id = o.order_id AND oi.name LIKE ?))";
+if ($status === 'pending') {
+  $where .= " AND $pendingCondition";
+} elseif ($status === 'completed') {
+  $where .= " AND NOT $pendingCondition";
+}
+
 $countStmt = $conn->prepare(
   "SELECT COUNT(*) AS total FROM v_orders o
-   WHERE CAST(o.order_id AS CHAR) LIKE ? OR o.company_name LIKE ?
-      OR COALESCE(o.invoice_number, '') LIKE ?
-      OR EXISTS (SELECT 1 FROM v_order_ingredients oi WHERE oi.order_id = o.order_id AND oi.name LIKE ?)"
+   WHERE $where"
 );
 $countStmt->bind_param('ssss', $searchParam, $searchParam, $searchParam, $searchParam);
 $countStmt->execute();
@@ -25,14 +35,9 @@ $offset = ($currentPage - 1) * $recordsPerPage;
 $ordersStmt = $conn->prepare(
   "SELECT o.order_id, o.ordered_date_time, o.expected_arrival, o.company_name, o.invoice_number, o.transport_name, o.full_name,
           COALESCE((SELECT SUM(oi.ordered_quantity_kgs) FROM v_order_ingredients oi WHERE oi.order_id = o.order_id), 0) AS total_quantity,
-          CASE WHEN EXISTS (
-            SELECT 1 FROM v_order_ingredients oi
-            WHERE oi.order_id = o.order_id AND COALESCE(oi.received_flag, b'0') <> b'1'
-          ) THEN 'Pending' ELSE 'Completed' END AS receipt_status
+          CASE WHEN $pendingCondition THEN 'Pending' ELSE 'Completed' END AS receipt_status
    FROM v_orders o
-   WHERE CAST(o.order_id AS CHAR) LIKE ? OR o.company_name LIKE ?
-      OR COALESCE(o.invoice_number, '') LIKE ?
-      OR EXISTS (SELECT 1 FROM v_order_ingredients oi WHERE oi.order_id = o.order_id AND oi.name LIKE ?)
+   WHERE $where
    ORDER BY o.ordered_date_time DESC, o.order_id DESC LIMIT ? OFFSET ?"
 );
 $ordersStmt->bind_param('ssssii', $searchParam, $searchParam, $searchParam, $searchParam, $recordsPerPage, $offset);
@@ -62,10 +67,13 @@ $ingredients = $conn->query("SELECT ingredients_id, name FROM ingredients WHERE 
 
 $displayStart = $totalRecords > 0 ? $offset + 1 : 0;
 $displayEnd = min($offset + $recordsPerPage, $totalRecords);
-$pageUrl = static function (int $page) use ($searchTerm): string {
+$pageUrl = static function (int $page, string $filter, string $search): string {
   $query = ['page' => $page];
-  if ($searchTerm !== '') {
-    $query['search'] = $searchTerm;
+  if ($search !== '') {
+    $query['search'] = $search;
+  }
+  if ($filter !== 'all') {
+    $query['status'] = $filter;
   }
   return publicUrl('inventory/order_history.php') . '?' . http_build_query($query);
 };
@@ -102,20 +110,8 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
         <h1 class="text-lg font-bold text-slate-900">Order History</h1>
       </div>
 
-      <!-- Quick Search & Create Order Trigger -->
+      <!-- Create Order Trigger -->
       <div class="flex items-center gap-3">
-        <form method="GET" class="relative w-64">
-          <input type="search" name="search" value="<?php echo $escape($searchTerm); ?>" placeholder="Search order, ingredient, supplier..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-9 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
-          <div class="absolute left-3 top-2.5">
-            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          </div>
-          <?php if ($searchTerm !== ''): ?>
-            <a href="<?php echo htmlspecialchars(publicUrl('inventory/order_history.php')); ?>" aria-label="Clear search" title="Clear search" class="absolute right-0 top-2.5 pr-3 text-slate-400 hover:text-slate-700 transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path></svg>
-            </a>
-          <?php endif; ?>
-        </form>
-
         <!-- Add Orders -->
         <a href="<?php echo htmlspecialchars(publicUrl('inventory/orders.php')); ?>" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/20 transition flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -141,6 +137,26 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
         <span class="font-bold text-blue-600 font-mono"><?php echo $totalRecords; ?> Orders</span>
       </div>
 
+      <form method="GET" class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <nav aria-label="Filter orders by status" class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <?php foreach (['all' => 'All Orders', 'pending' => 'Pending', 'completed' => 'Completed'] as $value => $label): ?>
+            <a href="<?php echo $escape($pageUrl(1, $value, $searchTerm)); ?>" <?php echo $status === $value ? 'aria-current="page"' : ''; ?> class="px-3 py-1.5 rounded-lg <?php echo $status === $value ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'; ?>"><?php echo $label; ?></a>
+          <?php endforeach; ?>
+        </nav>
+        <div class="relative flex-1 max-w-sm">
+          <input type="search" name="search" value="<?php echo $escape($searchTerm); ?>" placeholder="Search order, ingredient, supplier..." aria-label="Search orders" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-9 py-1.5 text-xs">
+          <input type="hidden" name="status" value="<?php echo $escape($status); ?>">
+          <button type="submit" aria-label="Search" class="flex items-center">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </button>
+          <?php if ($searchTerm !== ''): ?>
+            <a href="<?php echo $escape($pageUrl(1, $status, '')); ?>" aria-label="Clear search" title="Clear search" class="absolute right-0 top-2 pr-3 text-slate-400 hover:text-slate-700 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path></svg>
+            </a>
+          <?php endif; ?>
+        </div>
+      </form>
+
       <!-- Orders Data Table Card -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
@@ -159,7 +175,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             <tbody class="divide-y divide-slate-100 font-medium text-slate-800">
               
               <?php if (!$orders): ?>
-                <tr><td colspan="7" class="py-8 px-6 text-center text-slate-500">No orders found<?php echo $searchTerm !== '' ? ' for this search.' : '.'; ?></td></tr>
+                <tr><td colspan="7" class="py-8 px-6 text-center text-slate-500">No orders match the selected filters.</td></tr>
               <?php else: ?>
                 <?php foreach ($orders as $order): ?>
                   <tr class="hover:bg-slate-50/80 transition">
@@ -196,7 +212,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
           <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-medium">
             <?php if ($currentPage > 1): ?>
-              <a href="<?php echo htmlspecialchars($pageUrl(1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="First Page" aria-label="First page">
+              <a href="<?php echo htmlspecialchars($pageUrl(1, $status, $searchTerm)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="First Page" aria-label="First page">
             <?php else: ?>
               <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="First Page" aria-label="First page">
             <?php endif; ?>
@@ -204,7 +220,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             <?php if ($currentPage > 1): ?></a><?php else: ?></button><?php endif; ?>
 
             <?php if ($currentPage > 1): ?>
-              <a href="<?php echo htmlspecialchars($pageUrl($currentPage - 1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Previous Page" aria-label="Previous page">
+              <a href="<?php echo htmlspecialchars($pageUrl($currentPage - 1, $status, $searchTerm)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Previous Page" aria-label="Previous page">
             <?php else: ?>
               <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Previous Page" aria-label="Previous page">
             <?php endif; ?>
@@ -214,7 +230,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             <span class="px-3 font-semibold text-slate-700">Records <?php echo $displayStart; ?>-<?php echo $displayEnd; ?> of <?php echo $totalRecords; ?></span>
 
             <?php if ($currentPage < $totalPages): ?>
-              <a href="<?php echo htmlspecialchars($pageUrl($currentPage + 1)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Next Page" aria-label="Next page">
+              <a href="<?php echo htmlspecialchars($pageUrl($currentPage + 1, $status, $searchTerm)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Next Page" aria-label="Next page">
             <?php else: ?>
               <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Next Page" aria-label="Next page">
             <?php endif; ?>
@@ -222,7 +238,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
             <?php if ($currentPage < $totalPages): ?></a><?php else: ?></button><?php endif; ?>
 
             <?php if ($currentPage < $totalPages): ?>
-              <a href="<?php echo htmlspecialchars($pageUrl($totalPages)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Last Page" aria-label="Last page">
+              <a href="<?php echo htmlspecialchars($pageUrl($totalPages, $status, $searchTerm)); ?>" class="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition" title="Last Page" aria-label="Last page">
             <?php else: ?>
               <button type="button" disabled class="px-2 py-1 text-slate-400 cursor-not-allowed" title="Last Page" aria-label="Last page">
             <?php endif; ?>
