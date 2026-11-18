@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../app/init.php';
-require_once __DIR__ . '/../../app/middleware/admin_only.php';
+require_once __DIR__ . '/../../app/middleware/admin_or_technician.php';
+require_once __DIR__ . '/../../app/helpers/account_username.php';
 
 $fullName = is_string($_POST['full_name'] ?? null) ? trim($_POST['full_name']) : '';
 $username = is_string($_POST['username'] ?? null) ? trim($_POST['username']) : '';
@@ -10,7 +11,7 @@ $role = $_POST['role'] ?? 'user';
 $accountStatus = $_POST['status'] ?? 'Active';
 $imageName = is_string($_POST['image_name'] ?? null) ? trim($_POST['image_name']) : '';
 
-if ($fullName === '' || $username === '' || $password === '' || $jobTitle === '' || $imageName === '' || !in_array($accountStatus, ['Active', 'Inactive'], true) || !in_array($role, ['user', 'supervisor', 'admin'], true)) {
+if ($fullName === '' || $username === '' || $password === '' || $jobTitle === '' || $imageName === '' || !in_array($accountStatus, ['Active', 'Inactive'], true) || !in_array($role, ['user', 'supervisor', 'admin', 'technician'], true)) {
     header('Location: ' . publicUrl('admin/accounts.php?error=invalid'));
     exit;
 }
@@ -28,12 +29,20 @@ $password = md5($password);
 
 $stmt = null;
 try {
+    if (accountUsernameInUse($conn, $username)) {
+        header('Location: ' . publicUrl('admin/accounts.php?error=duplicate'));
+        exit;
+    }
     $stmt = $conn->prepare('INSERT INTO accounts (full_name, username, password, image_name, role, active_flag, job_title) VALUES (?, ?, ?, ?, ?, ?, ?)');
     if (!$stmt) {
         throw new RuntimeException('Unable to prepare account creation.');
     }
     $stmt->bind_param('sssssis', $fullName, $username, $password, $imageName, $role, $activeFlag, $jobTitle);
     if (!$stmt->execute()) {
+        if ($stmt->errno === 1062) {
+            header('Location: ' . publicUrl('admin/accounts.php?error=duplicate'));
+            exit;
+        }
         throw new RuntimeException('Unable to create account.');
     }
 

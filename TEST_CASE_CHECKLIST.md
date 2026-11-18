@@ -22,6 +22,7 @@ Use this checklist to verify the main user workflows in the Feedmill Production 
 
 ## Login, Navigation, and Access
 
+- [ ] Press Enter in a search form. Expected: the search is applied. Press Enter in other form inputs, including login. Expected: the form does not submit; its submit button still works with a mouse or keyboard, and Enter in a multiline text field adds a new line.
 - [ ] Submit valid credentials for an active account. Expected: login succeeds, the dashboard opens, and the signed-in user's name and job title are shown.
 - [ ] Submit an incorrect username or password. Expected: access is denied and an invalid-login message is displayed.
 - [ ] Attempt to log in with the inactive account. Expected: access is denied.
@@ -94,6 +95,8 @@ Use this checklist to verify the main user workflows in the Feedmill Production 
 
 ## Production Mixing and Materials Used
 
+- [ ] In mixing, materials used, items sold, formula creation/editing, physical stock, order creation/editing, and receiving, try typing or pasting a negative number. Expected: the negative value is rejected with a message; valid non-negative values and negative calculated variances still work.
+- [ ] Submit a negative materials-used quantity directly, including a fraction between -0.5 and 0. Expected: the request is rejected without saving.
 - [ ] Open a new Mixing Sheet. Expected: active formulas with active ingredients and active millers are selectable; the default date is today.
 - [ ] Select a formula, miller, batch size, and valid whole-ton production quantity. Expected: ingredient quantities and bag count are calculated from the formula and selected production amount.
 - [ ] Check supported batch sizes and valid capacities: 0.5-ton batches up to 5 tons, 1-ton batches up to 10 tons, and 2-ton batches up to 20 tons (2-ton batches require an even tonnage). Expected: valid combinations save; invalid combinations are rejected with no partial sheet.
@@ -101,9 +104,11 @@ Use this checklist to verify the main user workflows in the Feedmill Production 
 - [ ] Use mixing-sheet navigation to open the new sheet and older sheets. Expected: the displayed record matches the selected sheet and navigation boundaries work.
 - [ ] Print a saved mixing sheet. Expected: the print layout contains the sheet and relevant production details without application navigation or screen-only controls; a print action is recorded in Audit Logs.
 - [ ] Open Materials Used for the new sheet. Expected: calculated bags and ingredient quantities match the mixing sheet.
-- [ ] Enter actual bags and actual ingredient usage. Expected: bag and ingredient variances update as actual minus calculated, including positive and negative results; totals equal the sum of their rows.
-- [ ] Save the variance record. Expected: the values persist when the sheet is reopened and the success message is shown.
-- [ ] Reopen a fully recorded sheet. Expected: it is read-only and cannot be edited again.
+- [ ] Enter all actual ingredient quantities, including zero where appropriate, and leave actual bags blank. Expected: the form saves; quantities remain visible but disabled, actual bags remains editable, and the displayed bag variance uses zero for actual bags without saving a bag variance.
+- [ ] Enter and save actual bags afterward. Expected: bag variance is actual minus calculated, quantities remain unchanged, and the completed record is read-only. Entering both bags and all quantities together also finalizes the record.
+- [ ] Attempt to save with an actual ingredient quantity missing, or submit altered quantities after they have been saved. Expected: the request is rejected without changing saved quantities.
+- [ ] Try negative, malformed, and over-limit values for actual quantities and bags. Expected: they are rejected without saving. Zero bags and zero quantities are accepted.
+- [ ] Open the same incomplete sheet in two sessions, then save quantities in one and submit the stale form in the other. Expected: the stale save is rejected and the saved quantities are unchanged.
 - [ ] Try saving missing, malformed, negative, or out-of-range variance values. Expected: invalid values are rejected and no partial variance update is saved.
 - [ ] Use Materials Used navigation. Expected: first/previous/next/last record controls open the correct sheet and show the correct position/count.
 
@@ -128,10 +133,13 @@ Use this checklist to verify the main user workflows in the Feedmill Production 
 ## Administration and Audit
 
 - [ ] As an admin, add an account with a unique username, required profile details, role, and password. Expected: the account appears in the list and can sign in with the assigned role.
-- [ ] Try to create a duplicate username or omit required account data. Expected: the request is rejected and no duplicate/invalid account is created.
+- [ ] Create or edit an account using another account's username, including different capitalization. Expected: a duplicate username error appears and the account is not saved. Editing an account without changing its own username succeeds.
+- [ ] Try to create an account with missing required data. Expected: the request is rejected and no invalid account is created.
 - [ ] Edit an account's profile, role, active status, and (where supported) password. Expected: saved changes are reflected; an inactive account cannot sign in; changed role permissions take effect on the next authenticated request.
 - [ ] Search accounts and navigate account-list pages. Expected: matching records, counts, and pagination are correct.
 - [ ] As a supervisor or user, open User Accounts directly. Expected: access is denied.
+- [ ] Sign in as a technician. Expected: User Accounts opens, and only User Accounts and Audit Logs appear in navigation.
+- [ ] As a technician, create and edit accounts, including administrator accounts, and view/export audit logs. Expected: these actions work; direct requests to the dashboard, reports, production, inventory, millers, and their save endpoints are denied.
 - [ ] As an admin or supervisor, add a miller with a supported job position. Expected: the miller appears in the roster and active receiving/mixing selectors.
 - [ ] Edit a miller's name, position, or active status. Expected: changes are reflected; inactive millers are omitted from new operational selections while historical records remain viewable.
 - [ ] Search millers and navigate roster pages. Expected: matching records, counts, and pagination are correct.

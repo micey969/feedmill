@@ -12,7 +12,7 @@
   <div class="flex-1 flex flex-col min-h-0">
     <!-- Brand & Logo Header -->
     <div class="p-6 border-b border-slate-800 flex items-center justify-between group-[.collapsed]/sidebar:md:p-4 group-[.collapsed]/sidebar:md:justify-center">
-      <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="flex items-center gap-3 group-[.collapsed]/sidebar:md:hidden">
+      <a href="<?php echo htmlspecialchars(publicUrl($isTechnician ? 'admin/accounts.php' : 'index.php')); ?>" class="flex items-center gap-3 group-[.collapsed]/sidebar:md:hidden">
         <div class="bg-white px-1 rounded-lg shrink-0">
           <img src="<?php echo htmlspecialchars(publicUrl('assets/images/logo.png')); ?>" alt="ECGC Logo" class="w-10 h-8 object-contain">
         </div>
@@ -32,6 +32,7 @@
     <nav id="sidebar-navigation" class="p-4 space-y-6 text-xs font-medium overflow-y-auto flex-1 group-[.collapsed]/sidebar:md:overflow-visible group-[.collapsed]/sidebar:md:p-2 group-[.collapsed]/sidebar:md:space-y-4">
       
       <!-- SECTION 1: Production -->
+      <?php if (!$isTechnician): ?>
       <div class="relative group/menu">
         <button type="button" class="w-full px-3 py-1 mb-2 text-left text-[10px] font-bold text-slate-300 uppercase tracking-widest flex gap-3 items-center rounded-lg hover:bg-slate-800/50 group-[.collapsed]/sidebar:md:mb-0 group-[.collapsed]/sidebar:md:justify-center group-[.collapsed]/sidebar:md:p-2" aria-expanded="false" aria-controls="production-menu" onclick="toggleMenu(this, 'production-menu')">
           <span class="<?php echo sidebarIconClass($productionPages, $current_page); ?>">
@@ -52,9 +53,10 @@
           <?php endif; ?>
         </div>
       </div>
+      <?php endif; ?>
 
       <!-- SECTION 2: Product Management -->
-      <?php if (!$isUser): ?>
+      <?php if (!$isUser && !$isTechnician): ?>
       <div class="relative group/menu">
         <button type="button" class="w-full px-3 py-1 mb-2 text-left text-[10px] font-bold text-slate-300 uppercase tracking-widest flex gap-3 items-center rounded-lg hover:bg-slate-800/50 group-[.collapsed]/sidebar:md:mb-0 group-[.collapsed]/sidebar:md:justify-center group-[.collapsed]/sidebar:md:p-2" aria-expanded="false" aria-controls="product-menu" onclick="toggleMenu(this, 'product-menu')">
           <span class="<?php echo sidebarIconClass($productPages, $current_page); ?>">
@@ -74,7 +76,7 @@
       <?php endif; ?>
 
       <!-- SECTION 3: Inventory -->
-      <?php if (!$isUser): ?>
+      <?php if (!$isUser && !$isTechnician): ?>
       <div class="relative group/menu">
         <button type="button" class="w-full px-3 py-1 mb-2 text-left text-[10px] font-bold text-slate-300 uppercase tracking-widest flex gap-3 items-center rounded-lg hover:bg-slate-800/50 group-[.collapsed]/sidebar:md:mb-0 group-[.collapsed]/sidebar:md:justify-center group-[.collapsed]/sidebar:md:p-2" aria-expanded="false" aria-controls="inventory-menu" onclick="toggleMenu(this, 'inventory-menu')">
           <span class="<?php echo sidebarIconClass($inventoryPages, $current_page); ?>">
@@ -95,6 +97,7 @@
       <?php endif; ?>
 
       <!-- SECTION 4: Reports -->
+      <?php if (!$isTechnician): ?>
       <div class="relative group/menu">
         <button type="button" class="w-full px-3 py-1 mb-2 text-left text-[10px] font-bold text-slate-300 uppercase tracking-widest flex gap-3 items-center rounded-lg hover:bg-slate-800/50 group-[.collapsed]/sidebar:md:mb-0 group-[.collapsed]/sidebar:md:justify-center group-[.collapsed]/sidebar:md:p-2" aria-expanded="false" aria-controls="reports-menu" onclick="toggleMenu(this, 'reports-menu')">
           <span class="<?php echo sidebarIconClass($reportPages, $current_page); ?>">
@@ -112,6 +115,7 @@
           <a href="<?php echo htmlspecialchars(publicUrl('reports/summary.php')); ?>" class="<?php echo sidebarLinkClass('reports/summary.php', $current_page); ?>">Production Summary</a>
         </div>
       </div>
+      <?php endif; ?>
 
       <!-- SECTION 5: Administration -->
       <?php if (!$isUser): ?>
@@ -129,9 +133,11 @@
           </svg>
         </button>
         <div id="administration-menu" class="space-y-1 group-[.collapsed]/sidebar:md:absolute group-[.collapsed]/sidebar:md:left-full group-[.collapsed]/sidebar:md:top-0 group-[.collapsed]/sidebar:md:ml-3 group-[.collapsed]/sidebar:md:w-56 group-[.collapsed]/sidebar:md:bg-slate-900 group-[.collapsed]/sidebar:md:border group-[.collapsed]/sidebar:md:border-slate-800 group-[.collapsed]/sidebar:md:rounded-xl group-[.collapsed]/sidebar:md:p-2 group-[.collapsed]/sidebar:md:shadow-2xl" hidden>
+          <?php if (!$isTechnician): ?>
           <a href="<?php echo htmlspecialchars(publicUrl('admin/millers.php')); ?>" class="<?php echo sidebarLinkClass('admin/millers.php', $current_page); ?>">Millers</a>
+          <?php endif; ?>
           
-          <?php if($isAdmin): ?>
+          <?php if ($isAdmin || $isTechnician): ?>
           <a href="<?php echo htmlspecialchars(publicUrl('admin/accounts.php')); ?>" class="<?php echo sidebarLinkClass('admin/accounts.php', $current_page); ?>">User Accounts</a>
           <a href="<?php echo htmlspecialchars(publicUrl('admin/audit.php')); ?>" class="<?php echo sidebarLinkClass('admin/audit.php', $current_page); ?>">Audit Logs</a>
           <?php endif; ?>

@@ -166,5 +166,6 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
     });
     ingredientRows.append(ingredientRowTemplate.content.cloneNode(true));
   </script>
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/non_negative_numbers.js')); ?>"></script>
 </body>
 </html>

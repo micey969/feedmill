@@ -26,6 +26,7 @@
   
   $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
   $isUser = ($_SESSION['role'] ?? '') === 'user';
+  $isTechnician = ($_SESSION['role'] ?? '') === 'technician';
   
   $userImage = TRIM($_SESSION['image_name'] ?? '');
   $userImagePath = $userImage !== ''

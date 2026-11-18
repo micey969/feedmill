@@ -137,7 +137,7 @@ $pageUrl = static function (int $page, string $filter, string $search): string {
         <span class="font-bold text-blue-600 font-mono"><?php echo $totalRecords; ?> Orders</span>
       </div>
 
-      <form method="GET" class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+      <form method="GET" data-allow-enter-submit class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <nav aria-label="Filter orders by status" class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <?php foreach (['all' => 'All Orders', 'pending' => 'Pending', 'completed' => 'Completed'] as $value => $label): ?>
             <a href="<?php echo $escape($pageUrl(1, $value, $searchTerm)); ?>" <?php echo $status === $value ? 'aria-current="page"' : ''; ?> class="px-3 py-1.5 rounded-lg <?php echo $status === $value ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'; ?>"><?php echo $label; ?></a>
@@ -508,5 +508,6 @@ $pageUrl = static function (int $page, string $filter, string $search): string {
       });
     });
   </script>
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/non_negative_numbers.js')); ?>"></script>
 </body>
 </html>

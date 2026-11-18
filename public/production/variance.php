@@ -53,15 +53,14 @@ if ($sheetCount > 0) {
   $usageStmt->close();
 }
 
-$isReadOnly = $sheet !== null && $sheet['actual_bags_produced'] !== null && (float) $sheet['actual_bags_produced'] > 0;
-if ($isReadOnly) {
-  foreach ($ingredients as $ingredient) {
-    if ($ingredient['actual_total_used_kgs'] === null || (float) $ingredient['actual_total_used_kgs'] <= 0) {
-      $isReadOnly = false;
-      break;
-    }
+$quantitiesComplete = $ingredients !== [];
+foreach ($ingredients as $ingredient) {
+  if ($ingredient['actual_total_used_kgs'] === null) {
+    $quantitiesComplete = false;
+    break;
   }
 }
+$isReadOnly = $quantitiesComplete && $sheet['actual_bags_produced'] !== null;
 
 function variancePageUrl(?int $id): string {
   return htmlspecialchars(publicUrl('production/variance.php' . ($id === null ? '' : '?id=' . $id)), ENT_QUOTES, 'UTF-8');
@@ -125,7 +124,7 @@ function varianceQuantityNumber($value): string {
 
     <div id="printable-content" class="p-6 sm:p-8 max-w-6xl space-y-6">
       <?php if (isset($_GET['success'])): ?>
-        <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm" role="status">Variance saved.</div>
+        <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm" role="status"><?php echo $quantitiesComplete && !$isReadOnly ? 'Actual quantities saved. Enter actual bags to finalize the record.' : 'Variance saved.'; ?></div>
       <?php endif; ?>
       <?php if (isset($_GET['error'])): ?>
         <?php $varianceError = match ($_GET['error']) {
@@ -142,6 +141,8 @@ function varianceQuantityNumber($value): string {
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
           <span>This record is read-only.</span>
         </div>
+      <?php elseif ($quantitiesComplete): ?>
+        <div class="p-3 bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-sm" role="status">Actual quantities are saved and cannot be changed. Enter actual bags to finalize the record.</div>
       <?php endif; ?>
 
       <?php if ($sheet === null): ?>
@@ -173,7 +174,7 @@ function varianceQuantityNumber($value): string {
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
               <label for="actual-bags" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Actual Bags</label>
-              <input id="actual-bags" name="actual_bags" type="number" min="0" max="9999.99" step="0.01" required value="<?php echo htmlspecialchars((string) ($sheet['actual_bags_produced'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" <?php echo $isReadOnly ? 'readonly disabled' : ''; ?> class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1 text-sm font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-60 disabled:cursor-not-allowed">
+              <input id="actual-bags" name="actual_bags" type="number" min="0" max="9999.99" step="0.01" <?php echo $quantitiesComplete && !$isReadOnly ? 'required' : ''; ?> value="<?php echo htmlspecialchars((string) ($sheet['actual_bags_produced'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" <?php echo $isReadOnly ? 'readonly disabled' : ''; ?> class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1 text-sm font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-60 disabled:cursor-not-allowed">
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
               <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bag Variance</p>
@@ -202,7 +203,7 @@ function varianceQuantityNumber($value): string {
                       <td class="py-3 px-5 font-bold text-slate-900"><?php echo htmlspecialchars($ingredient['ingredients'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td class="py-3 px-5 text-right font-mono font-semibold"><?php echo varianceQuantityNumber($ingredient['calculated_total_used_kgs']); ?></td>
                       <td class="py-3 px-5">
-                        <input type="number" min="0" max="99999.99" step="0.01" required name="actual_qty[<?php echo (int) $ingredient['ingredients_id']; ?>]" value="<?php echo htmlspecialchars((string) ($ingredient['actual_total_used_kgs'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" data-calculated="<?php echo number_format((float) $ingredient['calculated_total_used_kgs'], 2, '.', ''); ?>" <?php echo $isReadOnly ? 'readonly disabled' : ''; ?> class="actual-quantity w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600 disabled:opacity-60 disabled:cursor-not-allowed">
+                        <input type="number" min="0" max="99999.99" step="0.01" required name="actual_qty[<?php echo (int) $ingredient['ingredients_id']; ?>]" value="<?php echo htmlspecialchars((string) ($ingredient['actual_total_used_kgs'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" data-calculated="<?php echo number_format((float) $ingredient['calculated_total_used_kgs'], 2, '.', ''); ?>" <?php echo $quantitiesComplete ? 'readonly disabled' : ''; ?> class="actual-quantity w-full text-right bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs font-semibold focus:bg-white focus:ring-1 focus:ring-red-600 disabled:opacity-60 disabled:cursor-not-allowed">
                       </td>
                       <td class="py-3 px-5 text-right font-mono font-semibold ingredient-variance"><?php echo varianceQuantityNumber((int) ($ingredient['actual_total_used_kgs'] ?? 0) - (float) $ingredient['calculated_total_used_kgs']); ?></td>
                     </tr>
@@ -237,9 +238,8 @@ function varianceQuantityNumber($value): string {
 
     function updateVarianceTotals() {
       if (actualBagsInput && bagVarianceOutput) {
-        const actualBags = Number(actualBagsInput.value || 0);
         const bagsProduced = <?php echo $sheet === null ? '0' : json_encode((float) $sheet['calculated_bags_produced']); ?>;
-        bagVarianceOutput.textContent = (actualBags - bagsProduced).toFixed(2);
+        bagVarianceOutput.textContent = (Number(actualBagsInput.value || 0) - bagsProduced).toFixed(2);
       }
 
       let actualTotal = 0;
@@ -262,5 +262,6 @@ function varianceQuantityNumber($value): string {
     quantityInputs.forEach((input) => input.addEventListener('input', updateVarianceTotals));
     updateVarianceTotals();
   </script>
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/non_negative_numbers.js')); ?>"></script>
 </body>
 </html>

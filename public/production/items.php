@@ -183,5 +183,6 @@ if ($ingredientResult) {
     </div>
   </main>
 
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/non_negative_numbers.js')); ?>"></script>
 </body>
 </html>

@@ -21,7 +21,7 @@
       <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs">
         <div>
           <nav class="flex items-center gap-2 text-xs text-slate-400 font-medium">
-            <a href="index.php" class="hover:text-red-600 transition">Main Hub</a>
+            <a href="<?php echo htmlspecialchars(publicUrl(($_SESSION['role'] ?? '') === 'technician' ? 'admin/accounts.php' : 'index.php')); ?>" class="hover:text-red-600 transition"><?php echo ($_SESSION['role'] ?? '') === 'technician' ? 'User Accounts' : 'Main Hub'; ?></a>
             <span>/</span>
             <span class="text-slate-600">Security Notice</span>
           </nav>
@@ -52,9 +52,9 @@
 
             <!-- Action Button -->
             <div class="pt-2">
-              <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/20 transition w-full">
+              <a href="<?php echo htmlspecialchars(publicUrl(($_SESSION['role'] ?? '') === 'technician' ? 'admin/accounts.php' : 'index.php')); ?>" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/20 transition w-full">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                <span>Back to Dashboard</span>
+                <span><?php echo ($_SESSION['role'] ?? '') === 'technician' ? 'Back to User Accounts' : 'Back to Dashboard'; ?></span>
               </a>
             </div>
         </div>

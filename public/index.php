@@ -7,7 +7,7 @@ $outstandingResult = $conn->query(
      SELECT mixing_sheet_id
      FROM v_ingredient_usage
      GROUP BY mixing_sheet_id
-     HAVING COALESCE(MAX(actual_bags_produced), 0) = 0 AND COALESCE(MAX(actual_total_used_kgs), 0) = 0
+     HAVING MAX(actual_bags_produced) IS NULL OR SUM(actual_total_used_kgs IS NULL) > 0
    ) AS outstanding_sheets'
 );
 $outstandingCount = $outstandingResult ? (int) $outstandingResult->fetch_assoc()['outstanding_count'] : 0;

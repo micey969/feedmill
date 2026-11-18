@@ -118,7 +118,7 @@ $jobColors = [
       </div>
 
       <!-- Quick Search Bar -->
-      <form method="GET" class="relative w-64">
+      <form method="GET" data-allow-enter-submit class="relative w-64">
         <input type="text" name="search" placeholder="Search miller or position..." value="<?php echo htmlspecialchars($searchTerm); ?>" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 <?php echo !empty($searchTerm) ? 'pr-9' : 'pr-3'; ?> py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
         <button type="submit" class=" flex items-center">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>

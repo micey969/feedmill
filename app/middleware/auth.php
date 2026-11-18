@@ -39,8 +39,15 @@ $userAllowedPages = [
   'reports/summary.php',
   'reports/print_log.php',
 ];
+$technicianAllowedPages = [
+  'admin/accounts.php',
+  'admin/accounts_save.php',
+  'admin/accounts_update.php',
+  'admin/audit.php',
+];
 
-if ($role === 'user' && !in_array($currentPage, $userAllowedPages, true)) {
+if (($role === 'user' && !in_array($currentPage, $userAllowedPages, true))
+    || ($role === 'technician' && !in_array($currentPage, $technicianAllowedPages, true))) {
   http_response_code(403);
   require APP_PATH . '/views/errors/access_denied.php';
   exit;

@@ -171,7 +171,7 @@ function feedListUrl(int $page, string $search, string $status): string {
     <?php elseif ($formulaSuccess !== ''): ?>
       <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status"><?php echo htmlspecialchars($formulaSuccess); ?></div>
     <?php endif; ?>
-    <form method="GET" class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+    <form method="GET" data-allow-enter-submit class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
         <?php foreach (['all' => 'All Formulas', 'active' => 'Active', 'inactive' => 'Inactive'] as $value => $label): ?>
           <a href="<?php echo htmlspecialchars(feedListUrl(1, $search, $value)); ?>" class="px-3 py-1.5 rounded-lg <?php echo $status === $value ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'; ?>"><?php echo $label; ?></a>
@@ -396,4 +396,5 @@ function updateTotalWeight() { let total = 0; document.querySelectorAll('.ingred
 new ResizeObserver(syncEditIngredientsCardHeight).observe(editFormulaDetailsCard);
 editFormulaDesktopLayout.addEventListener('change', syncEditIngredientsCardHeight);
 </script>
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/non_negative_numbers.js')); ?>"></script>
 </body></html>

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../app/init.php';
-require_once __DIR__ . '/../../app/middleware/admin_only.php';
+require_once __DIR__ . '/../../app/middleware/admin_or_technician.php';
 
 $recordsPerPage = 10;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
@@ -175,8 +175,10 @@ $actionStyles = [
     <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs">
       <div>
         <nav class="flex items-center gap-2 text-xs text-slate-400 font-medium">
-          <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600 transition">Main Hub</a>
-          <span>/</span>
+          <?php if (($_SESSION['role'] ?? '') !== 'technician'): ?>
+            <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600 transition">Main Hub</a>
+            <span>/</span>
+          <?php endif; ?>
           <span class="text-slate-600">Administration</span>
         </nav>
         <h1 class="text-lg font-bold text-slate-900">System Audit Trail</h1>
@@ -196,7 +198,7 @@ $actionStyles = [
         <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($pageError); ?></div>
       <?php endif; ?>
       
-      <form method="GET" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <form method="GET" data-allow-enter-submit class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-3 flex-1">
           <div class="relative flex-1 min-w-[220px]">
             <input type="text" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>" placeholder="Search by IP, User, Action, or Details..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">

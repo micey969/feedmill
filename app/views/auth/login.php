@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['just_logged_in'] = true;
         logAction($conn, $_SESSION['user'], "LOGIN", " ");
 
-        header("Location: " . publicUrl('index.php'));
+        header("Location: " . publicUrl($_SESSION['role'] === 'technician' ? 'admin/accounts.php' : 'index.php'));
         exit;
     } else {
         $error = "Invalid login";

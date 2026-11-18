@@ -290,5 +290,6 @@ $transportError = $transportErrorMessages[$_GET['transport_error'] ?? ''] ?? '';
       syncQuantity();
     });
   </script>
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/non_negative_numbers.js')); ?>"></script>
 </body>
 </html>

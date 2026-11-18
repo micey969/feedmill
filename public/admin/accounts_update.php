@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../app/init.php';
-require_once __DIR__ . '/../../app/middleware/admin_only.php';
+require_once __DIR__ . '/../../app/middleware/admin_or_technician.php';
+require_once __DIR__ . '/../../app/helpers/account_username.php';
 
 $userId = filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT);
 $fullName = is_string($_POST['full_name'] ?? null) ? trim($_POST['full_name']) : '';
@@ -11,7 +12,7 @@ $password = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
 $activeFlag = filter_input(INPUT_POST, 'active_flag', FILTER_VALIDATE_INT);
 $role = $_POST['role'] ?? '';
 
-if (!$userId || $fullName === '' || $jobTitle === '' || $username === '' || !in_array($activeFlag, [0, 1], true) || !in_array($role, ['user', 'supervisor', 'admin'], true)) {
+if (!$userId || $fullName === '' || $jobTitle === '' || $username === '' || !in_array($activeFlag, [0, 1], true) || !in_array($role, ['user', 'supervisor', 'admin', 'technician'], true)) {
     header('Location: ' . publicUrl('admin/accounts.php?error=invalid'));
     exit;
 }
@@ -42,6 +43,11 @@ try {
         exit;
     }
 
+    if (accountUsernameInUse($conn, $username, $userId)) {
+        header('Location: ' . publicUrl('admin/accounts.php?error=duplicate'));
+        exit;
+    }
+
     if ($password !== '') {
         $password = md5($password);
         $stmt = $conn->prepare('UPDATE accounts SET full_name = ?, username = ?, job_title = ?, image_name = ?, password = ?, active_flag = ?, role = ? WHERE user_id = ?');
@@ -60,6 +66,10 @@ try {
         $stmt->bind_param($bindTypes, $fullName, $username, $jobTitle, $imageName, $activeFlag, $role, $userId);
     }
     if (!$stmt->execute()) {
+        if ($stmt->errno === 1062) {
+            header('Location: ' . publicUrl('admin/accounts.php?error=duplicate'));
+            exit;
+        }
         throw new RuntimeException('Unable to update account.');
     }
 } catch (Throwable $error) {

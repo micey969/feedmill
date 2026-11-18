@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../app/init.php';
-require_once __DIR__ . '/../../app/middleware/admin_only.php';
+require_once __DIR__ . '/../../app/middleware/admin_or_technician.php';
 
 $recordsPerPage = 10;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
@@ -89,8 +89,10 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
     <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-1.5 z-10 shadow-xs">
       <div>
         <nav class="flex items-center gap-2 text-xs text-slate-400 font-medium">
-          <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600 transition">Main Hub</a>
-          <span>/</span>
+          <?php if (($_SESSION['role'] ?? '') !== 'technician'): ?>
+            <a href="<?php echo htmlspecialchars(publicUrl('index.php')); ?>" class="hover:text-red-600 transition">Main Hub</a>
+            <span>/</span>
+          <?php endif; ?>
           <span class="text-slate-600">Administration</span>
         </nav>
         <h1 class="text-lg font-bold text-slate-900">User Accounts</h1>
@@ -98,7 +100,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
 
       <!-- Quick Search & Create User Trigger -->
       <div class="flex items-center gap-3">
-        <form method="GET" class="relative w-64">
+        <form method="GET" data-allow-enter-submit class="relative w-64">
           <input type="text" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>" placeholder="Search user or username..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 <?php echo $searchTerm !== '' ? 'pr-9' : 'pr-3'; ?> py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600">
           <button type="submit" aria-label="Search" class="absolute left-3 top-2.5"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button>
           <?php if ($searchTerm !== ''): ?>
@@ -275,6 +277,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                   <option value="admin">Admin</option>
                   <option value="supervisor">Supervisor</option>
                   <option value="user">User</option>
+                  <option value="technician">Technician</option>
                 </select>
               </div>
 
@@ -361,6 +364,7 @@ $pageUrl = static function (int $page) use ($searchTerm): string {
                   <option value="user">User</option>
                   <option value="supervisor">Supervisor</option>
                   <option value="admin">Admin</option>
+                  <option value="technician">Technician</option>
                 </select>
               </div>
 

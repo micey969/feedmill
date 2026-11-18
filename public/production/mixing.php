@@ -598,5 +598,6 @@ foreach ($sheetIngredients as $ingredient) {
       updateMillerPosition();
     }));
   </script><?php endif; ?>
+  <script src="<?php echo htmlspecialchars(publicUrl('assets/js/non_negative_numbers.js')); ?>"></script>
 </body>
 </html>
