@@ -38,8 +38,8 @@ require_once __DIR__ . '/../app/views/auth/login.php';
           <p class="text-xs text-slate-500 font-medium mt-1">Please enter your credentials to access system management.</p>
         </div>
 
-        <?php if (isset($error)) echo "<div class='bg-red-50 border-l-4 border-red-500 p-4 text-red-800' role='alert'>$error</div>"; ?>
-        <form action="login.php" method="POST" class="space-y-4">
+        <?php  if (isset($error)) echo "<div class='bg-red-50 border-l-4 border-red-500 p-4 text-red-800' role='alert'>$error</div>"; ?>
+        <form action="login.php" method="POST" data-allow-enter-submit class="space-y-4">
           <!-- Username Input -->
           <div class="space-y-1.5">
             <label for="username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Username</label>

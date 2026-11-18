@@ -2,6 +2,13 @@
 require_once __DIR__ . '/../../app/init.php';
 require_once __DIR__ . '/../../app/middleware/auth.php';
 
+$formulaError = match ($_GET['error'] ?? '') {
+  'invalid' => 'Check the formula details and ingredient quantities, then try again.',
+  'duplicate' => 'That formula code already exists. Use a different code or edit the existing formula.',
+  'duplicate_ingredient' => 'An ingredient was added more than once. Combine the quantities into a single row or remove the repeated ingredient.',
+  'save' => 'The formula could not be saved. Please try again.',
+  default => '',
+};
 $ingredientOptions = [];
 $ingredientErrorMessages = [
   'invalid' => 'Enter a valid ingredient name or review the submitted ingredient changes.',
@@ -69,7 +76,9 @@ try {
     </header>
 
     <!-- Workspace Body -->
-    <?php if ($ingredientError !== ''): ?>
+    <?php if ($formulaError !== ''): ?>
+      <div class="mx-6 mt-6 sm:mx-8 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($formulaError); ?></div>
+    <?php elseif ($ingredientError !== ''): ?>
       <div class="mx-6 mt-6 sm:mx-8 border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-800" role="alert"><?php echo htmlspecialchars($ingredientError); ?></div>
     <?php elseif ($ingredientSuccess !== ''): ?>
       <div class="mx-6 mt-6 sm:mx-8 border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800" role="status"><?php echo htmlspecialchars($ingredientSuccess); ?></div>

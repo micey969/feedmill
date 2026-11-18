@@ -127,7 +127,7 @@ $pageUrl = static function (int $page, string $filter, string $search): string {
       <?php if (isset($_GET['edited'])): ?>
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl text-xs font-semibold">Order updated successfully.</div>
       <?php elseif (isset($_GET['edit_error'])): ?>
-        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-2xl text-xs font-semibold"><?php echo $_GET['edit_error'] === 'conflict' ? 'This order was modified by another user while you were editing. Refresh the page and re-apply your changes.' : 'The order could not be updated. Check the entered values and try again.'; ?></div>
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-2xl text-xs font-semibold" role="alert"><?php echo $_GET['edit_error'] === 'conflict' ? 'This order was modified by another user while you were editing. Refresh the page and re-apply your changes.' : 'The order could not be updated. Check the entered values and try again.'; ?></div>
       <?php endif; ?>
       <div class="flex items-center justify-between bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-2xl text-xs font-medium">
         <div class="flex items-center gap-2">

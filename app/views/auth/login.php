@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: " . publicUrl($_SESSION['role'] === 'technician' ? 'admin/accounts.php' : 'index.php'));
         exit;
     } else {
-        $error = "Invalid login";
+        $error = "Login unsuccessful. Check your username and re-enter your password.";
     }
 }
 ?>

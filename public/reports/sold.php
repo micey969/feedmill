@@ -4,6 +4,8 @@ require_once __DIR__ . '/../../app/middleware/auth.php';
 
 $startDate = is_string($_GET['start_date'] ?? null) ? trim($_GET['start_date']) : date('Y-m-01');
 $endDate = is_string($_GET['end_date'] ?? null) ? trim($_GET['end_date']) : date('Y-m-d');
+$formStartDate = $startDate;
+$formEndDate = $endDate;
 
 $start = DateTime::createFromFormat('!Y-m-d', $startDate);
 $end = DateTime::createFromFormat('!Y-m-d', $endDate);
@@ -140,9 +142,9 @@ if (($_GET['export'] ?? '') === 'pdf' && $reportError === '') {
       <div class="flex flex-wrap items-center gap-3">
         <form action="<?php echo htmlspecialchars(publicUrl('reports/sold.php')); ?>" method="GET" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-xs">
           <span class="text-slate-500 font-medium pl-2">Range:</span>
-          <input type="date" name="start_date" value="<?php echo $escape($startDate); ?>" required class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-red-600">
+          <input type="date" name="start_date" value="<?php echo $escape($formStartDate); ?>" required class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-red-600">
           <span class="text-slate-400 font-medium">to</span>
-          <input type="date" name="end_date" value="<?php echo $escape($endDate); ?>" required class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-red-600">
+          <input type="date" name="end_date" value="<?php echo $escape($formEndDate); ?>" required class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-red-600">
           <button type="submit" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition shadow-xs">
             Apply
           </button>

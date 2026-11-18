@@ -22,7 +22,10 @@ Use this checklist to verify the main user workflows in the Feedmill Production 
 
 ## Login, Navigation, and Access
 
-- [ ] Press Enter in a search form. Expected: the search is applied. Press Enter in other form inputs, including login. Expected: the form does not submit; its submit button still works with a mouse or keyboard, and Enter in a multiline text field adds a new line.
+- [ ] Press Enter in a search or login form. Expected: the search or login is submitted. Press Enter in other form inputs. Expected: the form does not submit; its submit button still works with a mouse or keyboard, and Enter in a multiline text field adds a new line.
+- [ ] Trigger a server-side validation error on create and edit forms. Expected: entered values and dynamic rows are restored in the original form, including its dialog and page; passwords must be re-entered.
+- [ ] Trigger a conflicting edit after another user changes or removes a record. Expected: no stale edit overwrites the new data; values that cannot be restored are available to copy.
+- [ ] Submit a form successfully, then revisit it or submit a search. Expected: the earlier form values are not restored into the new page or search.
 - [ ] Submit valid credentials for an active account. Expected: login succeeds, the dashboard opens, and the signed-in user's name and job title are shown.
 - [ ] Submit an incorrect username or password. Expected: access is denied and an invalid-login message is displayed.
 - [ ] Attempt to log in with the inactive account. Expected: access is denied.

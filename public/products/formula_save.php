@@ -17,13 +17,13 @@ $ingredientIds = $_POST['ingredients'] ?? [];
 $quantities = $_POST['quantities'] ?? [];
 
 if ($formulaId === '' || $formulaName === '' || $setupDate === '' || !is_array($ingredientIds) || !is_array($quantities) || count($ingredientIds) !== count($quantities) || count($ingredientIds) === 0) {
-  header('Location: ' . publicUrl('products/feedlist.php?error=invalid'));
+  header('Location: ' . publicUrl('products/formulas.php?error=invalid'));
   exit;
 }
 
 $normalizedIngredientIds = array_map('intval', $ingredientIds);
 if (count($normalizedIngredientIds) !== count(array_unique($normalizedIngredientIds))) {
-  header('Location: ' . publicUrl('products/feedlist.php?error=duplicate_ingredient'));
+  header('Location: ' . publicUrl('products/formulas.php?error=duplicate_ingredient'));
   exit;
 }
 
@@ -80,7 +80,7 @@ try {
   if ($exception instanceof mysqli_sql_exception && (int) $exception->getCode() === 1062) {
     $saveError = 'duplicate';
   }
-  header('Location: ' . publicUrl('products/feedlist.php?error=' . $saveError));
+  header('Location: ' . publicUrl('products/formulas.php?error=' . $saveError));
   exit;
 }
 logAction($conn, $_SESSION['user'] ?? 'unknown', "ADD", $details = "Added new formula: $formulaId - $formulaName");
